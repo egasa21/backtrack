@@ -1,0 +1,893 @@
+{
+  "id": "java-core",
+  "order": 1,
+  "title": "Java Core Fundamentals",
+  "goal": "Rebuild confidence in writing plain Java without Spring.",
+  "dependencies": [],
+  "topics": [
+    {
+      "id": "java-core-classes-and-objects",
+      "title": "Classes and objects",
+      "description": "Separate a class definition from the identity and state of each instance.",
+      "learningGoals": [
+        "Separate a class definition from the identity and state of each instance.",
+        "Explain Identity, State and Behavior.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Identity",
+        "State",
+        "Behavior"
+      ],
+      "examples": [
+        "Create two GiftCard objects with different balances. Spend from one and verify the other is unchanged."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Classes and objects in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "java-core-constructors",
+      "title": "Constructors",
+      "description": "Establish valid object state at creation and reject invalid inputs.",
+      "learningGoals": [
+        "Establish valid object state at creation and reject invalid inputs.",
+        "Explain Required fields, Validation and Valid initial state.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Required fields",
+        "Validation",
+        "Valid initial state"
+      ],
+      "examples": [
+        "Reject a Coupon with a blank code or discount outside 1–100. Avoid creating an object that must be fixed later."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Constructors in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-classes-and-objects"
+      ]
+    },
+    {
+      "id": "java-core-encapsulation",
+      "title": "Encapsulation",
+      "description": "Protect state with behavior instead of exposing mutable fields.",
+      "learningGoals": [
+        "Protect state with behavior instead of exposing mutable fields.",
+        "Explain Private state, Behavior methods and Invariant protection.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Private state",
+        "Behavior methods",
+        "Invariant protection"
+      ],
+      "examples": [
+        "Expose spend(amount) on GiftCard rather than setBalance(balance). Ensure all balance changes enforce the same rules."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Encapsulation in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-constructors"
+      ]
+    },
+    {
+      "id": "java-core-interfaces",
+      "title": "Interfaces",
+      "description": "Define a behavior contract without coupling callers to its implementation.",
+      "learningGoals": [
+        "Define a behavior contract without coupling callers to its implementation.",
+        "Explain Contracts, Substitutability and Implementation independence.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Contracts",
+        "Substitutability",
+        "Implementation independence"
+      ],
+      "examples": [
+        "Define TokenHasher with hash and matches methods. Test a token service using a small fake without changing its callers."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Interfaces in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-encapsulation"
+      ]
+    },
+    {
+      "id": "java-core-enums",
+      "title": "Enums",
+      "description": "Represent a finite set of valid values and transitions.",
+      "learningGoals": [
+        "Represent a finite set of valid values and transitions.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Enums",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply enums to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "java-core-interfaces"
+      ]
+    },
+    {
+      "id": "java-core-records",
+      "title": "Records",
+      "description": "Model immutable data carriers and understand shallow immutability.",
+      "learningGoals": [
+        "Model immutable data carriers and understand shallow immutability.",
+        "Explain Value equality, Final components and Shallow immutability.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Value equality",
+        "Final components",
+        "Shallow immutability"
+      ],
+      "examples": [
+        "Model a Money record. If a record contains a List, copy the list so callers cannot mutate it through the record."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Records in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-enums"
+      ]
+    },
+    {
+      "id": "java-core-exceptions",
+      "title": "Exceptions",
+      "description": "Distinguish recoverable failures from programmer errors and preserve causes.",
+      "learningGoals": [
+        "Distinguish recoverable failures from programmer errors and preserve causes.",
+        "Explain Checked and unchecked failures, Exception causes and Failure atomicity.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Checked and unchecked failures",
+        "Exception causes",
+        "Failure atomicity"
+      ],
+      "examples": [
+        "Attempt to spend more than a gift card balance. Reject the operation and verify the balance remains unchanged."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Exceptions in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-records"
+      ]
+    },
+    {
+      "id": "java-core-collections",
+      "title": "Collections",
+      "description": "Choose collection contracts based on ordering, uniqueness, and lookup needs.",
+      "learningGoals": [
+        "Choose collection contracts based on ordering, uniqueness, and lookup needs.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Collections",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply collections to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "java-core-exceptions"
+      ]
+    },
+    {
+      "id": "java-core-list",
+      "title": "List",
+      "description": "Represent ordered values, duplicates, and indexed access.",
+      "learningGoals": [
+        "Represent ordered values, duplicates, and indexed access.",
+        "Explain Ordering, Duplicate values and Indexed access.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Ordering",
+        "Duplicate values",
+        "Indexed access"
+      ],
+      "examples": [
+        "Store an ordered audit-event history. Decide whether duplicate events are valid and how removal changes indexes."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain List in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-collections"
+      ]
+    },
+    {
+      "id": "java-core-set",
+      "title": "Set",
+      "description": "Represent unique membership and understand equality-based deduplication.",
+      "learningGoals": [
+        "Represent unique membership and understand equality-based deduplication.",
+        "Explain Membership, Uniqueness and Equality.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Membership",
+        "Uniqueness",
+        "Equality"
+      ],
+      "examples": [
+        "Track revoked token IDs with a Set. Add the same ID twice and explain why the size does not increase."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Set in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-list"
+      ]
+    },
+    {
+      "id": "java-core-map",
+      "title": "Map",
+      "description": "Associate unique keys with values and handle absent keys explicitly.",
+      "learningGoals": [
+        "Associate unique keys with values and handle absent keys explicitly.",
+        "Explain Key-value lookup, Absent keys and Unique keys.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Key-value lookup",
+        "Absent keys",
+        "Unique keys"
+      ],
+      "examples": [
+        "Store users by ID. Compare a missing key with a key explicitly mapped to null; prefer a contract that avoids ambiguity."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Map in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-set"
+      ]
+    },
+    {
+      "id": "java-core-optional",
+      "title": "Optional",
+      "description": "Represent an absent return value without treating Optional as a universal field type.",
+      "learningGoals": [
+        "Represent an absent return value without treating Optional as a universal field type.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Optional",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply optional to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "java-core-map"
+      ]
+    },
+    {
+      "id": "java-core-instant",
+      "title": "Instant",
+      "description": "Represent a point on the UTC timeline and inject time for deterministic tests.",
+      "learningGoals": [
+        "Represent a point on the UTC timeline and inject time for deterministic tests.",
+        "Explain UTC timeline, Clock injection and Expiration boundary.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "UTC timeline",
+        "Clock injection",
+        "Expiration boundary"
+      ],
+      "examples": [
+        "A reset token expires at issuedAt.plus(Duration.ofMinutes(15)). Reject it when now is equal to or later than expiresAt."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Instant in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-optional"
+      ]
+    },
+    {
+      "id": "java-core-duration",
+      "title": "Duration",
+      "description": "Represent elapsed time and compare expiration windows at their boundaries.",
+      "learningGoals": [
+        "Represent elapsed time and compare expiration windows at their boundaries.",
+        "Explain Elapsed time, Units and Boundary comparisons.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Elapsed time",
+        "Units",
+        "Boundary comparisons"
+      ],
+      "examples": [
+        "Express the reset-token lifetime as Duration.ofMinutes(15). Test one instant before, exactly at, and after expiration."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Duration in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-instant"
+      ]
+    },
+    {
+      "id": "java-core-immutability",
+      "title": "Immutability",
+      "description": "Prevent accidental mutation and use defensive copies for mutable members.",
+      "learningGoals": [
+        "Prevent accidental mutation and use defensive copies for mutable members.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Immutability",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply immutability to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "java-core-duration"
+      ]
+    },
+    {
+      "id": "java-core-equals",
+      "title": "equals",
+      "description": "Define logical equality with reflexivity, symmetry, and transitivity.",
+      "learningGoals": [
+        "Define logical equality with reflexivity, symmetry, and transitivity.",
+        "Explain Reflexivity, Symmetry and Transitivity.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Reflexivity",
+        "Symmetry",
+        "Transitivity"
+      ],
+      "examples": [
+        "Compare two Coupon objects with the same code. Decide whether equality follows code identity or every field."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain equals in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-immutability"
+      ]
+    },
+    {
+      "id": "java-core-hashcode",
+      "title": "hashCode",
+      "description": "Ensure equal objects have equal hashes and avoid mutable map keys.",
+      "learningGoals": [
+        "Ensure equal objects have equal hashes and avoid mutable map keys.",
+        "Explain Equality contract, Hash buckets and Mutable keys.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Equality contract",
+        "Hash buckets",
+        "Mutable keys"
+      ],
+      "examples": [
+        "Insert an object into HashMap, mutate a field used by hashCode, and explain why a later lookup may fail."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain hashCode in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-equals"
+      ]
+    },
+    {
+      "id": "java-core-generics",
+      "title": "Generics",
+      "description": "Write type-safe reusable code and distinguish bounds from wildcards.",
+      "learningGoals": [
+        "Write type-safe reusable code and distinguish bounds from wildcards.",
+        "Explain Type parameters, Bounds and Wildcards.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Type parameters",
+        "Bounds",
+        "Wildcards"
+      ],
+      "examples": [
+        "Write a typed repository contract. Explain why List<GiftCard> cannot be treated as List<Object>."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Generics in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "java-core-hashcode"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "java-core-coupon",
+      "title": "Coupon",
+      "description": "Practice the module by designing and testing coupon.",
+      "learningGoals": [
+        "Practice the module by designing and testing coupon.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Coupon",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply coupon to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Coupon code"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Percentage discount"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Expiration"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Maximum usage count"
+        },
+        {
+          "id": "requirement-5",
+          "title": "Activation state"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "java-core-generics"
+      ],
+      "requirements": [
+        "Coupon code",
+        "Percentage discount",
+        "Expiration",
+        "Maximum usage count",
+        "Activation state"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    },
+    {
+      "id": "java-core-gift-card",
+      "title": "Gift Card",
+      "description": "Practice the module by designing and testing gift card.",
+      "learningGoals": [
+        "Practice the module by designing and testing gift card.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Gift Card",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply gift card to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Initial balance"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Spend balance"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Prevent negative balance"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Expiration"
+        },
+        {
+          "id": "requirement-5",
+          "title": "Block and unblock"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "java-core-generics"
+      ],
+      "requirements": [
+        "Initial balance",
+        "Spend balance",
+        "Prevent negative balance",
+        "Expiration",
+        "Block and unblock"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    },
+    {
+      "id": "java-core-api-key",
+      "title": "API Key",
+      "description": "Practice the module by designing and testing api key.",
+      "learningGoals": [
+        "Practice the module by designing and testing api key.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "API Key",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply api key to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Generate key"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Hash key"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Validate"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Expire"
+        },
+        {
+          "id": "requirement-5",
+          "title": "Revoke"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "java-core-generics"
+      ],
+      "requirements": [
+        "Generate key",
+        "Hash key",
+        "Validate",
+        "Expire",
+        "Revoke"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "java-core-password-reset-token",
+      "title": "Password Reset Token",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Requirements"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Rules"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Domain model"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Algorithm"
+        },
+        {
+          "id": "deliverable-5",
+          "title": "Implementation"
+        },
+        {
+          "id": "deliverable-6",
+          "title": "Boundary and failure tests"
+        }
+      ],
+      "dependencies": [
+        "java-core-generics"
+      ],
+      "requirements": [
+        "Belongs to one user",
+        "Expires after 15 minutes",
+        "One-time use",
+        "Cannot be reused",
+        "Can be invalidated"
+      ],
+      "constraints": [
+        "No Spring",
+        "No database",
+        "Plain Java",
+        "In-memory storage"
+      ],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Domain model",
+        "Algorithm",
+        "Implementation",
+        "Boundary and failure tests"
+      ]
+    }
+  ]
+}

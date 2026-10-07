@@ -1,0 +1,786 @@
+{
+  "id": "http-auth",
+  "order": 6,
+  "title": "HTTP & Authentication",
+  "goal": "Understand authentication without relying on framework magic.",
+  "dependencies": [
+    "database"
+  ],
+  "topics": [
+    {
+      "id": "http-auth-http-request",
+      "title": "HTTP request",
+      "description": "Describe method, target, headers, and body as separate parts.",
+      "learningGoals": [
+        "Describe method, target, headers, and body as separate parts.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "HTTP request",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply http request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "http-auth-http-response",
+      "title": "HTTP response",
+      "description": "Describe status, headers, and body for success and failure.",
+      "learningGoals": [
+        "Describe status, headers, and body for success and failure.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "HTTP response",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply http response to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-http-request"
+      ]
+    },
+    {
+      "id": "http-auth-headers",
+      "title": "Headers",
+      "description": "Distinguish request metadata from payload and avoid leaking credentials.",
+      "learningGoals": [
+        "Distinguish request metadata from payload and avoid leaking credentials.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Headers",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply headers to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-http-response"
+      ]
+    },
+    {
+      "id": "http-auth-cookies",
+      "title": "Cookies",
+      "description": "Explain browser storage, automatic sending, and cookie scope.",
+      "learningGoals": [
+        "Explain browser storage, automatic sending, and cookie scope.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Cookies",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply cookies to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-headers"
+      ]
+    },
+    {
+      "id": "http-auth-authorization-header",
+      "title": "Authorization header",
+      "description": "Describe how a client supplies credentials explicitly.",
+      "learningGoals": [
+        "Describe how a client supplies credentials explicitly.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Authorization header",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply authorization header to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-cookies"
+      ]
+    },
+    {
+      "id": "http-auth-status-codes",
+      "title": "Status codes",
+      "description": "Choose meaningful success, client error, and server error responses.",
+      "learningGoals": [
+        "Choose meaningful success, client error, and server error responses.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Status codes",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply status codes to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-authorization-header"
+      ]
+    },
+    {
+      "id": "http-auth-bearer-token",
+      "title": "Bearer token",
+      "description": "Explain why possession grants access and how to protect the token.",
+      "learningGoals": [
+        "Explain why possession grants access and how to protect the token.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Bearer token",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply bearer token to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-status-codes"
+      ]
+    },
+    {
+      "id": "http-auth-session-authentication",
+      "title": "Session authentication",
+      "description": "Trace a session identifier to server-side authentication state.",
+      "learningGoals": [
+        "Trace a session identifier to server-side authentication state.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Session authentication",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply session authentication to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-bearer-token"
+      ]
+    },
+    {
+      "id": "http-auth-jwt",
+      "title": "JWT",
+      "description": "Explain claims, signature verification, expiration, and revocation limitations.",
+      "learningGoals": [
+        "Explain claims, signature verification, expiration, and revocation limitations.",
+        "Explain Claims, Signature verification and Expiry.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Claims",
+        "Signature verification",
+        "Expiry"
+      ],
+      "examples": [
+        "Describe an access JWT with subject and expiration. Explain why reading its payload is not the same as validating its signature."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain JWT in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "http-auth-session-authentication"
+      ]
+    },
+    {
+      "id": "http-auth-opaque-token",
+      "title": "Opaque token",
+      "description": "Use an unpredictable token whose meaning is stored on the server.",
+      "learningGoals": [
+        "Use an unpredictable token whose meaning is stored on the server.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Opaque token",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply opaque token to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-jwt"
+      ]
+    },
+    {
+      "id": "http-auth-hashing",
+      "title": "Hashing",
+      "description": "Explain one-way verification and why raw refresh tokens should not be stored.",
+      "learningGoals": [
+        "Explain one-way verification and why raw refresh tokens should not be stored.",
+        "Explain One-way verification, Token hash storage and Secret comparison.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "One-way verification",
+        "Token hash storage",
+        "Secret comparison"
+      ],
+      "examples": [
+        "Store a hash of a high-entropy opaque refresh token. On refresh, hash the supplied token and look up the matching record."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Hashing in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "http-auth-opaque-token"
+      ]
+    },
+    {
+      "id": "http-auth-encryption",
+      "title": "Encryption",
+      "description": "Explain reversible confidentiality and key management.",
+      "learningGoals": [
+        "Explain reversible confidentiality and key management.",
+        "Explain Reversibility, Confidentiality and Key management.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Reversibility",
+        "Confidentiality",
+        "Key management"
+      ],
+      "examples": [
+        "Encrypting a value allows recovery with a key. Contrast that with a hash used only for verification."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Encryption in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "http-auth-hashing"
+      ]
+    },
+    {
+      "id": "http-auth-signing",
+      "title": "Signing",
+      "description": "Verify authenticity and integrity without promising secrecy.",
+      "learningGoals": [
+        "Verify authenticity and integrity without promising secrecy.",
+        "Explain Integrity, Authenticity and Public payload.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Integrity",
+        "Authenticity",
+        "Public payload"
+      ],
+      "examples": [
+        "A signed JWT can still be read. Changing a claim must cause signature verification to fail."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Signing in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "http-auth-encryption"
+      ]
+    },
+    {
+      "id": "http-auth-csrf",
+      "title": "CSRF",
+      "description": "Explain unwanted authenticated actions caused by automatically sent cookies.",
+      "learningGoals": [
+        "Explain unwanted authenticated actions caused by automatically sent cookies.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "CSRF",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply csrf to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-signing"
+      ]
+    },
+    {
+      "id": "http-auth-xss",
+      "title": "XSS",
+      "description": "Explain injected scripts and the risks of exposing tokens to browser code.",
+      "learningGoals": [
+        "Explain injected scripts and the risks of exposing tokens to browser code.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "XSS",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply xss to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-csrf"
+      ]
+    },
+    {
+      "id": "http-auth-samesite-cookies",
+      "title": "SameSite cookies",
+      "description": "Compare Strict, Lax, and None in cross-site request behavior.",
+      "learningGoals": [
+        "Compare Strict, Lax, and None in cross-site request behavior.",
+        "Explain Strict, Lax and None.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Strict",
+        "Lax",
+        "None"
+      ],
+      "examples": [
+        "Compare cookies sent on cross-site navigation versus a cross-site POST. SameSite=None requires Secure; plan CSRF defenses separately."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain SameSite cookies in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "http-auth-xss"
+      ]
+    },
+    {
+      "id": "http-auth-expiration",
+      "title": "Expiration",
+      "description": "Define access and refresh lifetimes and boundary behavior.",
+      "learningGoals": [
+        "Define access and refresh lifetimes and boundary behavior.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Expiration",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply expiration to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "http-auth-samesite-cookies"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "http-auth-login-request",
+      "title": "Login Request",
+      "description": "Practice the module by designing and testing login request.",
+      "learningGoals": [
+        "Practice the module by designing and testing login request.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Login Request",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply login request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Describe POST /login"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "http-auth-expiration"
+      ],
+      "requirements": [
+        "Describe POST /login"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Request",
+        "Authentication state",
+        "Server actions",
+        "Database actions",
+        "Response"
+      ]
+    },
+    {
+      "id": "http-auth-refresh-request",
+      "title": "Refresh Request",
+      "description": "Practice the module by designing and testing refresh request.",
+      "learningGoals": [
+        "Practice the module by designing and testing refresh request.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Refresh Request",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply refresh request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Describe POST /refresh"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "http-auth-expiration"
+      ],
+      "requirements": [
+        "Describe POST /refresh"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Request",
+        "Authentication state",
+        "Server actions",
+        "Database actions",
+        "Response"
+      ]
+    },
+    {
+      "id": "http-auth-logout-request",
+      "title": "Logout Request",
+      "description": "Practice the module by designing and testing logout request.",
+      "learningGoals": [
+        "Practice the module by designing and testing logout request.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Logout Request",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply logout request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Describe POST /logout"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "http-auth-expiration"
+      ],
+      "requirements": [
+        "Describe POST /logout"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Request",
+        "Authentication state",
+        "Server actions",
+        "Database actions",
+        "Response"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "http-auth-authentication-flow",
+      "title": "Authentication Flow",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Request"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Authentication state"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Server actions"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Database actions"
+        },
+        {
+          "id": "deliverable-5",
+          "title": "Response"
+        },
+        {
+          "id": "deliverable-6",
+          "title": "Threat and failure cases"
+        }
+      ],
+      "dependencies": [
+        "http-auth-expiration"
+      ],
+      "requirements": [
+        "Register",
+        "Login",
+        "Access API",
+        "Refresh",
+        "Logout",
+        "Logout All Sessions"
+      ],
+      "constraints": [
+        "No implementation first",
+        "Hashing ≠ Encryption ≠ Signing",
+        "Access Token ≠ Refresh Token"
+      ],
+      "deliverables": [
+        "Request",
+        "Authentication state",
+        "Server actions",
+        "Database actions",
+        "Response",
+        "Threat and failure cases"
+      ]
+    }
+  ]
+}

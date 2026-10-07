@@ -1,0 +1,504 @@
+{
+  "id": "oop-design",
+  "order": 3,
+  "title": "OOP & Software Design",
+  "goal": "Learn where logic belongs and make responsibilities explicit.",
+  "dependencies": [
+    "problem-solving"
+  ],
+  "topics": [
+    {
+      "id": "oop-design-responsibility",
+      "title": "Responsibility",
+      "description": "Give each object a clear reason to exist and a bounded set of duties.",
+      "learningGoals": [
+        "Give each object a clear reason to exist and a bounded set of duties.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Responsibility",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply responsibility to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "oop-design-information-expert",
+      "title": "Information expert",
+      "description": "Place behavior with the object that owns the information it needs.",
+      "learningGoals": [
+        "Place behavior with the object that owns the information it needs.",
+        "Explain Data ownership, Behavior placement and Invariants.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Data ownership",
+        "Behavior placement",
+        "Invariants"
+      ],
+      "examples": [
+        "BankAccount owns its balance and frozen state, so it decides whether withdrawal is allowed."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Information expert in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "oop-design-responsibility"
+      ]
+    },
+    {
+      "id": "oop-design-tell-don-t-ask",
+      "title": "Tell, don't ask",
+      "description": "Ask objects to perform behavior instead of inspecting and mutating their state.",
+      "learningGoals": [
+        "Ask objects to perform behavior instead of inspecting and mutating their state.",
+        "Explain Behavior-oriented APIs, Encapsulation and Decision ownership.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Behavior-oriented APIs",
+        "Encapsulation",
+        "Decision ownership"
+      ],
+      "examples": [
+        "Call account.withdraw(amount) instead of reading balance, checking it in a service, then calling setBalance."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Tell, don't ask in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "oop-design-information-expert"
+      ]
+    },
+    {
+      "id": "oop-design-high-cohesion",
+      "title": "High cohesion",
+      "description": "Keep closely related behavior together around one purpose.",
+      "learningGoals": [
+        "Keep closely related behavior together around one purpose.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "High cohesion",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply high cohesion to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-tell-don-t-ask"
+      ]
+    },
+    {
+      "id": "oop-design-low-coupling",
+      "title": "Low coupling",
+      "description": "Reduce the assumptions one part makes about another.",
+      "learningGoals": [
+        "Reduce the assumptions one part makes about another.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Low coupling",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply low coupling to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-high-cohesion"
+      ]
+    },
+    {
+      "id": "oop-design-composition",
+      "title": "Composition",
+      "description": "Combine small objects instead of using inheritance for code reuse alone.",
+      "learningGoals": [
+        "Combine small objects instead of using inheritance for code reuse alone.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Composition",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply composition to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-low-coupling"
+      ]
+    },
+    {
+      "id": "oop-design-dependency-inversion",
+      "title": "Dependency inversion",
+      "description": "Make policy depend on contracts rather than infrastructure details.",
+      "learningGoals": [
+        "Make policy depend on contracts rather than infrastructure details.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Dependency inversion",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply dependency inversion to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-composition"
+      ]
+    },
+    {
+      "id": "oop-design-entity",
+      "title": "Entity",
+      "description": "Model identity and behavior that persist through state changes.",
+      "learningGoals": [
+        "Model identity and behavior that persist through state changes.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Entity",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply entity to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-dependency-inversion"
+      ]
+    },
+    {
+      "id": "oop-design-domain-service",
+      "title": "Domain service",
+      "description": "Place domain rules that span entities in a focused operation.",
+      "learningGoals": [
+        "Place domain rules that span entities in a focused operation.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Domain service",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply domain service to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-entity"
+      ]
+    },
+    {
+      "id": "oop-design-application-service",
+      "title": "Application service",
+      "description": "Orchestrate a use case without absorbing entity invariants.",
+      "learningGoals": [
+        "Orchestrate a use case without absorbing entity invariants.",
+        "Explain Use-case orchestration, Dependencies and Transaction scope.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Use-case orchestration",
+        "Dependencies",
+        "Transaction scope"
+      ],
+      "examples": [
+        "A refresh use case loads the token, asks the domain to validate it, rotates it, persists changes, and issues a response."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Application service in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "oop-design-domain-service"
+      ]
+    },
+    {
+      "id": "oop-design-interface-design",
+      "title": "Interface design",
+      "description": "Expose the smallest contract callers actually need.",
+      "learningGoals": [
+        "Expose the smallest contract callers actually need.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Interface design",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply interface design to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "oop-design-application-service"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "oop-design-bankaccount",
+      "title": "BankAccount",
+      "description": "Practice the module by designing and testing bankaccount.",
+      "learningGoals": [
+        "Practice the module by designing and testing bankaccount.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "BankAccount",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply bankaccount to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "deposit, withdraw, freeze, unfreeze, close"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Closed account cannot transact"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Frozen account cannot withdraw"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Amount must be positive"
+        },
+        {
+          "id": "requirement-5",
+          "title": "Balance cannot go negative"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "oop-design-interface-design"
+      ],
+      "requirements": [
+        "deposit, withdraw, freeze, unfreeze, close",
+        "Closed account cannot transact",
+        "Frozen account cannot withdraw",
+        "Amount must be positive",
+        "Balance cannot go negative"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "oop-design-token-responsibilities",
+      "title": "Token Responsibilities",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "For each class: Why does it exist?"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "What does it know?"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "What can it do?"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "What should it not do?"
+        }
+      ],
+      "dependencies": [
+        "oop-design-interface-design"
+      ],
+      "requirements": [
+        "Design RefreshToken, Session, UserSessionService",
+        "Design TokenGenerator, TokenHasher, RefreshTokenRepository, AccessTokenIssuer"
+      ],
+      "constraints": [
+        "Keep domain rules separate from orchestration and infrastructure"
+      ],
+      "deliverables": [
+        "For each class: Why does it exist?",
+        "What does it know?",
+        "What can it do?",
+        "What should it not do?"
+      ]
+    }
+  ]
+}

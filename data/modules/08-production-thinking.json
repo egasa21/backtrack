@@ -1,0 +1,579 @@
+{
+  "id": "production-thinking",
+  "order": 8,
+  "title": "Production Backend Thinking",
+  "goal": "Think beyond “the happy path works.”",
+  "dependencies": [
+    "spring-boot"
+  ],
+  "topics": [
+    {
+      "id": "production-thinking-observability",
+      "title": "Observability",
+      "description": "Use logs, metrics, and traces to explain system behavior.",
+      "learningGoals": [
+        "Use logs, metrics, and traces to explain system behavior.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Observability",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply observability to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "production-thinking-retries",
+      "title": "Retries",
+      "description": "Retry transient failures with limits and avoid repeating unsafe side effects.",
+      "learningGoals": [
+        "Retry transient failures with limits and avoid repeating unsafe side effects.",
+        "Explain Transient failures, Backoff and Bounded attempts.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Transient failures",
+        "Backoff",
+        "Bounded attempts"
+      ],
+      "examples": [
+        "A payment request times out after the provider may have charged it. Retry only with an idempotency strategy and a bounded policy."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Retries in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-observability"
+      ]
+    },
+    {
+      "id": "production-thinking-idempotency",
+      "title": "Idempotency",
+      "description": "Make duplicate requests produce a stable outcome.",
+      "learningGoals": [
+        "Make duplicate requests produce a stable outcome.",
+        "Explain Request identity, Stable result and Duplicate effects.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Request identity",
+        "Stable result",
+        "Duplicate effects"
+      ],
+      "examples": [
+        "Two identical refund requests with the same idempotency key should return the same result without issuing two refunds."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Idempotency in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-retries"
+      ]
+    },
+    {
+      "id": "production-thinking-timeout",
+      "title": "Timeout",
+      "description": "Bound waiting time and distinguish a timeout from a proven failure.",
+      "learningGoals": [
+        "Bound waiting time and distinguish a timeout from a proven failure.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Timeout",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply timeout to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-idempotency"
+      ]
+    },
+    {
+      "id": "production-thinking-concurrency",
+      "title": "Concurrency",
+      "description": "Reason about simultaneous operations across threads and instances.",
+      "learningGoals": [
+        "Reason about simultaneous operations across threads and instances.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Concurrency",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply concurrency to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-timeout"
+      ]
+    },
+    {
+      "id": "production-thinking-transaction-boundaries",
+      "title": "Transaction boundaries",
+      "description": "Keep atomic changes together without holding locks during external calls.",
+      "learningGoals": [
+        "Keep atomic changes together without holding locks during external calls.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Transaction boundaries",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply transaction boundaries to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-concurrency"
+      ]
+    },
+    {
+      "id": "production-thinking-failure-recovery",
+      "title": "Failure recovery",
+      "description": "Plan recovery when a process crashes between steps.",
+      "learningGoals": [
+        "Plan recovery when a process crashes between steps.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Failure recovery",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply failure recovery to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-transaction-boundaries"
+      ]
+    },
+    {
+      "id": "production-thinking-audit-trail",
+      "title": "Audit trail",
+      "description": "Record who changed what and when without exposing secrets.",
+      "learningGoals": [
+        "Record who changed what and when without exposing secrets.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Audit trail",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply audit trail to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-failure-recovery"
+      ]
+    },
+    {
+      "id": "production-thinking-scalability",
+      "title": "Scalability",
+      "description": "Find bottlenecks and state assumptions before adding infrastructure.",
+      "learningGoals": [
+        "Find bottlenecks and state assumptions before adding infrastructure.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Scalability",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply scalability to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-audit-trail"
+      ]
+    },
+    {
+      "id": "production-thinking-security",
+      "title": "Security",
+      "description": "Identify trust boundaries and minimize sensitive data exposure.",
+      "learningGoals": [
+        "Identify trust boundaries and minimize sensitive data exposure.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Security",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply security to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-scalability"
+      ]
+    },
+    {
+      "id": "production-thinking-logging",
+      "title": "Logging",
+      "description": "Log useful context and never log passwords or raw tokens.",
+      "learningGoals": [
+        "Log useful context and never log passwords or raw tokens.",
+        "Explain Useful context, Correlation IDs and Secret redaction.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Useful context",
+        "Correlation IDs",
+        "Secret redaction"
+      ],
+      "examples": [
+        "Log the session ID, outcome, and request correlation ID. Never log passwords, raw refresh tokens, or authorization headers."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Logging in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-security"
+      ]
+    },
+    {
+      "id": "production-thinking-metrics",
+      "title": "Metrics",
+      "description": "Measure latency, traffic, errors, and resource saturation.",
+      "learningGoals": [
+        "Measure latency, traffic, errors, and resource saturation.",
+        "Explain Traffic, Error rate, Latency and Saturation.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Traffic",
+        "Error rate",
+        "Latency",
+        "Saturation"
+      ],
+      "examples": [
+        "Measure refresh success and rejection counts plus latency. Avoid per-user labels that create unbounded metric cardinality."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Metrics in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-logging"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "production-thinking-failure-walkthrough",
+      "title": "Failure Walkthrough",
+      "description": "Practice the module by designing and testing failure walkthrough.",
+      "learningGoals": [
+        "Practice the module by designing and testing failure walkthrough.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Failure Walkthrough",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply failure walkthrough to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "What if the request happens twice?"
+        },
+        {
+          "id": "requirement-2",
+          "title": "What if the database dies halfway?"
+        },
+        {
+          "id": "requirement-3",
+          "title": "What if an external API times out?"
+        },
+        {
+          "id": "requirement-4",
+          "title": "What if the application crashes?"
+        },
+        {
+          "id": "requirement-5",
+          "title": "What if multiple application instances execute this?"
+        },
+        {
+          "id": "requirement-6",
+          "title": "What should be logged?"
+        },
+        {
+          "id": "requirement-7",
+          "title": "What should never be logged?"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-metrics"
+      ],
+      "requirements": [
+        "What if the request happens twice?",
+        "What if the database dies halfway?",
+        "What if an external API times out?",
+        "What if the application crashes?",
+        "What if multiple application instances execute this?",
+        "What should be logged?",
+        "What should never be logged?"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "production-thinking-authentication-service",
+      "title": "Authentication Service",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Requirements and rules"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Data model and migrations"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Algorithm and responsibilities"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Implementation"
+        },
+        {
+          "id": "deliverable-5",
+          "title": "Unit and integration tests"
+        },
+        {
+          "id": "deliverable-6",
+          "title": "Concurrency tests"
+        },
+        {
+          "id": "deliverable-7",
+          "title": "Failure recovery and observability plan"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-metrics"
+      ],
+      "requirements": [
+        "Register",
+        "Login",
+        "Access Token Issuance",
+        "Refresh Token Issuance",
+        "Refresh Token Rotation",
+        "Refresh Token Family",
+        "Reuse Detection",
+        "Session Revocation",
+        "Logout",
+        "Logout All Sessions"
+      ],
+      "constraints": [
+        "Java, Spring Boot, PostgreSQL, Flyway, JUnit, Testcontainers",
+        "Opaque refresh tokens",
+        "Hashed refresh token storage",
+        "Short-lived JWT access tokens",
+        "Secure random generation",
+        "Transactional rotation",
+        "Do not add Redis initially"
+      ],
+      "deliverables": [
+        "Requirements and rules",
+        "Data model and migrations",
+        "Algorithm and responsibilities",
+        "Implementation",
+        "Unit and integration tests",
+        "Concurrency tests",
+        "Failure recovery and observability plan"
+      ]
+    }
+  ]
+}

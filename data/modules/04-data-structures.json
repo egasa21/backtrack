@@ -1,0 +1,746 @@
+{
+  "id": "data-structures",
+  "order": 4,
+  "title": "Data Structures for Backend Engineers",
+  "goal": "Choose structures by the operations and constraints of the problem.",
+  "dependencies": [
+    "oop-design"
+  ],
+  "topics": [
+    {
+      "id": "data-structures-array",
+      "title": "Array",
+      "description": "Use fixed-size indexed storage and reason about contiguous access.",
+      "learningGoals": [
+        "Use fixed-size indexed storage and reason about contiguous access.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Array",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply array to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "data-structures-arraylist",
+      "title": "ArrayList",
+      "description": "Understand amortized append and the cost of shifting elements.",
+      "learningGoals": [
+        "Understand amortized append and the cost of shifting elements.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "ArrayList",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply arraylist to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-array"
+      ]
+    },
+    {
+      "id": "data-structures-linkedlist",
+      "title": "LinkedList",
+      "description": "Compare pointer traversal with indexed access and allocation overhead.",
+      "learningGoals": [
+        "Compare pointer traversal with indexed access and allocation overhead.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "LinkedList",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply linkedlist to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-arraylist"
+      ]
+    },
+    {
+      "id": "data-structures-stack",
+      "title": "Stack",
+      "description": "Use last-in-first-out behavior for nested work and undo operations.",
+      "learningGoals": [
+        "Use last-in-first-out behavior for nested work and undo operations.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Stack",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply stack to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-linkedlist"
+      ]
+    },
+    {
+      "id": "data-structures-queue",
+      "title": "Queue",
+      "description": "Use first-in-first-out processing for background work.",
+      "learningGoals": [
+        "Use first-in-first-out processing for background work.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Queue",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply queue to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-stack"
+      ]
+    },
+    {
+      "id": "data-structures-deque",
+      "title": "Deque",
+      "description": "Use a double-ended queue for stack and queue operations.",
+      "learningGoals": [
+        "Use a double-ended queue for stack and queue operations.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Deque",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply deque to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-queue"
+      ]
+    },
+    {
+      "id": "data-structures-hashmap",
+      "title": "HashMap",
+      "description": "Use key-based lookup and explain collisions and equals/hashCode interaction.",
+      "learningGoals": [
+        "Use key-based lookup and explain collisions and equals/hashCode interaction.",
+        "Explain Hashing, Collisions and Average O(1) lookup.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Hashing",
+        "Collisions",
+        "Average O(1) lookup"
+      ],
+      "examples": [
+        "Index sessions by ID. Use a custom key and test its equals/hashCode contract. Explain why worst-case behavior differs from average lookup."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain HashMap in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "data-structures-deque"
+      ]
+    },
+    {
+      "id": "data-structures-hashset",
+      "title": "HashSet",
+      "description": "Detect duplicates and reason about memory growth.",
+      "learningGoals": [
+        "Detect duplicates and reason about memory growth.",
+        "Explain Deduplication, Membership and Memory growth.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Deduplication",
+        "Membership",
+        "Memory growth"
+      ],
+      "examples": [
+        "Reject repeated request IDs with a set. Explain why entries need expiration or eviction after millions of requests."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain HashSet in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "data-structures-hashmap"
+      ]
+    },
+    {
+      "id": "data-structures-tree",
+      "title": "Tree",
+      "description": "Represent parent-child relationships and traversal order.",
+      "learningGoals": [
+        "Represent parent-child relationships and traversal order.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Tree",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply tree to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-hashset"
+      ]
+    },
+    {
+      "id": "data-structures-heap",
+      "title": "Heap",
+      "description": "Maintain an extremum efficiently without fully sorting every insertion.",
+      "learningGoals": [
+        "Maintain an extremum efficiently without fully sorting every insertion.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Heap",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply heap to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-tree"
+      ]
+    },
+    {
+      "id": "data-structures-priorityqueue",
+      "title": "PriorityQueue",
+      "description": "Schedule the earliest job using a stable comparator.",
+      "learningGoals": [
+        "Schedule the earliest job using a stable comparator.",
+        "Explain Heap ordering, Comparator and Earliest-first scheduling.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Heap ordering",
+        "Comparator",
+        "Earliest-first scheduling"
+      ],
+      "examples": [
+        "Insert jobs out of order by executeAt. Poll the earliest job, and use a sequence number to break ties deterministically."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain PriorityQueue in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "data-structures-heap"
+      ]
+    },
+    {
+      "id": "data-structures-graph-basics",
+      "title": "Graph basics",
+      "description": "Represent dependencies, detect cycles, and traverse relationships.",
+      "learningGoals": [
+        "Represent dependencies, detect cycles, and traverse relationships.",
+        "Explain Nodes and edges, Traversal and Cycle detection.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Nodes and edges",
+        "Traversal",
+        "Cycle detection"
+      ],
+      "examples": [
+        "Treat topics as nodes and prerequisites as directed edges. Explain why a cycle makes a recommended learning order impossible."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Graph basics in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "data-structures-priorityqueue"
+      ]
+    },
+    {
+      "id": "data-structures-sorting",
+      "title": "Sorting",
+      "description": "Compare ordering strategies, stability, and time-space costs.",
+      "learningGoals": [
+        "Compare ordering strategies, stability, and time-space costs.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Sorting",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply sorting to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-graph-basics"
+      ]
+    },
+    {
+      "id": "data-structures-binary-search",
+      "title": "Binary search",
+      "description": "Search sorted data while handling inclusive and exclusive bounds.",
+      "learningGoals": [
+        "Search sorted data while handling inclusive and exclusive bounds.",
+        "Explain Sorted input, Search interval and Off-by-one boundaries.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Sorted input",
+        "Search interval",
+        "Off-by-one boundaries"
+      ],
+      "examples": [
+        "Find an expiration timestamp in a sorted list. Test an empty list, the first value, the last value, and a missing value."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Binary search in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "data-structures-sorting"
+      ]
+    },
+    {
+      "id": "data-structures-big-o",
+      "title": "Big-O",
+      "description": "Compare growth rates and distinguish average, worst-case, and amortized costs.",
+      "learningGoals": [
+        "Compare growth rates and distinguish average, worst-case, and amortized costs.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Big-O",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply big-o to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-binary-search"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "data-structures-duplicate-request-detector",
+      "title": "Duplicate Request Detector",
+      "description": "Practice the module by designing and testing duplicate request detector.",
+      "learningGoals": [
+        "Practice the module by designing and testing duplicate request detector.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Duplicate Request Detector",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply duplicate request detector to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Use HashSet"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Explain lookup complexity"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Measure memory usage"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Consider millions of entries"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "data-structures-big-o"
+      ],
+      "requirements": [
+        "Use HashSet",
+        "Explain lookup complexity",
+        "Measure memory usage",
+        "Consider millions of entries"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    },
+    {
+      "id": "data-structures-job-queue",
+      "title": "Job Queue",
+      "description": "Practice the module by designing and testing job queue.",
+      "learningGoals": [
+        "Practice the module by designing and testing job queue.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Job Queue",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply job queue to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Jobs: EMAIL, PAYMENT, NOTIFICATION"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Process FIFO"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Define behavior for failed jobs"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "data-structures-big-o"
+      ],
+      "requirements": [
+        "Jobs: EMAIL, PAYMENT, NOTIFICATION",
+        "Process FIFO",
+        "Define behavior for failed jobs"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    },
+    {
+      "id": "data-structures-scheduler",
+      "title": "Scheduler",
+      "description": "Practice the module by designing and testing scheduler.",
+      "learningGoals": [
+        "Practice the module by designing and testing scheduler.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Scheduler",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply scheduler to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Each job has executeAt and payload"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Run earliest job first"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Define tie-breaking behavior"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "data-structures-big-o"
+      ],
+      "requirements": [
+        "Each job has executeAt and payload",
+        "Run earliest job first",
+        "Define tie-breaking behavior"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "data-structures-in-memory-rate-limiter",
+      "title": "In-memory Rate Limiter",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Requirements and window rules"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Data structure choice"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Algorithm"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Boundary and concurrency tests"
+        }
+      ],
+      "dependencies": [
+        "data-structures-big-o"
+      ],
+      "requirements": [
+        "Maximum 100 requests per user per minute",
+        "Separate users",
+        "Define window behavior",
+        "Handle concurrent requests",
+        "Bound memory growth"
+      ],
+      "constraints": [
+        "Use in-memory storage"
+      ],
+      "deliverables": [
+        "Requirements and window rules",
+        "Data structure choice",
+        "Algorithm",
+        "Boundary and concurrency tests"
+      ]
+    }
+  ]
+}

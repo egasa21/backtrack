@@ -1,0 +1,21 @@
+{
+  "title": "Backend Engineering Journey",
+  "description": "Rebuild the fundamentals. Think before you code.",
+  "workflow": [
+    "Requirement",
+    "Rules",
+    "Algorithm",
+    "Data Model",
+    "Responsibilities",
+    "Methods / Classes",
+    "Implementation",
+    "Tests"
+  ],
+  "rules": [
+    "Before implementation, write requirements, rules, data, algorithm, responsibilities, and failure cases.",
+    "Ask AI to review your design or give one hint before asking for implementation.",
+    "Work independently for 25 minutes before asking AI for implementation help.",
+    "After finishing a topic, explain it without looking at code or notes.",
+    "Mastery means explaining why each class and method exists, why the data is modeled this way, and why the algorithm works."
+  ]
+}

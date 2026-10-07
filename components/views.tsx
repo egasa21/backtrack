@@ -1,0 +1,14 @@
+"use client";
+import Link from "next/link";
+import { useProgress } from "./progress-provider";
+import { ModuleCard, PageHeading, Status } from "./ui";
+import { label } from "@/lib/progress";
+export function RoadmapView() {
+  const { modules } = useProgress();
+  return <><PageHeading eyebrow="FOLLOW THE FOUNDATIONS" title="Your engineering roadmap" description={`${modules.length} modules. One connected path from plain Java to production thinking.`} /><div className="roadmap-layout"><div className="roadmap-chain">{modules.map(m => <ModuleCard key={m.id} module={m} connected />)}</div><aside className="panel roadmap-guide"><span className="eyebrow">HOW TO USE THIS PATH</span><h2>Build on what you know.</h2><p>Prerequisites show where to begin. You can explore every module at any time.</p><p>Completion measures topics marked completed. Tasks, explanation checks, and AI assistance track your understanding separately.</p><div className="legend">{["NOT_STARTED", "LEARNING", "PRACTICING", "COMPLETED", "REVIEW"].map(status => <Status key={status} status={status as import("@/types/roadmap").LearningStatus} />)}</div><Link href="/challenges/" className="text-link">Practice with a challenge →</Link></aside></div></>;
+}
+export function ItemList({ review = false }: { review?: boolean }) {
+  const { modules, progress } = useProgress();
+  const groups = modules.map(m => ({ module: m, items: review ? m.topics.filter(t => progress.items[t.id]?.status === "REVIEW" || (progress.items[t.id]?.status === "COMPLETED" && progress.items[t.id]?.canExplainWithoutNotes === false)) : m.challenges }));
+  return <><PageHeading eyebrow={review ? "MAKE IT STICK" : "DESIGN. IMPLEMENT. VERIFY."} title={review ? "Return with fresh eyes" : "Practice beyond the happy path"} description={review ? "Topics marked for review, or completed topics you cannot yet explain without notes." : "Apply each module through a practical, design-first challenge."} />{groups.every(g => !g.items.length) && <div className="panel empty-state">Your review queue is clear.<p>Mark any topic as Review or set its explanation check to No after completing it.</p><Link className="button button-primary" href="/roadmap/">Explore topics →</Link></div>}{groups.filter(g => g.items.length).map(({ module, items }) => <section className="section-spacing" key={module.id}><div className="eyebrow">MODULE {String(module.order).padStart(2, "0")} / {module.title}</div>{items.map(item => <Link key={item.id} href={`/${review ? "topics" : "challenges"}/${item.id}/`} className="list-card"><div><h3>{item.title}</h3><p>{item.description}</p><small>{review ? "AI assistance" : "Attempts"}: {review ? label(progress.items[item.id]?.aiHelp ?? "NONE") : progress.items[item.id]?.attempts ?? 0}</small></div><Status status={progress.items[item.id]?.status} /><span>↗</span></Link>)}</section>)}</>;
+}

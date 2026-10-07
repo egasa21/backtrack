@@ -1,0 +1,650 @@
+{
+  "id": "spring-boot",
+  "order": 7,
+  "title": "Spring Boot from First Principles",
+  "goal": "Understand what Spring does behind the annotations.",
+  "dependencies": [
+    "http-auth"
+  ],
+  "topics": [
+    {
+      "id": "spring-boot-ioc",
+      "title": "IoC",
+      "description": "Explain how container-managed construction changes control flow.",
+      "learningGoals": [
+        "Explain how container-managed construction changes control flow.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "IoC",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply ioc to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "spring-boot-dependency-injection",
+      "title": "Dependency Injection",
+      "description": "Supply collaborators explicitly and compare manual construction with Spring.",
+      "learningGoals": [
+        "Supply collaborators explicitly and compare manual construction with Spring.",
+        "Explain Constructor injection, Explicit collaborators and Testability.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Constructor injection",
+        "Explicit collaborators",
+        "Testability"
+      ],
+      "examples": [
+        "Compare new RefreshTokenService(repository, generator, hasher) with a container supplying the same constructor dependencies."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Dependency Injection in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-ioc"
+      ]
+    },
+    {
+      "id": "spring-boot-bean",
+      "title": "Bean",
+      "description": "Explain managed object identity, scope, and lifecycle.",
+      "learningGoals": [
+        "Explain managed object identity, scope, and lifecycle.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Bean",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply bean to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-dependency-injection"
+      ]
+    },
+    {
+      "id": "spring-boot-applicationcontext",
+      "title": "ApplicationContext",
+      "description": "Describe the container that creates and resolves beans.",
+      "learningGoals": [
+        "Describe the container that creates and resolves beans.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "ApplicationContext",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply applicationcontext to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-bean"
+      ]
+    },
+    {
+      "id": "spring-boot-component-scanning",
+      "title": "Component Scanning",
+      "description": "Explain how classes are discovered and how package boundaries matter.",
+      "learningGoals": [
+        "Explain how classes are discovered and how package boundaries matter.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Component Scanning",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply component scanning to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-applicationcontext"
+      ]
+    },
+    {
+      "id": "spring-boot-configuration",
+      "title": "@Configuration",
+      "description": "Use configuration classes to declare construction rules.",
+      "learningGoals": [
+        "Use configuration classes to declare construction rules.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "@Configuration",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply @configuration to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-component-scanning"
+      ]
+    },
+    {
+      "id": "spring-boot-bean-annotation",
+      "title": "@Bean",
+      "description": "Describe a factory method that registers a managed object.",
+      "learningGoals": [
+        "Describe a factory method that registers a managed object.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "@Bean",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply @bean to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-configuration"
+      ]
+    },
+    {
+      "id": "spring-boot-proxy",
+      "title": "Proxy",
+      "description": "Explain wrapping a target and why self-invocation can bypass advice.",
+      "learningGoals": [
+        "Explain wrapping a target and why self-invocation can bypass advice.",
+        "Explain Target wrapper, Interception and Self-invocation.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Target wrapper",
+        "Interception",
+        "Self-invocation"
+      ],
+      "examples": [
+        "An external caller passes through the transactional proxy. A method calling another method on this may bypass the proxy."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Proxy in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-bean-annotation"
+      ]
+    },
+    {
+      "id": "spring-boot-aop",
+      "title": "AOP",
+      "description": "Describe cross-cutting advice and where it executes.",
+      "learningGoals": [
+        "Describe cross-cutting advice and where it executes.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "AOP",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply aop to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-proxy"
+      ]
+    },
+    {
+      "id": "spring-boot-transactional",
+      "title": "@Transactional",
+      "description": "Explain proxy-driven transactions, rollback, and transaction boundaries.",
+      "learningGoals": [
+        "Explain proxy-driven transactions, rollback, and transaction boundaries.",
+        "Explain Proxy advice, Transaction boundary and Rollback behavior.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Proxy advice",
+        "Transaction boundary",
+        "Rollback behavior"
+      ],
+      "examples": [
+        "Wrap token revocation and replacement in one use case. Explain how an exception affects rollback and why a self-call can bypass advice."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain @Transactional in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-aop"
+      ]
+    },
+    {
+      "id": "spring-boot-spring-mvc",
+      "title": "Spring MVC",
+      "description": "Trace a request through routing, binding, and controller invocation.",
+      "learningGoals": [
+        "Trace a request through routing, binding, and controller invocation.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Spring MVC",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply spring mvc to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-transactional"
+      ]
+    },
+    {
+      "id": "spring-boot-validation",
+      "title": "Validation",
+      "description": "Reject invalid inputs at the HTTP boundary before domain work.",
+      "learningGoals": [
+        "Reject invalid inputs at the HTTP boundary before domain work.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Validation",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply validation to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-spring-mvc"
+      ]
+    },
+    {
+      "id": "spring-boot-exception-handling",
+      "title": "Exception Handling",
+      "description": "Translate failures into stable responses without exposing internals.",
+      "learningGoals": [
+        "Translate failures into stable responses without exposing internals.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Exception Handling",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply exception handling to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-validation"
+      ]
+    },
+    {
+      "id": "spring-boot-spring-data",
+      "title": "Spring Data",
+      "description": "Explain repository implementations while keeping domain contracts explicit.",
+      "learningGoals": [
+        "Explain repository implementations while keeping domain contracts explicit.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Spring Data",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply spring data to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-exception-handling"
+      ]
+    },
+    {
+      "id": "spring-boot-spring-security",
+      "title": "Spring Security",
+      "description": "Trace authentication and authorization through the filter chain.",
+      "learningGoals": [
+        "Trace authentication and authorization through the filter chain.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Spring Security",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply spring security to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-spring-data"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "spring-boot-coupon-api",
+      "title": "Coupon API",
+      "description": "Practice the module by designing and testing coupon api.",
+      "learningGoals": [
+        "Practice the module by designing and testing coupon api.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Coupon API",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply coupon api to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "POST /coupons"
+        },
+        {
+          "id": "requirement-2",
+          "title": "POST /coupons/{code}/redeem"
+        },
+        {
+          "id": "requirement-3",
+          "title": "GET /coupons/{code}"
+        },
+        {
+          "id": "requirement-4",
+          "title": "DELETE /coupons/{code}"
+        },
+        {
+          "id": "requirement-5",
+          "title": "Controller → Application Service → Domain → Repository"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-spring-security"
+      ],
+      "requirements": [
+        "POST /coupons",
+        "POST /coupons/{code}/redeem",
+        "GET /coupons/{code}",
+        "DELETE /coupons/{code}",
+        "Controller → Application Service → Domain → Repository"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "spring-boot-refresh-token-implementation",
+      "title": "Refresh Token Implementation",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Domain Model"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Repository Contract"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Application Service"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Tests"
+        },
+        {
+          "id": "deliverable-5",
+          "title": "Infrastructure"
+        },
+        {
+          "id": "deliverable-6",
+          "title": "Controller"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-spring-security"
+      ],
+      "requirements": [
+        "Implement refresh token support",
+        "Compare new RefreshTokenService(repository, generator, hasher) with managed construction"
+      ],
+      "constraints": [
+        "Do not start from the controller"
+      ],
+      "deliverables": [
+        "Domain Model",
+        "Repository Contract",
+        "Application Service",
+        "Tests",
+        "Infrastructure",
+        "Controller"
+      ]
+    }
+  ]
+}

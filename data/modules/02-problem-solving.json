@@ -1,0 +1,528 @@
+{
+  "id": "problem-solving",
+  "order": 2,
+  "title": "Business Logic & Problem Solving",
+  "goal": "Translate business requirements into clear, testable algorithms.",
+  "dependencies": [
+    "java-core"
+  ],
+  "topics": [
+    {
+      "id": "problem-solving-requirement-decomposition",
+      "title": "Requirement decomposition",
+      "description": "Break a request into inputs, outputs, rules, and observable outcomes.",
+      "learningGoals": [
+        "Break a request into inputs, outputs, rules, and observable outcomes.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirement decomposition",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply requirement decomposition to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "problem-solving-preconditions",
+      "title": "Preconditions",
+      "description": "State what must be true before an operation can begin.",
+      "learningGoals": [
+        "State what must be true before an operation can begin.",
+        "Explain Input validity, Required state and Rejection.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Input validity",
+        "Required state",
+        "Rejection"
+      ],
+      "examples": [
+        "Before cancellation, require an existing order in a cancellable state. Specify the error for each rejected state."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Preconditions in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-requirement-decomposition"
+      ]
+    },
+    {
+      "id": "problem-solving-postconditions",
+      "title": "Postconditions",
+      "description": "State what must be true after success and after failure.",
+      "learningGoals": [
+        "State what must be true after success and after failure.",
+        "Explain Success outcome, Failure outcome and Observable state.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Success outcome",
+        "Failure outcome",
+        "Observable state"
+      ],
+      "examples": [
+        "After a successful refund, the total refunded amount increases once. After a rejected refund, no money state changes."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Postconditions in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-preconditions"
+      ]
+    },
+    {
+      "id": "problem-solving-invariants",
+      "title": "Invariants",
+      "description": "Identify rules that must remain true through every state change.",
+      "learningGoals": [
+        "Identify rules that must remain true through every state change.",
+        "Explain Always-valid rules, Atomic changes and State consistency.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Always-valid rules",
+        "Atomic changes",
+        "State consistency"
+      ],
+      "examples": [
+        "The sum of refunds must never exceed the paid amount, even when two refund requests arrive concurrently."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Invariants in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-postconditions"
+      ]
+    },
+    {
+      "id": "problem-solving-happy-path",
+      "title": "Happy path",
+      "description": "Trace the smallest valid sequence from input to successful result.",
+      "learningGoals": [
+        "Trace the smallest valid sequence from input to successful result.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Happy path",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply happy path to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-invariants"
+      ]
+    },
+    {
+      "id": "problem-solving-failure-path",
+      "title": "Failure path",
+      "description": "Specify rejection behavior and preserve valid state after failure.",
+      "learningGoals": [
+        "Specify rejection behavior and preserve valid state after failure.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Failure path",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply failure path to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-happy-path"
+      ]
+    },
+    {
+      "id": "problem-solving-edge-cases",
+      "title": "Edge cases",
+      "description": "Find boundaries, empty values, duplicate calls, and time-based surprises.",
+      "learningGoals": [
+        "Find boundaries, empty values, duplicate calls, and time-based surprises.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Edge cases",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply edge cases to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-failure-path"
+      ]
+    },
+    {
+      "id": "problem-solving-state-transitions",
+      "title": "State transitions",
+      "description": "Define legal transitions and reject repeated or forbidden actions.",
+      "learningGoals": [
+        "Define legal transitions and reject repeated or forbidden actions.",
+        "Explain States, Allowed transitions and Repeated actions.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "States",
+        "Allowed transitions",
+        "Repeated actions"
+      ],
+      "examples": [
+        "Draw CREATED → PAID → SHIPPED. Reject cancellation for PAID, SHIPPED, or already CANCELLED orders."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain State transitions in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-edge-cases"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "problem-solving-voucher-redemption",
+      "title": "Voucher Redemption",
+      "description": "Practice the module by designing and testing voucher redemption.",
+      "learningGoals": [
+        "Practice the module by designing and testing voucher redemption.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Voucher Redemption",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply voucher redemption to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Design redeemVoucher(voucherCode, userId)"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Validate activation, expiration, and remaining uses"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Reject duplicate or invalid redemption"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-state-transitions"
+      ],
+      "requirements": [
+        "Design redeemVoucher(voucherCode, userId)",
+        "Validate activation, expiration, and remaining uses",
+        "Reject duplicate or invalid redemption"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    },
+    {
+      "id": "problem-solving-order-cancellation",
+      "title": "Order Cancellation",
+      "description": "Practice the module by designing and testing order cancellation.",
+      "learningGoals": [
+        "Practice the module by designing and testing order cancellation.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Order Cancellation",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply order cancellation to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "PAID orders cannot be cancelled"
+        },
+        {
+          "id": "requirement-2",
+          "title": "SHIPPED orders cannot be cancelled"
+        },
+        {
+          "id": "requirement-3",
+          "title": "CANCELLED orders cannot be cancelled again"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-state-transitions"
+      ],
+      "requirements": [
+        "PAID orders cannot be cancelled",
+        "SHIPPED orders cannot be cancelled",
+        "CANCELLED orders cannot be cancelled again"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    },
+    {
+      "id": "problem-solving-refund-processing",
+      "title": "Refund Processing",
+      "description": "Practice the module by designing and testing refund processing.",
+      "learningGoals": [
+        "Practice the module by designing and testing refund processing.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Refund Processing",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply refund processing to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Design processRefund(transactionId, amount)"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Support partial refund"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Prevent duplicate refund"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Reject refund larger than remaining original amount"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-state-transitions"
+      ],
+      "requirements": [
+        "Design processRefund(transactionId, amount)",
+        "Support partial refund",
+        "Prevent duplicate refund",
+        "Reject refund larger than remaining original amount"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "problem-solving-refresh-token-rotation",
+      "title": "Refresh Token Rotation",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Input"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Output"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Preconditions"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Algorithm"
+        },
+        {
+          "id": "deliverable-5",
+          "title": "State changes"
+        },
+        {
+          "id": "deliverable-6",
+          "title": "Dependencies"
+        },
+        {
+          "id": "deliverable-7",
+          "title": "Failure cases"
+        },
+        {
+          "id": "deliverable-8",
+          "title": "Concurrency risks"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-state-transitions"
+      ],
+      "requirements": [
+        "Design rotateRefreshToken(rawRefreshToken)",
+        "Validate opaque token",
+        "Detect expiration and revocation",
+        "Rotate token and prevent reuse",
+        "Keep token family",
+        "Handle concurrent refresh"
+      ],
+      "constraints": [
+        "Do not write implementation code first"
+      ],
+      "deliverables": [
+        "Input",
+        "Output",
+        "Preconditions",
+        "Algorithm",
+        "State changes",
+        "Dependencies",
+        "Failure cases",
+        "Concurrency risks"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,550 @@
+{
+  "id": "database",
+  "order": 5,
+  "title": "Database & Transaction Thinking",
+  "goal": "Understand persistence independently from JPA.",
+  "dependencies": [
+    "data-structures"
+  ],
+  "topics": [
+    {
+      "id": "database-relational-modeling",
+      "title": "Relational modeling",
+      "description": "Turn domain relationships into tables without duplicating facts.",
+      "learningGoals": [
+        "Turn domain relationships into tables without duplicating facts.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Relational modeling",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply relational modeling to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "database-primary-keys",
+      "title": "Primary keys",
+      "description": "Choose stable row identifiers and understand identity constraints.",
+      "learningGoals": [
+        "Choose stable row identifiers and understand identity constraints.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Primary keys",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply primary keys to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-relational-modeling"
+      ]
+    },
+    {
+      "id": "database-foreign-keys",
+      "title": "Foreign keys",
+      "description": "Preserve referential integrity when related rows change.",
+      "learningGoals": [
+        "Preserve referential integrity when related rows change.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Foreign keys",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply foreign keys to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-primary-keys"
+      ]
+    },
+    {
+      "id": "database-unique-constraints",
+      "title": "Unique constraints",
+      "description": "Enforce uniqueness atomically at the persistence boundary.",
+      "learningGoals": [
+        "Enforce uniqueness atomically at the persistence boundary.",
+        "Explain Atomic enforcement, Duplicate writes and Constraint errors.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Atomic enforcement",
+        "Duplicate writes",
+        "Constraint errors"
+      ],
+      "examples": [
+        "Make token_hash unique. Explain why checking for an existing hash in application code is insufficient under concurrent inserts."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Unique constraints in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "database-foreign-keys"
+      ]
+    },
+    {
+      "id": "database-indexes",
+      "title": "Indexes",
+      "description": "Trade write cost and storage for faster lookup on real access patterns.",
+      "learningGoals": [
+        "Trade write cost and storage for faster lookup on real access patterns.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Indexes",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply indexes to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-unique-constraints"
+      ]
+    },
+    {
+      "id": "database-transactions",
+      "title": "Transactions",
+      "description": "Group state changes into an atomic unit of work.",
+      "learningGoals": [
+        "Group state changes into an atomic unit of work.",
+        "Explain Atomicity, Commit and Rollback.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Atomicity",
+        "Commit",
+        "Rollback"
+      ],
+      "examples": [
+        "Revoke token X and create token Y in the same transaction. If insertion fails, neither change should be committed."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Transactions in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "database-indexes"
+      ]
+    },
+    {
+      "id": "database-acid",
+      "title": "ACID",
+      "description": "Explain atomicity, consistency, isolation, and durability using a failure scenario.",
+      "learningGoals": [
+        "Explain atomicity, consistency, isolation, and durability using a failure scenario.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "ACID",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply acid to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-transactions"
+      ]
+    },
+    {
+      "id": "database-isolation-levels",
+      "title": "Isolation levels",
+      "description": "Reason about what concurrent transactions can observe.",
+      "learningGoals": [
+        "Reason about what concurrent transactions can observe.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Isolation levels",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply isolation levels to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-acid"
+      ]
+    },
+    {
+      "id": "database-race-conditions",
+      "title": "Race conditions",
+      "description": "Identify check-then-act operations that fail under concurrency.",
+      "learningGoals": [
+        "Identify check-then-act operations that fail under concurrency.",
+        "Explain Check-then-act, Interleaving and Atomic updates.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Check-then-act",
+        "Interleaving",
+        "Atomic updates"
+      ],
+      "examples": [
+        "A and B both read token X as active. Write their interleaving and identify the single operation that must select one winner."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Race conditions in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "database-isolation-levels"
+      ]
+    },
+    {
+      "id": "database-optimistic-locking",
+      "title": "Optimistic locking",
+      "description": "Reject stale updates using a version check and plan retries.",
+      "learningGoals": [
+        "Reject stale updates using a version check and plan retries.",
+        "Explain Version column, Conditional updates and Conflict handling.",
+        "Demonstrate a valid operation and a boundary or failure case."
+      ],
+      "concepts": [
+        "Version column",
+        "Conditional updates",
+        "Conflict handling"
+      ],
+      "examples": [
+        "UPDATE a token only when version equals the value read. Treat an affected-row count of zero as a conflict."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Optimistic locking in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "database-race-conditions"
+      ]
+    },
+    {
+      "id": "database-pessimistic-locking",
+      "title": "Pessimistic locking",
+      "description": "Serialize conflicting work with locks and bounded transaction scope.",
+      "learningGoals": [
+        "Serialize conflicting work with locks and bounded transaction scope.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Pessimistic locking",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply pessimistic locking to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-optimistic-locking"
+      ]
+    },
+    {
+      "id": "database-deadlocks",
+      "title": "Deadlocks",
+      "description": "Explain circular waits and choose consistent lock ordering.",
+      "learningGoals": [
+        "Explain circular waits and choose consistent lock ordering.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Deadlocks",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply deadlocks to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "database-pessimistic-locking"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "database-session-tables",
+      "title": "Session Tables",
+      "description": "Practice the module by designing and testing session tables.",
+      "learningGoals": [
+        "Practice the module by designing and testing session tables.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Session Tables",
+        "Valid state",
+        "Failure behavior"
+      ],
+      "examples": [
+        "Apply session tables to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+      ],
+      "tasks": [
+        {
+          "id": "requirement-1",
+          "title": "Design users, sessions, refresh_tokens"
+        },
+        {
+          "id": "requirement-2",
+          "title": "Should token_hash be unique?"
+        },
+        {
+          "id": "requirement-3",
+          "title": "Should session_id be indexed?"
+        },
+        {
+          "id": "requirement-4",
+          "title": "Should revoked_at be nullable?"
+        },
+        {
+          "id": "requirement-5",
+          "title": "Should raw token ever be stored?"
+        },
+        {
+          "id": "requirement-6",
+          "title": "How do we identify the token that replaced another?"
+        },
+        {
+          "id": "failure-tests",
+          "title": "Check boundary and failure cases"
+        }
+      ],
+      "dependencies": [
+        "database-deadlocks"
+      ],
+      "requirements": [
+        "Design users, sessions, refresh_tokens",
+        "Should token_hash be unique?",
+        "Should session_id be indexed?",
+        "Should revoked_at be nullable?",
+        "Should raw token ever be stored?",
+        "How do we identify the token that replaced another?"
+      ],
+      "constraints": [],
+      "deliverables": [
+        "Requirements",
+        "Rules",
+        "Data model",
+        "Algorithm",
+        "Responsibilities",
+        "Failure cases",
+        "Tests"
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "database-concurrent-refresh-rotation",
+      "title": "Concurrent Refresh Rotation",
+      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "learningGoals": [
+        "Apply the whole module in a deliberate design-first challenge.",
+        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      ],
+      "concepts": [
+        "Requirements and rules",
+        "State and responsibilities",
+        "Failure cases and verification"
+      ],
+      "examples": [
+        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+      ],
+      "tasks": [
+        {
+          "id": "deliverable-1",
+          "title": "Transaction boundaries"
+        },
+        {
+          "id": "deliverable-2",
+          "title": "Locking or atomic update strategy"
+        },
+        {
+          "id": "deliverable-3",
+          "title": "Unique constraints"
+        },
+        {
+          "id": "deliverable-4",
+          "title": "Failure and retry behavior"
+        },
+        {
+          "id": "deliverable-5",
+          "title": "Concurrency test plan"
+        }
+      ],
+      "dependencies": [
+        "database-deadlocks"
+      ],
+      "requirements": [
+        "Requests A and B both use token X nearly simultaneously",
+        "Both validate X and try to rotate",
+        "Prevent two child tokens from being committed"
+      ],
+      "constraints": [
+        "Do not rely on a single-instance application lock"
+      ],
+      "deliverables": [
+        "Transaction boundaries",
+        "Locking or atomic update strategy",
+        "Unique constraints",
+        "Failure and retry behavior",
+        "Concurrency test plan"
+      ]
+    }
+  ]
+}
