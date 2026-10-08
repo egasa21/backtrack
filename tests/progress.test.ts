@@ -113,3 +113,25 @@ test("curriculum expansion preserves every original module, item, and task ident
   }
   assert.deepEqual(parseExport(exportProgress(progress)), progress);
 });
+
+test("networking guide retains every unit, capstone acceptance check, and self-assessment question", () => {
+  const module = modules.find(m => m.id === "backend-networking");
+  assert.ok(module?.sourceGuide);
+  assert.equal(module.order, 9);
+  assert.deepEqual(module.dependencies, ["production-thinking"]);
+  const guide = readFileSync(`public${module.sourceGuide.url}`, "utf8");
+  const units = [...guide.matchAll(/^# Unit (\d+) — /gm)].map(match => Number(match[1]));
+  assert.deepEqual(units, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  for (const unit of units.slice(0, -1)) assert.ok(module.topics.some(t => t.id === `networking-unit-${unit}`));
+  const clean = (text: string) => text.replaceAll("**", "").replaceAll("`", "");
+  const acceptanceSection = guide.split("## Acceptance tests")[1].split("## Oral design review")[0];
+  const checks = [...acceptanceSection.matchAll(/^- \[ \] (.+)$/gm)].map(match => clean(match[1]));
+  assert.equal(checks.length, 10);
+  const capstone = module.challenges.find(c => c.id === "networking-mini-payment-status-reconciler");
+  assert.ok(capstone);
+  for (const check of checks) assert.ok(capstone.acceptanceCriteria?.includes(check), `Missing capstone check: ${check}`);
+  assert.equal(capstone.material?.recallQuestions.length, 6);
+  const assessment = module.exercises.find(e => e.id === "networking-networking-written-self-assessment");
+  assert.equal(assessment?.material?.recallQuestions.length, 20);
+  assert.ok(capstone.acceptanceCriteria?.some(c => c.includes("Expired lease holders")));
+});

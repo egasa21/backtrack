@@ -1,6 +1,6 @@
 # Backtrack
 
-A personal backend engineering roadmap. Eight modules take you from plain Java to an Authentication Service project. Curriculum is source-controlled JSON; personal progress stays in your browser.
+A personal backend engineering roadmap. Nine modules take you from plain Java to an Authentication Service project and a networking/payment-reconciliation lab. Curriculum is source-controlled JSON; personal progress stays in your browser.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ Each item has `id`, `title`, `description`, `learningGoals`, `concepts`, `exampl
 
 The full curriculum also includes `material`: a plain-text `explanation`, a `workedExample` with `scenario` and ordered `steps`, `commonMistakes`, `guidedExercise`, `independentExercise`, and `recallQuestions`. `acceptanceCriteria` states observable completion checks; `resources` contains official documentation links as `{ title, url }`. Modules include `outcomes`, `studyGuidance`, and `completionCriteria`. The app renders these fields directly without HTML, Markdown processing, or new dependencies. Existing simpler JSON definitions still render through the original examples fallback.
 
-The updated track has 143 topics, 23 exercises, and 9 challenges across the same eight modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and finishes with operational failure drills and a local runbook. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
+The updated track has 151 topics, 39 exercises, and 10 challenges across nine modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and finishes with operational failure drills and a local runbook. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
 
 Existing module, item, and task IDs are preserved. Notes, statuses, attempts, AI assistance, and checked tasks remain associated with the same content. Added topics can lower a module's percentage and leave new prerequisites incomplete; no progress is reset or silently marked complete. Previously completed exercises and challenges remain completed, so revisit their expanded criteria manually when useful.
 
@@ -53,10 +53,18 @@ Recommendations first continue an active learning/practicing topic, then choose 
 ```text
 app/          Next.js App Router pages and responsive styles
 components/   Dashboard, roadmap, detail editors, backup controls, context
-data/         Roadmap and eight standalone module JSON files
+data/         Roadmap and nine standalone module JSON files
 lib/          Build-time curriculum loader, progress rules, localStorage
 types/        Curriculum and progress types
 tests/        Native Node tests for import validation, focus, curriculum
 ```
 
 No streaks, cloud sync, AI integration, spaced repetition, or external state library in V1. The PostgreSQL and Spring references are learning content, not app infrastructure.
+
+## Networking and resource-management extension
+
+Module 9 adapts the supplied **Backend Networking & Resource Management** self-study guide after Production Thinking. Its eight topics cover Units 0–7; sixteen labs cover request mapping, DNS/routing, TCP framing and captures, TLS/PKIX, HTTP timing/reuse, JDBC and HTTP saturation, short transactions, bounded executors, durable scheduling, failure injection, and the twenty-question self-assessment. Unit 8 is the Mini Payment Status Reconciler capstone, including all ten original acceptance checks and six oral-review scenarios.
+
+The module page links to the complete original guide at `public/materials/backend-networking-self-study.md`, including shell commands, the suggested lab layout, reference shelf, and manual 0–4 mastery rubric. Record scores, evidence paths, and revisit dates in existing notes; no new progress schema is needed. The guide suggests eight weeks at four to six hours per week.
+
+Labs use only local or authorized targets and a local fake payment provider. TLS verification remains enabled; packet capture excludes production traffic and credentials. Database and Spring dependencies belong to the learning labs, not to this web app. Per-payment due timestamps, bounded workers, idempotent effects, short claims, and stale-worker protection are explicit capstone requirements.

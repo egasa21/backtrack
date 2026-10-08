@@ -1,0 +1,2593 @@
+{
+  "id": "backend-networking",
+  "order": 9,
+  "title": "Backend Networking & Resource Management",
+  "goal": "Trace HTTPS from Java to the wire, diagnose resource contention, and build a restart-safe payment status reconciler.",
+  "dependencies": [
+    "production-thinking"
+  ],
+  "sourceGuide": {
+    "title": "Download the complete networking self-study guide",
+    "url": "/materials/backend-networking-self-study.md"
+  },
+  "outcomes": [
+    "Explain DNS, routing, TCP, TLS, HTTP, client implementations, and resource reuse as separate responsibilities",
+    "Diagnose certificate, timeout, pool, queue, and thread failures with evidence",
+    "Implement bounded, durable polling and a local fake-provider reconciliation capstone"
+  ],
+  "studyGuidance": [
+    "Suggested pace: eight weeks at four to six focused hours per week; adjust to your own pace.",
+    "Use Java 25 or a supported JDK; match library documentation to the versions you run.",
+    "Predict → observe → experiment → explain → implement → test. Keep Prediction, Observation, Explanation, and Open questions in notes.",
+    "For each unit record a manual 0–4 score in notes: Unfamiliar, Recognize, Explain, Apply, Teach. Move on at Apply (3) and revisit after the capstone.",
+    "Work independently for 15–30 minutes, ask for hints or reasoning review, then reimplement the important portion without the solution visible.",
+    "Use localhost, example.com, and services you own or are authorized to inspect. Capture only your own loopback lab traffic; exclude production credentials and payment payloads.",
+    "Never disable TLS or hostname verification. Keep trust changes in a dedicated development truststore.",
+    "Use the full guide download for exact shell commands, the proposed lab repository layout, and the complete reference shelf."
+  ],
+  "completionCriteria": [
+    "Every foundation unit is explainable without notes and has a reproducible lab report",
+    "Capstone acceptance checks pass with bounded queues and observable resource lifecycles",
+    "Restart, duplicate, stale-work, and uncertain-provider cases preserve the declared invariants",
+    "Complete the written self-assessment and oral design review; revisit any score at or below 2"
+  ],
+  "topics": [
+    {
+      "id": "networking-unit-0",
+      "title": "Follow one request through the stack",
+      "description": "An HTTPS operation crosses several responsibilities: application code, a concrete client, DNS when needed, the operating system, transport, TLS, routing, and the remote application.",
+      "learningGoals": [
+        "The diagram separates logical responsibilities from packet order",
+        "Connection reuse and proxy placement are explained correctly",
+        "The journey can be narrated without notes"
+      ],
+      "concepts": [
+        "Protocol versus implementation versus resource versus business operation",
+        "HTTP client and OS responsibilities",
+        "DNS, TCP, TLS, IP, frames, NAT, proxies and load balancers",
+        "Connection reuse and HTTP/3 differences"
+      ],
+      "examples": [
+        "A shared client requests a local HTTPS endpoint twice."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [],
+      "material": {
+        "explanation": "An HTTPS operation crosses several responsibilities: application code, a concrete client, DNS when needed, the operating system, transport, TLS, routing, and the remote application. Those responsibilities are not one strictly serial packet timeline. Reusing a connection can skip setup; HTTP/3 uses QUIC over UDP rather than TCP. In Spring RestClient, retrieve() prepares a response specification; a terminal operation such as body(...) or toBodilessEntity() is needed to execute the request.",
+        "workedExample": {
+          "scenario": "A shared client requests a local HTTPS endpoint twice.",
+          "steps": [
+            "The first operation may require resolution, transport setup, and TLS negotiation.",
+            "The reused connection can avoid setup, but both requests still need HTTP and business processing."
+          ]
+        },
+        "commonMistakes": [
+          "A socket connection or transport acknowledgement does not prove a business operation completed."
+        ],
+        "guidedExercise": [
+          "Draw the host, local-network, and remote components.",
+          "Color-code protocol, implementation, resource, and business operation.",
+          "Predict which stages disappear with connection reuse."
+        ],
+        "independentExercise": "Narrate the full journey in under three minutes, then add a reverse proxy and explain how the trust boundary changes.",
+        "recallQuestions": [
+          "Why is HTTPS not the same as TCP?",
+          "Why is connection pooling not a protocol?",
+          "How can a load balancer change the path?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The diagram separates logical responsibilities from packet order",
+        "Connection reuse and proxy placement are explained correctly",
+        "The journey can be narrated without notes"
+      ],
+      "resources": [
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        },
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        },
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-1",
+      "title": "IP, DNS, ports, routing and NAT",
+      "description": "DNS resolves names, routing selects paths, ports identify transport endpoints, and NAT can rewrite outbound addresses.",
+      "learningGoals": [
+        "A route report identifies addresses, ports, next hops, and NAT assumptions",
+        "DNS failure is distinguished from connection failure",
+        "The CLI handles an unknown host without exposing secrets"
+      ],
+      "concepts": [
+        "IPv4 vs IPv6; private vs public addresses.",
+        "Hostname versus IP address; A/AAAA/CNAME DNS records; TTL and caching.",
+        "Resolver versus authoritative DNS server; DNS is not always a single request.",
+        "IP routing and next hops; packets can take different paths.",
+        "TCP ports and source/destination endpoints; ephemeral client port.",
+        "Network Address Translation (NAT), especially outbound source-IP translation in cloud environments.",
+        "The meaning of a TCP 4-tuple: (source IP, source port, destination IP, destination port)."
+      ],
+      "examples": [
+        "A container calls a provider through an outbound NAT gateway."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-0"
+      ],
+      "material": {
+        "explanation": "DNS resolves names, routing selects paths, ports identify transport endpoints, and NAT can rewrite outbound addresses. Diagnose them separately: a resolved address does not prove a port is reachable, and a successful TCP connection does not prove TLS or HTTP is valid. Resolver caches, IPv4/IPv6 selection, and network configuration can make laptop and deployment observations differ.",
+        "workedExample": {
+          "scenario": "A container calls a provider through an outbound NAT gateway.",
+          "steps": [
+            "DNS yields a destination address and the client selects an ephemeral source port.",
+            "The provider may observe the gateway public IP rather than the container private address."
+          ]
+        },
+        "commonMistakes": [
+          "ping and nc test different mechanisms; nc -vz is a TCP-connect test, not certificate validation."
+        ],
+        "guidedExercise": [
+          "Predict dig example.com A and dig example.com AAAA results, then observe them.",
+          "Inspect macOS interfaces/routes or Linux ip addr and ip route.",
+          "Use nc -vz example.com 443 and explain the limit of that evidence."
+        ],
+        "independentExercise": "Write a Java hostname-resolution CLI and explain different answers across machines or times.",
+        "recallQuestions": [
+          "Why can ping fail even when HTTPS succeeds?",
+          "A third party whitelists your application's IP. Why might it need your NAT gateway's address rather than your container's address?",
+          "What happens when DNS succeeds but port 443 is unreachable?",
+          "Why do DNS answers sometimes differ between your laptop and production?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A route report identifies addresses, ports, next hops, and NAT assumptions",
+        "DNS failure is distinguished from connection failure",
+        "The CLI handles an unknown host without exposing secrets"
+      ],
+      "resources": [
+        {
+          "title": "Java Socket API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+        },
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-2",
+      "title": "TCP and Java sockets",
+      "description": "TCP offers an ordered reliable byte stream, not message boundaries.",
+      "learningGoals": [
+        "Large and split-write messages reconstruct reliably",
+        "Negative, excessive, and truncated lengths reject safely",
+        "Connection, read timeout, close, and reset outcomes are distinguished"
+      ],
+      "concepts": [
+        "Connection-oriented transport; byte stream, not message boundaries.",
+        "TCP three-way handshake: SYN → SYN-ACK → ACK.",
+        "Sequence and acknowledgement numbers; retransmission, in-order delivery.",
+        "Flow control versus congestion control.",
+        "Round-trip time (RTT), packet loss, MTU.",
+        "TCP flags: SYN, ACK, FIN, RST.",
+        "Connection teardown, half-close, TIME_WAIT.",
+        "TCP keepalive versus application-level keepalive.",
+        "Why one application write does not guarantee one peer read."
+      ],
+      "examples": [
+        "A logical UTF-8 message is split across several writes."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-1"
+      ],
+      "material": {
+        "explanation": "TCP offers an ordered reliable byte stream, not message boundaries. Applications must frame their own messages and handle partial reads, orderly end-of-stream, resets, and timeouts. Its acknowledgements indicate transport progress, not application-level payment completion. Learn flow control, congestion control, teardown, and keepalive as different mechanisms.",
+        "workedExample": {
+          "scenario": "A logical UTF-8 message is split across several writes.",
+          "steps": [
+            "The receiver reads a four-byte length, validates it, then reads exactly that payload length.",
+            "The reconstructed message remains correct regardless of packet and read boundaries."
+          ]
+        },
+        "commonMistakes": [
+          "One sender write is not guaranteed to match one receiver read."
+        ],
+        "guidedExercise": [
+          "Build a loopback ServerSocket and Socket pair at 127.0.0.1:9090.",
+          "Use bounded length-prefixed framing and try-with-resources.",
+          "Compare clean close, timeout, and connection reset observations."
+        ],
+        "independentExercise": "Capture your own loopback exchange and label establishment, transfer, and teardown without assuming offload makes every packet visible.",
+        "recallQuestions": [
+          "The client has sent a request and times out before seeing a response. Can the server have processed it?",
+          "If a receiver reads 100 bytes, is that proof the sender wrote exactly 100 bytes?",
+          "What is different about a timeout waiting for a TCP connection versus a timeout waiting to read bytes?",
+          "What can happen if the client sends faster than the receiving application can consume?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Large and split-write messages reconstruct reliably",
+        "Negative, excessive, and truncated lengths reject safely",
+        "Connection, read timeout, close, and reset outcomes are distinguished"
+      ],
+      "resources": [
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        },
+        {
+          "title": "Java Socket API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+        },
+        {
+          "title": "Wireshark user guide",
+          "url": "https://www.wireshark.org/docs/wsug_html_chunked/"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-3",
+      "title": "TLS, certificates and the handshake",
+      "description": "TLS adds confidentiality, integrity, and authenticated peer identity over an underlying transport.",
+      "learningGoals": [
+        "Chain trust and hostname mismatch are diagnosed separately",
+        "SNI, ALPN, resumption, and proxy termination are explained",
+        "The repair preserves TLS and hostname verification"
+      ],
+      "concepts": [
+        "Confidentiality, integrity, server authentication.",
+        "TLS 1.3 basic full handshake: ClientHello → ServerHello → encrypted server authentication/Finished → client Finished.",
+        "Public/private key signatures, ephemeral key agreement, session keys, symmetric authenticated encryption.",
+        "Root CA → intermediate CA → leaf/server certificate; Java truststore versus server keystore.",
+        "SAN hostname matching, certificate validity and chain building.",
+        "SNI and ALPN; http/1.1 versus h2.",
+        "TLS termination at reverse proxies; hop-by-hop security assumptions.",
+        "TLS session resumption. Clarify why TLS is not simply “encrypt everything with the server's RSA public key.”"
+      ],
+      "examples": [
+        "A browser accepts a site while a JVM rejects its chain."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-2"
+      ],
+      "material": {
+        "explanation": "TLS adds confidentiality, integrity, and authenticated peer identity over an underlying transport. Certificate-chain trust and hostname matching are separate requirements. A Java truststore may differ from a browser trust system. Diagnose controlled failures by inspecting the chain, validity, hostname, and configured trust source; never solve the exercise by trusting every certificate.",
+        "workedExample": {
+          "scenario": "A browser accepts a site while a JVM rejects its chain.",
+          "steps": [
+            "Compare their trusted roots and the server-supplied intermediates.",
+            "Repair the intended development trust path while retaining hostname verification."
+          ]
+        },
+        "commonMistakes": [
+          "Encryption to an incorrectly authenticated peer is not a valid secure connection to the intended service."
+        ],
+        "guidedExercise": [
+          "Inspect a certificate chain with openssl s_client and the correct -servername value.",
+          "Reproduce a trust failure against a local development endpoint.",
+          "Use a dedicated development truststore for the intended CA or certificate."
+        ],
+        "independentExercise": "Write a Java-version-migration PKIX incident report with at least four hypotheses and a secure check for each.",
+        "recallQuestions": [
+          "Why isn't TLS provided by TCP itself?",
+          "Can a validly encrypted TLS session be established to the *wrong* hostname?",
+          "Why might browser HTTPS work while the JVM fails certificate validation?",
+          "What would a TLS-terminating reverse proxy be able to observe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Chain trust and hostname mismatch are diagnosed separately",
+        "SNI, ALPN, resumption, and proxy termination are explained",
+        "The repair preserves TLS and hostname verification"
+      ],
+      "resources": [
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-4",
+      "title": "HTTP, REST clients, and performance timing",
+      "description": "An HTTP status reports a protocol outcome and need not equal a business status: a payment inquiry can return HTTP 200 with PENDING.",
+      "learningGoals": [
+        "Timeouts are attributed to the correct stage",
+        "HTTP success and business completion are distinguished",
+        "Measurements state protocol and client-lifecycle assumptions"
+      ],
+      "concepts": [
+        "HTTP method, path, version, status, headers, body.",
+        "HTTP status vs business status (HTTP 200 and payment=PENDING can coexist).",
+        "HTTP/1.1 body framing and persistent connections.",
+        "HTTP/2 binary frames, multiplexed streams, and protocol negotiation.",
+        "HTTP/3 = HTTP over QUIC/UDP, not TCP.",
+        "Idempotent method semantics versus business-operation idempotency.",
+        "Synchronous client (RestClient, RestTemplate), declarative interface, and reactive WebClient.",
+        "Underlying request factory and connection manager; APIs do not themselves guarantee a given pool behavior.",
+        "Timeout taxonomy: pool acquisition, TCP connect, TLS handshake, response/read, overall deadline.",
+        "Measuring DNS, connection establishment, TLS setup, first byte, total elapsed time."
+      ],
+      "examples": [
+        "A status endpoint returns HTTP 200 and payment=PENDING."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-3"
+      ],
+      "material": {
+        "explanation": "An HTTP status reports a protocol outcome and need not equal a business status: a payment inquiry can return HTTP 200 with PENDING. Understand framing, persistence, multiplexing, and the concrete client behind a Spring abstraction. Diagnose acquisition, connect, TLS, response, and total deadlines separately. curl timing values are cumulative timestamps, so compare stage intervals carefully.",
+        "workedExample": {
+          "scenario": "A status endpoint returns HTTP 200 and payment=PENDING.",
+          "steps": [
+            "The network and HTTP exchange completed successfully.",
+            "The payment remains pending and must follow the reconciliation policy."
+          ]
+        },
+        "commonMistakes": [
+          "Separate curl processes do not generally share one in-process pool; repeated requests do not prove reuse."
+        ],
+        "guidedExercise": [
+          "Annotate a curl -v --http1.1 request and response.",
+          "Record DNS, connection, TLS, first-byte, and total cumulative times.",
+          "Compare one shared Java client with client-per-request against your own local service."
+        ],
+        "independentExercise": "Diagnose a slow acquisition with fast remote responses and an ambiguous payment POST timeout.",
+        "recallQuestions": [
+          "What does HTTP 503 prove about layers that already succeeded?",
+          "How do cumulative curl timings differ from independent stage durations?",
+          "When does RestClient actually execute the request?",
+          "Why is blindly retrying an ambiguous payment POST unsafe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Timeouts are attributed to the correct stage",
+        "HTTP success and business completion are distinguished",
+        "Measurements state protocol and client-lifecycle assumptions"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110"
+        },
+        {
+          "title": "HTTP/1.1 messaging: RFC 9112",
+          "url": "https://www.rfc-editor.org/rfc/rfc9112"
+        },
+        {
+          "title": "HTTP/2: RFC 9113",
+          "url": "https://www.rfc-editor.org/rfc/rfc9113"
+        },
+        {
+          "title": "HTTP/3: RFC 9114",
+          "url": "https://www.rfc-editor.org/rfc/rfc9114"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-5",
+      "title": "Database and HTTP connection pools",
+      "description": "Pools lend reusable resources; they are not schedulers or executors.",
+      "learningGoals": [
+        "Borrowing and returning are observable without resource leaks",
+        "JDBC and HTTP saturation are diagnosed independently",
+        "Fleet capacity and transaction-hold time are justified with evidence"
+      ],
+      "concepts": [
+        "A pool borrows and returns reusable resources; it is not the same thing as a scheduler or executor.",
+        "HikariCP: physical JDBC connection vs logical connection handle; max pool size; acquisition timeout; idle and lifetime policies.",
+        "Database connection establishment: TCP and possibly TLS, database protocol initialization and authentication.",
+        "Transactions: JDBC connections may be held through the scope of a database transaction.",
+        "HTTP client: max total connections vs per-route constraints; HTTP/2 multiplexing changes the relationship between requests and connections.",
+        "Why increasing pools can make a database or remote API *worse*, not better.",
+        "Per-instance pool limits and total fleet connection budget."
+      ],
+      "examples": [
+        "Four replicas configure twelve JDBC connections each, with fifteen other connections needed."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-4"
+      ],
+      "material": {
+        "explanation": "Pools lend reusable resources; they are not schedulers or executors. A borrowed JDBC handle may retain a physical connection through a transaction, while HTTP resource behavior depends on the chosen client and protocol. Acquisition timeout differs from query or response timeout. Budget connections across replicas and leave headroom rather than assuming more capacity always improves throughput.",
+        "workedExample": {
+          "scenario": "Four replicas configure twelve JDBC connections each, with fifteen other connections needed.",
+          "steps": [
+            "The configured capacity budget is 4 × 12 + 15 = 63.",
+            "Actual usage can be lower, and the database still requires operational headroom."
+          ]
+        },
+        "commonMistakes": [
+          "Increasing Hikari capacity does not fix an outbound HTTP bottleneck and can overload the database."
+        ],
+        "guidedExercise": [
+          "Use a two-connection Hikari pool and coordinate a third borrower.",
+          "Measure active, idle, pending, and acquisition timeout behavior.",
+          "Repeat saturation on a bounded local HTTP pool and compare which resource waits."
+        ],
+        "independentExercise": "Redesign an eight-second provider call inside a database transaction into short local transactions with explicit recovery.",
+        "recallQuestions": [
+          "What does close mean on a pooled JDBC handle?",
+          "Which timeout governs borrowing rather than executing SQL?",
+          "How do replicas change the capacity budget?",
+          "How does HTTP/2 affect requests-per-connection assumptions?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Borrowing and returning are observable without resource leaks",
+        "JDBC and HTTP saturation are diagnosed independently",
+        "Fleet capacity and transaction-hold time are justified with evidence"
+      ],
+      "resources": [
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-6",
+      "title": "Threads, executors, queues and failure containment",
+      "description": "Incoming request threads, background executors, schedulers, HTTP pools, and JDBC pools are separate capacities.",
+      "learningGoals": [
+        "Queued and in-flight work remain bounded",
+        "The overload response and rejection policy are explicit",
+        "Metrics distinguish thread, HTTP, and JDBC bottlenecks"
+      ],
+      "concepts": [
+        "Process vs thread; blocking I/O vs non-blocking I/O.",
+        "Incoming Tomcat worker threads versus an outbound HTTP client pool.",
+        "Async Executor/ThreadPoolTaskExecutor versus TaskScheduler.",
+        "Queue capacity and task rejection policies.",
+        "Concurrency limit vs requests-per-second limit.",
+        "Little's Law intuition: average in-flight work ≈ throughput × average time in system, under stable conditions.",
+        "Backpressure; bulkheads; circuit breakers; retries/backoff/jitter.",
+        "Virtual threads reduce the cost of many blocking tasks but do not create more DB or HTTP connections; bound concurrency against external systems regardless."
+      ],
+      "examples": [
+        "The provider becomes ten times slower while Hikari pending stays low."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-5"
+      ],
+      "material": {
+        "explanation": "Incoming request threads, background executors, schedulers, HTTP pools, and JDBC pools are separate capacities. Slow dependencies can fill one while others look healthy. Bound admission, queues, and downstream concurrency. Virtual threads reduce the cost of blocking tasks but do not create unlimited external connections or remove the need for backpressure.",
+        "workedExample": {
+          "scenario": "The provider becomes ten times slower while Hikari pending stays low.",
+          "steps": [
+            "Tomcat workers and the outbound per-route capacity fill.",
+            "Increasing JDBC connections does not address that dependency bottleneck."
+          ]
+        },
+        "commonMistakes": [
+          "Moving work to Async or virtual threads does not remove capacity limits or failure handling obligations."
+        ],
+        "guidedExercise": [
+          "Build an adjustable slow local HTTP endpoint.",
+          "Send a bounded batch through an executor.",
+          "Compare fast service, slow service, and overload with explicit rejection."
+        ],
+        "independentExercise": "Draw a dependency-capacity graph and use throughput, latency percentiles, queues, and connection evidence to locate saturation.",
+        "recallQuestions": [
+          "Why is a larger thread pool not necessarily better?",
+          "What does Async change and leave unchanged?",
+          "When should admission reject or defer work?",
+          "Why do virtual threads still need downstream limits?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Queued and in-flight work remain bounded",
+        "The overload response and rejection policy are explicit",
+        "Metrics distinguish thread, HTTP, and JDBC bottlenecks"
+      ],
+      "resources": [
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        },
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-unit-7",
+      "title": "Polling, webhooks, scheduling and reconciliation",
+      "description": "Polling repeatedly asks for status; pooling reuses resources.",
+      "learningGoals": [
+        "Due work survives restart and is discovered after downtime",
+        "Provider calls are bounded and occur outside long database transactions",
+        "Duplicate and stale processing cannot create harmful repeated effects",
+        "Only authoritative results justify terminal payment outcomes"
+      ],
+      "concepts": [
+        "Polling = repeated status inquiry; pooling = reusable connection management.",
+        "Short polling, long polling, database polling and reconciliation.",
+        "Webhook/notification as push; polling as verification/fallback.",
+        "@Scheduled(fixedRate), fixedDelay, cron, and their actual scheduling behavior.",
+        "A scheduler determines when work runs; workers determine how much runs concurrently.",
+        "Persistent work state: next_check_at, attempt_count, status, last_error, locked_until/lease details when needed.",
+        "Terminal states, provider-defined expiry, retries, capped exponential backoff with jitter.",
+        "At-least-once processing, idempotent status updates, duplicate notifications, race conditions.",
+        "Safe coordination across replicas (FOR UPDATE SKIP LOCKED transaction claiming, leases, or durable messaging). Lock only while claiming; do not hold a DB transaction open during external calls.",
+        "Reconciliation and uncertain outcomes: a failed inquiry does not imply payment failure."
+      ],
+      "examples": [
+        "A payment is created at 10:00 with next_check_at=10:15."
+      ],
+      "tasks": [
+        {
+          "id": "prediction",
+          "title": "Record a prediction before the experiment"
+        },
+        {
+          "id": "experiment",
+          "title": "Perform the experiment and save sanitized evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Troubleshoot a variation and record a manual mastery score"
+        }
+      ],
+      "dependencies": [
+        "networking-unit-6"
+      ],
+      "material": {
+        "explanation": "Polling repeatedly asks for status; pooling reuses resources. Store per-payment due timestamps so restart does not erase scheduling intent. A scheduler discovers due work and bounded workers execute it. Claim work briefly, perform external I/O outside database transactions, and reconcile results with idempotent state changes and safe handling of stale or duplicate responses.",
+        "workedExample": {
+          "scenario": "A payment is created at 10:00 with next_check_at=10:15.",
+          "steps": [
+            "The app is down at 10:15 and returns at 10:18.",
+            "The worker discovers the overdue persisted row rather than waiting for an app-start-relative timer."
+          ]
+        },
+        "commonMistakes": [
+          "A timeout is uncertainty, not authoritative payment failure; neither a webhook nor a stale poll should blindly overwrite a newer terminal state."
+        ],
+        "guidedExercise": [
+          "Define due-work schema and authoritative terminal states.",
+          "Separate claim, network call, and result-persistence steps.",
+          "Trace concurrent webhook, poll, retry, and process-restart cases."
+        ],
+        "independentExercise": "Design a two-instance claim or lease policy with fencing or equivalent stale-result protection and idempotent business effects.",
+        "recallQuestions": [
+          "Why is one sleeping thread per transaction a bad general design?",
+          "Should a webhook always win over a status-check response?",
+          "Why must status updates and business effects be idempotent?",
+          "When should the worker stop polling?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Due work survives restart and is discovered after downtime",
+        "Provider calls are bounded and occur outside long database transactions",
+        "Duplicate and stale processing cannot create harmful repeated effects",
+        "Only authoritative results justify terminal payment outcomes"
+      ],
+      "resources": [
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        },
+        {
+          "title": "PostgreSQL row locking and SELECT",
+          "url": "https://www.postgresql.org/docs/current/sql-select.html"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "networking-annotated-https-request-map",
+      "title": "Annotated HTTPS Request Map",
+      "description": "Unit 0 lab: Annotated HTTPS Request Map.",
+      "learningGoals": [
+        "The map includes local and remote responsibilities",
+        "Reuse does not skip HTTP or business processing",
+        "The explanation does not claim HTTP/3 runs over TCP"
+      ],
+      "concepts": [
+        "Protocol versus implementation versus resource versus business operation",
+        "HTTP client and OS responsibilities",
+        "DNS, TCP, TLS, IP, frames, NAT, proxies and load balancers",
+        "Connection reuse and HTTP/3 differences"
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Draw Java code, Spring abstraction, concrete client, OS, DNS, local routing, NAT or proxy, and destination",
+        "Label protocols, implementations, resources, and business operations separately",
+        "Show what changes with reuse and with HTTP/3"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-0"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 0 mechanism observable instead of relying on terminology alone. An HTTPS operation crosses several responsibilities: application code, a concrete client, DNS when needed, the operating system, transport, TLS, routing, and the remote application. Those responsibilities are not one strictly serial packet timeline. Reusing a connection can skip setup; HTTP/3 uses QUIC over UDP rather than TCP. In Spring RestClient, retrieve() prepares a response specification; a terminal operation such as body(...) or toBodilessEntity() is needed to execute the request.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "A socket connection or transport acknowledgement does not prove a business operation completed."
+        ],
+        "guidedExercise": [
+          "Draw the first request.",
+          "Draw the reused-connection request.",
+          "Narrate both and identify the trust boundary."
+        ],
+        "independentExercise": "Narrate the full journey in under three minutes, then add a reverse proxy and explain how the trust boundary changes.",
+        "recallQuestions": [
+          "Why is HTTPS not the same as TCP?",
+          "Why is connection pooling not a protocol?",
+          "How can a load balancer change the path?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The map includes local and remote responsibilities",
+        "Reuse does not skip HTTP or business processing",
+        "The explanation does not claim HTTP/3 runs over TCP"
+      ],
+      "resources": [
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        },
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        },
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        }
+      ]
+    },
+    {
+      "id": "networking-dns-and-route-inspection-cli",
+      "title": "DNS and Route Inspection CLI",
+      "description": "Unit 1 lab: DNS and Route Inspection CLI.",
+      "learningGoals": [
+        "Each observation is mapped to the correct layer",
+        "The CLI reports multiple addresses and handles failed resolution",
+        "Egress whitelisting uses the observed public path rather than assuming a private container IP"
+      ],
+      "concepts": [
+        "IPv4 vs IPv6; private vs public addresses.",
+        "Hostname versus IP address; A/AAAA/CNAME DNS records; TTL and caching.",
+        "Resolver versus authoritative DNS server; DNS is not always a single request.",
+        "IP routing and next hops; packets can take different paths.",
+        "TCP ports and source/destination endpoints; ephemeral client port.",
+        "Network Address Translation (NAT), especially outbound source-IP translation in cloud environments.",
+        "The meaning of a TCP 4-tuple: (source IP, source port, destination IP, destination port)."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Record dig A/AAAA, nslookup, TCP-connect, and route observations with timestamps",
+        "On macOS inspect ifconfig, route -n get 1.1.1.1, and netstat -rn; on Linux use appropriate ip commands",
+        "Write a Java CLI accepting a hostname and reporting all resolved addresses",
+        "Define unknown-host and invalid-input behavior",
+        "Explain resolver caching, egress NAT, and why ping can fail while HTTPS succeeds"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-1"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 1 mechanism observable instead of relying on terminology alone. DNS resolves names, routing selects paths, ports identify transport endpoints, and NAT can rewrite outbound addresses. Diagnose them separately: a resolved address does not prove a port is reachable, and a successful TCP connection does not prove TLS or HTTP is valid. Resolver caches, IPv4/IPv6 selection, and network configuration can make laptop and deployment observations differ.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "ping and nc test different mechanisms; nc -vz is a TCP-connect test, not certificate validation."
+        ],
+        "guidedExercise": [
+          "Write which question each command answers.",
+          "Compare lookup and TCP-connect results.",
+          "Implement the resolver CLI using Java APIs."
+        ],
+        "independentExercise": "Write a Java hostname-resolution CLI and explain different answers across machines or times.",
+        "recallQuestions": [
+          "Why can ping fail even when HTTPS succeeds?",
+          "A third party whitelists your application's IP. Why might it need your NAT gateway's address rather than your container's address?",
+          "What happens when DNS succeeds but port 443 is unreachable?",
+          "Why do DNS answers sometimes differ between your laptop and production?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each observation is mapped to the correct layer",
+        "The CLI reports multiple addresses and handles failed resolution",
+        "Egress whitelisting uses the observed public path rather than assuming a private container IP"
+      ],
+      "resources": [
+        {
+          "title": "Java Socket API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+        },
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        }
+      ]
+    },
+    {
+      "id": "networking-length-prefixed-java-socket-pair",
+      "title": "Length-prefixed Java Socket Pair",
+      "description": "Unit 2 lab: Length-prefixed Java Socket Pair.",
+      "learningGoals": [
+        "Split and large messages reconstruct exactly",
+        "Invalid lengths reject without unbounded allocation",
+        "Truncated input and clean EOF have explicit outcomes",
+        "Resource closing and timeout behavior are recorded"
+      ],
+      "concepts": [
+        "Connection-oriented transport; byte stream, not message boundaries.",
+        "TCP three-way handshake: SYN → SYN-ACK → ACK.",
+        "Sequence and acknowledgement numbers; retransmission, in-order delivery.",
+        "Flow control versus congestion control.",
+        "Round-trip time (RTT), packet loss, MTU.",
+        "TCP flags: SYN, ACK, FIN, RST.",
+        "Connection teardown, half-close, TIME_WAIT.",
+        "TCP keepalive versus application-level keepalive.",
+        "Why one application write does not guarantee one peer read."
+      ],
+      "examples": [
+        "A six-byte payload is written in two parts."
+      ],
+      "requirements": [
+        "Use ServerSocket on 127.0.0.1:9090 and a Socket client",
+        "Encode each message as four-byte length followed by UTF-8 bytes",
+        "Read exactly the declared payload while bounding allowed allocation",
+        "Reject negative or excessive lengths and incomplete input",
+        "Use try-with-resources and distinguish connect from read timeout",
+        "Test hello, a large message, split writes, clean close, and stopped server"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-2"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 2 mechanism observable instead of relying on terminology alone. TCP offers an ordered reliable byte stream, not message boundaries. Applications must frame their own messages and handle partial reads, orderly end-of-stream, resets, and timeouts. Its acknowledgements indicate transport progress, not application-level payment completion. Learn flow control, congestion control, teardown, and keepalive as different mechanisms.",
+        "workedExample": {
+          "scenario": "A six-byte payload is written in two parts.",
+          "steps": [
+            "The server reads the bounded length prefix and consumes exactly six payload bytes.",
+            "Framing succeeds even when peer reads do not match the two writes."
+          ]
+        },
+        "commonMistakes": [
+          "One sender write is not guaranteed to match one receiver read."
+        ],
+        "guidedExercise": [
+          "Define byte order, maximum length, and empty-message policy.",
+          "Implement reader and writer independently.",
+          "Split logical messages across writes and verify reconstruction."
+        ],
+        "independentExercise": "Capture your own loopback exchange and label establishment, transfer, and teardown without assuming offload makes every packet visible.",
+        "recallQuestions": [
+          "The client has sent a request and times out before seeing a response. Can the server have processed it?",
+          "If a receiver reads 100 bytes, is that proof the sender wrote exactly 100 bytes?",
+          "What is different about a timeout waiting for a TCP connection versus a timeout waiting to read bytes?",
+          "What can happen if the client sends faster than the receiving application can consume?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Split and large messages reconstruct exactly",
+        "Invalid lengths reject without unbounded allocation",
+        "Truncated input and clean EOF have explicit outcomes",
+        "Resource closing and timeout behavior are recorded"
+      ],
+      "resources": [
+        {
+          "title": "Java Socket API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+        },
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        }
+      ]
+    },
+    {
+      "id": "networking-loopback-tcp-handshake-capture",
+      "title": "Loopback TCP Handshake Capture",
+      "description": "Unit 2 lab: Loopback TCP Handshake Capture.",
+      "learningGoals": [
+        "The trace labels SYN, SYN-ACK, ACK and observed close behavior",
+        "Transport acknowledgement is not called payment completion",
+        "No unrelated or credential-bearing traffic enters the evidence"
+      ],
+      "concepts": [
+        "Connection-oriented transport; byte stream, not message boundaries.",
+        "TCP three-way handshake: SYN → SYN-ACK → ACK.",
+        "Sequence and acknowledgement numbers; retransmission, in-order delivery.",
+        "Flow control versus congestion control.",
+        "Round-trip time (RTT), packet loss, MTU.",
+        "TCP flags: SYN, ACK, FIN, RST.",
+        "Connection teardown, half-close, TIME_WAIT.",
+        "TCP keepalive versus application-level keepalive.",
+        "Why one application write does not guarantee one peer read."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Capture only your own port-9090 lab on the confirmed loopback interface",
+        "On macOS the guide suggests tcpdump -i lo0 -nn with a tcp port 9090 filter",
+        "Identify establishment, data, and FIN/RST when visible",
+        "Document capture position and offloading limitations",
+        "Compare a TCP ACK with the application-level reply"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-2"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 2 mechanism observable instead of relying on terminology alone. TCP offers an ordered reliable byte stream, not message boundaries. Applications must frame their own messages and handle partial reads, orderly end-of-stream, resets, and timeouts. Its acknowledgements indicate transport progress, not application-level payment completion. Learn flow control, congestion control, teardown, and keepalive as different mechanisms.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "One sender write is not guaranteed to match one receiver read."
+        ],
+        "guidedExercise": [
+          "Start the socket lab.",
+          "Capture one exchange with Wireshark or an authorized local capture.",
+          "Annotate the trace and compare with application logs."
+        ],
+        "independentExercise": "Capture your own loopback exchange and label establishment, transfer, and teardown without assuming offload makes every packet visible.",
+        "recallQuestions": [
+          "The client has sent a request and times out before seeing a response. Can the server have processed it?",
+          "If a receiver reads 100 bytes, is that proof the sender wrote exactly 100 bytes?",
+          "What is different about a timeout waiting for a TCP connection versus a timeout waiting to read bytes?",
+          "What can happen if the client sends faster than the receiving application can consume?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The trace labels SYN, SYN-ACK, ACK and observed close behavior",
+        "Transport acknowledgement is not called payment completion",
+        "No unrelated or credential-bearing traffic enters the evidence"
+      ],
+      "resources": [
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        },
+        {
+          "title": "Wireshark user guide",
+          "url": "https://www.wireshark.org/docs/wsug_html_chunked/"
+        }
+      ]
+    },
+    {
+      "id": "networking-tls-certificate-inspection",
+      "title": "TLS Certificate Inspection",
+      "description": "Unit 3 lab: TLS Certificate Inspection.",
+      "learningGoals": [
+        "The report distinguishes leaf, intermediate, and trusted root roles",
+        "SNI and hostname verification are not confused",
+        "Encryption is not treated as proof of intended-host authentication"
+      ],
+      "concepts": [
+        "Confidentiality, integrity, server authentication.",
+        "TLS 1.3 basic full handshake: ClientHello → ServerHello → encrypted server authentication/Finished → client Finished.",
+        "Public/private key signatures, ephemeral key agreement, session keys, symmetric authenticated encryption.",
+        "Root CA → intermediate CA → leaf/server certificate; Java truststore versus server keystore.",
+        "SAN hostname matching, certificate validity and chain building.",
+        "SNI and ALPN; http/1.1 versus h2.",
+        "TLS termination at reverse proxies; hop-by-hop security assumptions.",
+        "TLS session resumption. Clarify why TLS is not simply “encrypt everything with the server's RSA public key.”"
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Inspect example.com with openssl s_client -connect example.com:443 -servername example.com -showcerts",
+        "Record negotiated version, cipher, SAN names, issuer, and supplied chain",
+        "Explain SNI, ALPN, trust roots, and intermediate certificates",
+        "Treat output as environment- and version-dependent evidence"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-3"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 3 mechanism observable instead of relying on terminology alone. TLS adds confidentiality, integrity, and authenticated peer identity over an underlying transport. Certificate-chain trust and hostname matching are separate requirements. A Java truststore may differ from a browser trust system. Diagnose controlled failures by inspecting the chain, validity, hostname, and configured trust source; never solve the exercise by trusting every certificate.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Encryption to an incorrectly authenticated peer is not a valid secure connection to the intended service."
+        ],
+        "guidedExercise": [
+          "Predict hostname and chain checks.",
+          "Inspect the actual peer chain.",
+          "Explain which facts establish identity and which identify negotiation."
+        ],
+        "independentExercise": "Write a Java-version-migration PKIX incident report with at least four hypotheses and a secure check for each.",
+        "recallQuestions": [
+          "Why isn't TLS provided by TCP itself?",
+          "Can a validly encrypted TLS session be established to the *wrong* hostname?",
+          "Why might browser HTTPS work while the JVM fails certificate validation?",
+          "What would a TLS-terminating reverse proxy be able to observe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The report distinguishes leaf, intermediate, and trusted root roles",
+        "SNI and hostname verification are not confused",
+        "Encryption is not treated as proof of intended-host authentication"
+      ],
+      "resources": [
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        }
+      ]
+    },
+    {
+      "id": "networking-controlled-java-trust-failure",
+      "title": "Controlled Java Trust Failure",
+      "description": "Unit 3 lab: Controlled Java Trust Failure.",
+      "learningGoals": [
+        "Failure and successful remediation are both reproducible",
+        "The system truststore is not broadly modified",
+        "No trust-all or disabled-hostname workaround is used"
+      ],
+      "concepts": [
+        "Confidentiality, integrity, server authentication.",
+        "TLS 1.3 basic full handshake: ClientHello → ServerHello → encrypted server authentication/Finished → client Finished.",
+        "Public/private key signatures, ephemeral key agreement, session keys, symmetric authenticated encryption.",
+        "Root CA → intermediate CA → leaf/server certificate; Java truststore versus server keystore.",
+        "SAN hostname matching, certificate validity and chain building.",
+        "SNI and ALPN; http/1.1 versus h2.",
+        "TLS termination at reverse proxies; hop-by-hop security assumptions.",
+        "TLS session resumption. Clarify why TLS is not simply “encrypt everything with the server's RSA public key.”"
+      ],
+      "examples": [
+        "A local certificate chains to an untrusted development CA."
+      ],
+      "requirements": [
+        "Create a local HTTPS endpoint with a trusted development tool",
+        "Connect with Java before adding the local CA and record the failure",
+        "Configure a dedicated development truststore for the intended CA or certificate",
+        "Keep hostname verification enabled and use a matching local name",
+        "Use javax.net.debug=ssl:handshake only for sanitized development investigation"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-3"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 3 mechanism observable instead of relying on terminology alone. TLS adds confidentiality, integrity, and authenticated peer identity over an underlying transport. Certificate-chain trust and hostname matching are separate requirements. A Java truststore may differ from a browser trust system. Diagnose controlled failures by inspecting the chain, validity, hostname, and configured trust source; never solve the exercise by trusting every certificate.",
+        "workedExample": {
+          "scenario": "A local certificate chains to an untrusted development CA.",
+          "steps": [
+            "Java rejects the chain under its original trust configuration.",
+            "A dedicated correct development truststore repairs chain trust without bypassing hostname checks."
+          ]
+        },
+        "commonMistakes": [
+          "Encryption to an incorrectly authenticated peer is not a valid secure connection to the intended service."
+        ],
+        "guidedExercise": [
+          "Predict chain validation failure.",
+          "Observe the Java exception without bypassing checks.",
+          "Apply the narrow development trust configuration and verify a valid connection."
+        ],
+        "independentExercise": "Write a Java-version-migration PKIX incident report with at least four hypotheses and a secure check for each.",
+        "recallQuestions": [
+          "Why isn't TLS provided by TCP itself?",
+          "Can a validly encrypted TLS session be established to the *wrong* hostname?",
+          "Why might browser HTTPS work while the JVM fails certificate validation?",
+          "What would a TLS-terminating reverse proxy be able to observe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Failure and successful remediation are both reproducible",
+        "The system truststore is not broadly modified",
+        "No trust-all or disabled-hostname workaround is used"
+      ],
+      "resources": [
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-pkix-migration-incident-report",
+      "title": "PKIX Migration Incident Report",
+      "description": "Unit 3 lab: PKIX Migration Incident Report.",
+      "learningGoals": [
+        "At least four plausible hypotheses have discriminating checks",
+        "Hostname and chain errors are separate diagnoses",
+        "Remediation retains certificate and hostname verification"
+      ],
+      "concepts": [
+        "Confidentiality, integrity, server authentication.",
+        "TLS 1.3 basic full handshake: ClientHello → ServerHello → encrypted server authentication/Finished → client Finished.",
+        "Public/private key signatures, ephemeral key agreement, session keys, symmetric authenticated encryption.",
+        "Root CA → intermediate CA → leaf/server certificate; Java truststore versus server keystore.",
+        "SAN hostname matching, certificate validity and chain building.",
+        "SNI and ALPN; http/1.1 versus h2.",
+        "TLS termination at reverse proxies; hop-by-hop security assumptions.",
+        "TLS session resumption. Clarify why TLS is not simply “encrypt everything with the server's RSA public key.”"
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Investigate a simulated Java 11-to-25 migration failure",
+        "Provide at least four hypotheses and a check for each",
+        "Compare trust sources, intermediate-chain completeness, validity, and security policy",
+        "Distinguish chain-building errors from hostname mismatch",
+        "Propose a minimal secure remediation and verification plan"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-3"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 3 mechanism observable instead of relying on terminology alone. TLS adds confidentiality, integrity, and authenticated peer identity over an underlying transport. Certificate-chain trust and hostname matching are separate requirements. A Java truststore may differ from a browser trust system. Diagnose controlled failures by inspecting the chain, validity, hostname, and configured trust source; never solve the exercise by trusting every certificate.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Encryption to an incorrectly authenticated peer is not a valid secure connection to the intended service."
+        ],
+        "guidedExercise": [
+          "Write hypotheses before changing configuration.",
+          "Attach sanitized evidence for each check.",
+          "Explain why the chosen fix addresses the actual cause."
+        ],
+        "independentExercise": "Write a Java-version-migration PKIX incident report with at least four hypotheses and a secure check for each.",
+        "recallQuestions": [
+          "Why isn't TLS provided by TCP itself?",
+          "Can a validly encrypted TLS session be established to the *wrong* hostname?",
+          "Why might browser HTTPS work while the JVM fails certificate validation?",
+          "What would a TLS-terminating reverse proxy be able to observe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "At least four plausible hypotheses have discriminating checks",
+        "Hostname and chain errors are separate diagnoses",
+        "Remediation retains certificate and hostname verification"
+      ],
+      "resources": [
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-raw-http-and-cumulative-timing-report",
+      "title": "Raw HTTP and Cumulative Timing Report",
+      "description": "Unit 4 lab: Raw HTTP and Cumulative Timing Report.",
+      "learningGoals": [
+        "The report does not add cumulative timestamps as separate durations",
+        "Process and protocol assumptions accompany reuse claims",
+        "HTTP success and business state are distinguished"
+      ],
+      "concepts": [
+        "HTTP method, path, version, status, headers, body.",
+        "HTTP status vs business status (HTTP 200 and payment=PENDING can coexist).",
+        "HTTP/1.1 body framing and persistent connections.",
+        "HTTP/2 binary frames, multiplexed streams, and protocol negotiation.",
+        "HTTP/3 = HTTP over QUIC/UDP, not TCP.",
+        "Idempotent method semantics versus business-operation idempotency.",
+        "Synchronous client (RestClient, RestTemplate), declarative interface, and reactive WebClient.",
+        "Underlying request factory and connection manager; APIs do not themselves guarantee a given pool behavior.",
+        "Timeout taxonomy: pool acquisition, TCP connect, TLS handshake, response/read, overall deadline.",
+        "Measuring DNS, connection establishment, TLS setup, first byte, total elapsed time."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Inspect request and response using curl -v --http1.1 against an allowed target",
+        "Record HTTP version, DNS, connect, appconnect, starttransfer, and total time",
+        "Interpret the values as cumulative timestamps",
+        "Derive stage intervals only under stated protocol and reuse assumptions",
+        "Do not infer shared pool reuse from separate curl processes",
+        "Contrast HTTP 200 with a fake payment PENDING response"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-4"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 4 mechanism observable instead of relying on terminology alone. An HTTP status reports a protocol outcome and need not equal a business status: a payment inquiry can return HTTP 200 with PENDING. Understand framing, persistence, multiplexing, and the concrete client behind a Spring abstraction. Diagnose acquisition, connect, TLS, response, and total deadlines separately. curl timing values are cumulative timestamps, so compare stage intervals carefully.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Separate curl processes do not generally share one in-process pool; repeated requests do not prove reuse."
+        ],
+        "guidedExercise": [
+          "Predict which values include earlier stages.",
+          "Use the exact curl timing format from the full guide.",
+          "Compare raw timestamps with annotated intervals and multiple runs."
+        ],
+        "independentExercise": "Diagnose a slow acquisition with fast remote responses and an ambiguous payment POST timeout.",
+        "recallQuestions": [
+          "What does HTTP 503 prove about layers that already succeeded?",
+          "How do cumulative curl timings differ from independent stage durations?",
+          "When does RestClient actually execute the request?",
+          "Why is blindly retrying an ambiguous payment POST unsafe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The report does not add cumulative timestamps as separate durations",
+        "Process and protocol assumptions accompany reuse claims",
+        "HTTP success and business state are distinguished"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110"
+        },
+        {
+          "title": "HTTP/1.1 messaging: RFC 9112",
+          "url": "https://www.rfc-editor.org/rfc/rfc9112"
+        },
+        {
+          "title": "HTTP/2: RFC 9113",
+          "url": "https://www.rfc-editor.org/rfc/rfc9113"
+        },
+        {
+          "title": "HTTP/3: RFC 9114",
+          "url": "https://www.rfc-editor.org/rfc/rfc9114"
+        }
+      ]
+    },
+    {
+      "id": "networking-shared-http-client-reuse",
+      "title": "Shared HTTP Client Reuse",
+      "description": "Unit 4 lab: Shared HTTP Client Reuse.",
+      "learningGoals": [
+        "Request execution and response consumption are explicit",
+        "Evidence distinguishes lifecycle and protocol effects",
+        "Bodies and client resources follow documented release behavior"
+      ],
+      "concepts": [
+        "HTTP method, path, version, status, headers, body.",
+        "HTTP status vs business status (HTTP 200 and payment=PENDING can coexist).",
+        "HTTP/1.1 body framing and persistent connections.",
+        "HTTP/2 binary frames, multiplexed streams, and protocol negotiation.",
+        "HTTP/3 = HTTP over QUIC/UDP, not TCP.",
+        "Idempotent method semantics versus business-operation idempotency.",
+        "Synchronous client (RestClient, RestTemplate), declarative interface, and reactive WebClient.",
+        "Underlying request factory and connection manager; APIs do not themselves guarantee a given pool behavior.",
+        "Timeout taxonomy: pool acquisition, TCP connect, TLS handshake, response/read, overall deadline.",
+        "Measuring DNS, connection establishment, TLS setup, first byte, total elapsed time."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Reuse one Java HttpClient or Spring RestClient with an explicitly selected backend",
+        "Send several sequential requests to your own local service",
+        "Compare against client-per-request while recording protocol and sockets where possible",
+        "Use terminal response consumption with RestClient",
+        "Consume or close response bodies according to the backend contract",
+        "Do not assert an implementation-independent exact connection count"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-4"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 4 mechanism observable instead of relying on terminology alone. An HTTP status reports a protocol outcome and need not equal a business status: a payment inquiry can return HTTP 200 with PENDING. Understand framing, persistence, multiplexing, and the concrete client behind a Spring abstraction. Diagnose acquisition, connect, TLS, response, and total deadlines separately. curl timing values are cumulative timestamps, so compare stage intervals carefully.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Separate curl processes do not generally share one in-process pool; repeated requests do not prove reuse."
+        ],
+        "guidedExercise": [
+          "Choose and document the backend.",
+          "Run shared-client and new-client variants.",
+          "Inspect timing and connection evidence without overgeneralizing."
+        ],
+        "independentExercise": "Diagnose a slow acquisition with fast remote responses and an ambiguous payment POST timeout.",
+        "recallQuestions": [
+          "What does HTTP 503 prove about layers that already succeeded?",
+          "How do cumulative curl timings differ from independent stage durations?",
+          "When does RestClient actually execute the request?",
+          "Why is blindly retrying an ambiguous payment POST unsafe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Request execution and response consumption are explicit",
+        "Evidence distinguishes lifecycle and protocol effects",
+        "Bodies and client resources follow documented release behavior"
+      ],
+      "resources": [
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-hikaricp-saturation-lab",
+      "title": "HikariCP Saturation Lab",
+      "description": "Unit 5 lab: HikariCP Saturation Lab.",
+      "learningGoals": [
+        "The third borrower waits or times out under the declared limit",
+        "Connection return allows new work to succeed",
+        "No production sleep is added inside a transaction",
+        "Fleet budget is distinguished from observed active usage"
+      ],
+      "concepts": [
+        "A pool borrows and returns reusable resources; it is not the same thing as a scheduler or executor.",
+        "HikariCP: physical JDBC connection vs logical connection handle; max pool size; acquisition timeout; idle and lifetime policies.",
+        "Database connection establishment: TCP and possibly TLS, database protocol initialization and authentication.",
+        "Transactions: JDBC connections may be held through the scope of a database transaction.",
+        "HTTP client: max total connections vs per-route constraints; HTTP/2 multiplexing changes the relationship between requests and connections.",
+        "Why increasing pools can make a database or remote API *worse*, not better.",
+        "Per-instance pool limits and total fleet connection budget."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Use local or isolated PostgreSQL with a two-connection Hikari pool",
+        "Coordinate two borrowers so a third waits using a controlled harness",
+        "Configure and observe acquisition timeout without calling it a query timeout",
+        "Record active, idle, pending, acquisition latency, and timeout evidence",
+        "Return borrowed handles and show subsequent successful borrowing",
+        "Explain four replicas times twelve connections plus fifteen other consumers and headroom"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-5"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 5 mechanism observable instead of relying on terminology alone. Pools lend reusable resources; they are not schedulers or executors. A borrowed JDBC handle may retain a physical connection through a transaction, while HTTP resource behavior depends on the chosen client and protocol. Acquisition timeout differs from query or response timeout. Budget connections across replicas and leave headroom rather than assuming more capacity always improves throughput.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Increasing Hikari capacity does not fix an outbound HTTP bottleneck and can overload the database."
+        ],
+        "guidedExercise": [
+          "Predict which borrower waits and why.",
+          "Hold two test borrowers using controlled coordination.",
+          "Release them and show recovery without leaks."
+        ],
+        "independentExercise": "Redesign an eight-second provider call inside a database transaction into short local transactions with explicit recovery.",
+        "recallQuestions": [
+          "What does close mean on a pooled JDBC handle?",
+          "Which timeout governs borrowing rather than executing SQL?",
+          "How do replicas change the capacity budget?",
+          "How does HTTP/2 affect requests-per-connection assumptions?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The third borrower waits or times out under the declared limit",
+        "Connection return allows new work to succeed",
+        "No production sleep is added inside a transaction",
+        "Fleet budget is distinguished from observed active usage"
+      ],
+      "resources": [
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        }
+      ]
+    },
+    {
+      "id": "networking-outbound-http-pool-saturation",
+      "title": "Outbound HTTP Pool Saturation",
+      "description": "Unit 5 lab: Outbound HTTP Pool Saturation.",
+      "learningGoals": [
+        "The waiting resource and configured limit are identified",
+        "Requests and queued work remain bounded",
+        "All response resources are released after failures",
+        "No HTTP/1.1-only request-per-connection assumption is applied to HTTP/2"
+      ],
+      "concepts": [
+        "A pool borrows and returns reusable resources; it is not the same thing as a scheduler or executor.",
+        "HikariCP: physical JDBC connection vs logical connection handle; max pool size; acquisition timeout; idle and lifetime policies.",
+        "Database connection establishment: TCP and possibly TLS, database protocol initialization and authentication.",
+        "Transactions: JDBC connections may be held through the scope of a database transaction.",
+        "HTTP client: max total connections vs per-route constraints; HTTP/2 multiplexing changes the relationship between requests and connections.",
+        "Why increasing pools can make a database or remote API *worse*, not better.",
+        "Per-instance pool limits and total fleet connection budget."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Select a concrete client backend supporting a documented per-route cap",
+        "Use a slow local HTTP/1.1 endpoint and a deliberately small route capacity",
+        "Separate waiting for pool acquisition from waiting for response data",
+        "Issue only a bounded number of concurrent requests",
+        "Compare with another justified capacity and record overload tradeoffs",
+        "Discuss how HTTP/2 stream multiplexing changes connection assumptions"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-5"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 5 mechanism observable instead of relying on terminology alone. Pools lend reusable resources; they are not schedulers or executors. A borrowed JDBC handle may retain a physical connection through a transaction, while HTTP resource behavior depends on the chosen client and protocol. Acquisition timeout differs from query or response timeout. Budget connections across replicas and leave headroom rather than assuming more capacity always improves throughput.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Increasing Hikari capacity does not fix an outbound HTTP bottleneck and can overload the database."
+        ],
+        "guidedExercise": [
+          "Pin and record the backend and protocol.",
+          "Create a bounded saturation condition.",
+          "Measure acquire wait and remote latency separately."
+        ],
+        "independentExercise": "Redesign an eight-second provider call inside a database transaction into short local transactions with explicit recovery.",
+        "recallQuestions": [
+          "What does close mean on a pooled JDBC handle?",
+          "Which timeout governs borrowing rather than executing SQL?",
+          "How do replicas change the capacity budget?",
+          "How does HTTP/2 affect requests-per-connection assumptions?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The waiting resource and configured limit are identified",
+        "Requests and queued work remain bounded",
+        "All response resources are released after failures",
+        "No HTTP/1.1-only request-per-connection assumption is applied to HTTP/2"
+      ],
+      "resources": [
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-short-transactions-around-remote-calls",
+      "title": "Short Transactions Around Remote Calls",
+      "description": "Unit 5 lab: Short Transactions Around Remote Calls.",
+      "learningGoals": [
+        "External network waiting is outside long JDBC transactions",
+        "Remote uncertainty is not claimed to roll back with the database",
+        "Durable intent and reconciliation address the chosen crash gaps"
+      ],
+      "concepts": [
+        "A pool borrows and returns reusable resources; it is not the same thing as a scheduler or executor.",
+        "HikariCP: physical JDBC connection vs logical connection handle; max pool size; acquisition timeout; idle and lifetime policies.",
+        "Database connection establishment: TCP and possibly TLS, database protocol initialization and authentication.",
+        "Transactions: JDBC connections may be held through the scope of a database transaction.",
+        "HTTP client: max total connections vs per-route constraints; HTTP/2 multiplexing changes the relationship between requests and connections.",
+        "Why increasing pools can make a database or remote API *worse*, not better.",
+        "Per-instance pool limits and total fleet connection budget."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Analyze update transaction → call provider for eight seconds → update status inside one transaction",
+        "Identify retained JDBC resources and lock risks",
+        "Redesign into short local state steps around the external call",
+        "Define recovery after remote success but before local commit",
+        "Use a stable provider idempotency key for ambiguous creation retries when supported"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-5"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 5 mechanism observable instead of relying on terminology alone. Pools lend reusable resources; they are not schedulers or executors. A borrowed JDBC handle may retain a physical connection through a transaction, while HTTP resource behavior depends on the chosen client and protocol. Acquisition timeout differs from query or response timeout. Budget connections across replicas and leave headroom rather than assuming more capacity always improves throughput.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Increasing Hikari capacity does not fix an outbound HTTP bottleneck and can overload the database."
+        ],
+        "guidedExercise": [
+          "Mark each local and remote side effect.",
+          "Identify which resources stay borrowed.",
+          "Draw the shorter boundaries and crash points."
+        ],
+        "independentExercise": "Redesign an eight-second provider call inside a database transaction into short local transactions with explicit recovery.",
+        "recallQuestions": [
+          "What does close mean on a pooled JDBC handle?",
+          "Which timeout governs borrowing rather than executing SQL?",
+          "How do replicas change the capacity budget?",
+          "How does HTTP/2 affect requests-per-connection assumptions?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "External network waiting is outside long JDBC transactions",
+        "Remote uncertainty is not claimed to roll back with the database",
+        "Durable intent and reconciliation address the chosen crash gaps"
+      ],
+      "resources": [
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        },
+        {
+          "title": "PostgreSQL row locking and SELECT",
+          "url": "https://www.postgresql.org/docs/current/sql-select.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-bounded-executor-load-experiment",
+      "title": "Bounded Executor Load Experiment",
+      "description": "Unit 6 lab: Bounded Executor Load Experiment.",
+      "learningGoals": [
+        "Queue and in-flight limits are enforced",
+        "Overload behavior is intentional and observable",
+        "The likely bottleneck follows evidence rather than unrelated pool tuning"
+      ],
+      "concepts": [
+        "Process vs thread; blocking I/O vs non-blocking I/O.",
+        "Incoming Tomcat worker threads versus an outbound HTTP client pool.",
+        "Async Executor/ThreadPoolTaskExecutor versus TaskScheduler.",
+        "Queue capacity and task rejection policies.",
+        "Concurrency limit vs requests-per-second limit.",
+        "Little's Law intuition: average in-flight work ≈ throughput × average time in system, under stable conditions.",
+        "Backpressure; bulkheads; circuit breakers; retries/backoff/jitter.",
+        "Virtual threads reduce the cost of many blocking tasks but do not create more DB or HTTP connections; bound concurrency against external systems regardless."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Use an adjustable slow local endpoint and bounded caller batch",
+        "Test low load/fast service, same concurrency/slow service, then overload",
+        "Record throughput, p50/p95 latency, queue length, threads, and available socket evidence",
+        "Define explicit queue rejection or deferral",
+        "Distinguish rate limits from in-flight concurrency",
+        "Explain virtual-thread and Async limitations without increasing JDBC capacity indiscriminately"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-6"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 6 mechanism observable instead of relying on terminology alone. Incoming request threads, background executors, schedulers, HTTP pools, and JDBC pools are separate capacities. Slow dependencies can fill one while others look healthy. Bound admission, queues, and downstream concurrency. Virtual threads reduce the cost of blocking tasks but do not create unlimited external connections or remove the need for backpressure.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "Moving work to Async or virtual threads does not remove capacity limits or failure handling obligations."
+        ],
+        "guidedExercise": [
+          "Predict the bottleneck in each scenario.",
+          "Run the bounded scenarios with documented settings.",
+          "Build the thread/HTTP/JDBC capacity dependency graph."
+        ],
+        "independentExercise": "Draw a dependency-capacity graph and use throughput, latency percentiles, queues, and connection evidence to locate saturation.",
+        "recallQuestions": [
+          "Why is a larger thread pool not necessarily better?",
+          "What does Async change and leave unchanged?",
+          "When should admission reject or defer work?",
+          "Why do virtual threads still need downstream limits?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Queue and in-flight limits are enforced",
+        "Overload behavior is intentional and observable",
+        "The likely bottleneck follows evidence rather than unrelated pool tuning"
+      ],
+      "resources": [
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        },
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        }
+      ]
+    },
+    {
+      "id": "networking-durable-due-work-scheduling",
+      "title": "Durable Due-work Scheduling",
+      "description": "Unit 7 lab: Durable Due-work Scheduling.",
+      "learningGoals": [
+        "Due work is neither lost nor replaced by an app-start timer",
+        "Scheduler and worker capacity responsibilities are distinct",
+        "Claim and result update include stale-worker handling",
+        "Terminal states stop scheduling under the documented policy"
+      ],
+      "concepts": [
+        "Polling = repeated status inquiry; pooling = reusable connection management.",
+        "Short polling, long polling, database polling and reconciliation.",
+        "Webhook/notification as push; polling as verification/fallback.",
+        "@Scheduled(fixedRate), fixedDelay, cron, and their actual scheduling behavior.",
+        "A scheduler determines when work runs; workers determine how much runs concurrently.",
+        "Persistent work state: next_check_at, attempt_count, status, last_error, locked_until/lease details when needed.",
+        "Terminal states, provider-defined expiry, retries, capped exponential backoff with jitter.",
+        "At-least-once processing, idempotent status updates, duplicate notifications, race conditions.",
+        "Safe coordination across replicas (FOR UPDATE SKIP LOCKED transaction claiming, leases, or durable messaging). Lock only while claiming; do not hold a DB transaction open during external calls.",
+        "Reconciliation and uncertain outcomes: a failed inquiry does not imply payment failure."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Persist status, next_check_at, attempt_count, last_checked_at, and safe error state",
+        "Schedule the first check at created_at plus fifteen minutes",
+        "Discover overdue rows after downtime at 10:15 and restart at 10:18",
+        "Claim a bounded batch in a short transaction",
+        "Call the provider outside that transaction and persist results safely",
+        "Specify lease ownership, expiration, and stale-worker protection if using leases"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-7"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 7 mechanism observable instead of relying on terminology alone. Polling repeatedly asks for status; pooling reuses resources. Store per-payment due timestamps so restart does not erase scheduling intent. A scheduler discovers due work and bounded workers execute it. Claim work briefly, perform external I/O outside database transactions, and reconcile results with idempotent state changes and safe handling of stale or duplicate responses.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "A timeout is uncertainty, not authoritative payment failure; neither a webhook nor a stale poll should blindly overwrite a newer terminal state."
+        ],
+        "guidedExercise": [
+          "Draw the per-row timeline independent of app startup.",
+          "Define claim, I/O, and result-persistence stages.",
+          "Test restart and competing claimers."
+        ],
+        "independentExercise": "Design a two-instance claim or lease policy with fencing or equivalent stale-result protection and idempotent business effects.",
+        "recallQuestions": [
+          "Why is one sleeping thread per transaction a bad general design?",
+          "Should a webhook always win over a status-check response?",
+          "Why must status updates and business effects be idempotent?",
+          "When should the worker stop polling?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Due work is neither lost nor replaced by an app-start timer",
+        "Scheduler and worker capacity responsibilities are distinct",
+        "Claim and result update include stale-worker handling",
+        "Terminal states stop scheduling under the documented policy"
+      ],
+      "resources": [
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        },
+        {
+          "title": "PostgreSQL row locking and SELECT",
+          "url": "https://www.postgresql.org/docs/current/sql-select.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-reconciliation-failure-injection",
+      "title": "Reconciliation Failure Injection",
+      "description": "Unit 7 lab: Reconciliation Failure Injection.",
+      "learningGoals": [
+        "Final state follows authoritative provider evidence",
+        "Timeout alone does not mark payment FAILED",
+        "Duplicate notifications and workers cannot duplicate business effects",
+        "A stale result cannot overwrite a newer terminal state",
+        "Restart preserves unfinished due work"
+      ],
+      "concepts": [
+        "Polling = repeated status inquiry; pooling = reusable connection management.",
+        "Short polling, long polling, database polling and reconciliation.",
+        "Webhook/notification as push; polling as verification/fallback.",
+        "@Scheduled(fixedRate), fixedDelay, cron, and their actual scheduling behavior.",
+        "A scheduler determines when work runs; workers determine how much runs concurrently.",
+        "Persistent work state: next_check_at, attempt_count, status, last_error, locked_until/lease details when needed.",
+        "Terminal states, provider-defined expiry, retries, capped exponential backoff with jitter.",
+        "At-least-once processing, idempotent status updates, duplicate notifications, race conditions.",
+        "Safe coordination across replicas (FOR UPDATE SKIP LOCKED transaction claiming, leases, or durable messaging). Lock only while claiming; do not hold a DB transaction open during external calls.",
+        "Reconciliation and uncertain outcomes: a failed inquiry does not imply payment failure."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Use a local fake provider returning PENDING, timeout, PENDING, duplicate callback, then SUCCESS",
+        "Include a crash after response but before local persistence",
+        "Race a webhook with a poll response and repeat worker execution",
+        "Use idempotent state updates and business effects",
+        "Treat inquiry failures as uncertainty rather than authoritative payment failure"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-7"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 7 mechanism observable instead of relying on terminology alone. Polling repeatedly asks for status; pooling reuses resources. Store per-payment due timestamps so restart does not erase scheduling intent. A scheduler discovers due work and bounded workers execute it. Claim work briefly, perform external I/O outside database transactions, and reconcile results with idempotent state changes and safe handling of stale or duplicate responses.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "A timeout is uncertainty, not authoritative payment failure; neither a webhook nor a stale poll should blindly overwrite a newer terminal state."
+        ],
+        "guidedExercise": [
+          "Predict durable state after each injected event.",
+          "Run the sequence and inspect final state and effect count.",
+          "Restart and repeat due processing."
+        ],
+        "independentExercise": "Design a two-instance claim or lease policy with fencing or equivalent stale-result protection and idempotent business effects.",
+        "recallQuestions": [
+          "Why is one sleeping thread per transaction a bad general design?",
+          "Should a webhook always win over a status-check response?",
+          "Why must status updates and business effects be idempotent?",
+          "When should the worker stop polling?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Final state follows authoritative provider evidence",
+        "Timeout alone does not mark payment FAILED",
+        "Duplicate notifications and workers cannot duplicate business effects",
+        "A stale result cannot overwrite a newer terminal state",
+        "Restart preserves unfinished due work"
+      ],
+      "resources": [
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        },
+        {
+          "title": "PostgreSQL row locking and SELECT",
+          "url": "https://www.postgresql.org/docs/current/sql-select.html"
+        },
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        }
+      ]
+    },
+    {
+      "id": "networking-networking-written-self-assessment",
+      "title": "Networking Written Self-assessment",
+      "description": "Unit 7 lab: Networking Written Self-assessment.",
+      "learningGoals": [
+        "All twenty answers are present",
+        "Low scores produce named follow-up experiments",
+        "A repeated experiment demonstrates recall beyond polished wording"
+      ],
+      "concepts": [
+        "Polling = repeated status inquiry; pooling = reusable connection management.",
+        "Short polling, long polling, database polling and reconciliation.",
+        "Webhook/notification as push; polling as verification/fallback.",
+        "@Scheduled(fixedRate), fixedDelay, cron, and their actual scheduling behavior.",
+        "A scheduler determines when work runs; workers determine how much runs concurrently.",
+        "Persistent work state: next_check_at, attempt_count, status, last_error, locked_until/lease details when needed.",
+        "Terminal states, provider-defined expiry, retries, capped exponential backoff with jitter.",
+        "At-least-once processing, idempotent status updates, duplicate notifications, race conditions.",
+        "Safe coordination across replicas (FOR UPDATE SKIP LOCKED transaction claiming, leases, or durable messaging). Lock only while claiming; do not hold a DB transaction open during external calls.",
+        "Reconciliation and uncertain outcomes: a failed inquiry does not imply payment failure."
+      ],
+      "examples": [
+        "Predict the result before running this controlled local experiment."
+      ],
+      "requirements": [
+        "Answer all twenty guide questions before reading reference answers",
+        "Give each answer a manual score from 0 to 4 using the guide rubric",
+        "Every answer scored 2 or below becomes a follow-up experiment",
+        "After a week repeat one earlier experiment without instructions"
+      ],
+      "constraints": [
+        "Run only on localhost or authorized inspection targets",
+        "Do not log credentials, capture production traffic, disable TLS verification, or load-test a third party"
+      ],
+      "deliverables": [
+        "Prediction and experiment plan",
+        "Runnable lab or design artifact",
+        "Sanitized observations and evidence paths",
+        "Failure-case explanation and manual mastery score"
+      ],
+      "dependencies": [
+        "networking-unit-7"
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write predictions and the experiment plan"
+        },
+        {
+          "id": "observe",
+          "title": "Run the lab and record sanitized evidence"
+        },
+        {
+          "id": "verify",
+          "title": "Check every acceptance criterion"
+        },
+        {
+          "id": "reflect",
+          "title": "Explain the outcome and a failure variation without notes"
+        }
+      ],
+      "material": {
+        "explanation": "This lab makes the Unit 7 mechanism observable instead of relying on terminology alone. Polling repeatedly asks for status; pooling reuses resources. Store per-payment due timestamps so restart does not erase scheduling intent. A scheduler discovers due work and bounded workers execute it. Claim work briefly, perform external I/O outside database transactions, and reconcile results with idempotent state changes and safe handling of stale or duplicate responses.",
+        "workedExample": {
+          "scenario": "Predict the result before running this controlled local experiment.",
+          "steps": [
+            "Record the observed behavior with secrets removed.",
+            "Explain any difference and reproduce a relevant failure variation."
+          ]
+        },
+        "commonMistakes": [
+          "A timeout is uncertainty, not authoritative payment failure; neither a webhook nor a stale poll should blindly overwrite a newer terminal state."
+        ],
+        "guidedExercise": [
+          "Hide code and notes before answering.",
+          "Explain mechanisms plus a counterexample, not only terms.",
+          "Record gaps and evidence paths in notes."
+        ],
+        "independentExercise": "Design a two-instance claim or lease policy with fencing or equivalent stale-result protection and idempotent business effects.",
+        "recallQuestions": [
+          "What are the different responsibilities of HTTP, TLS, TCP, IP and Ethernet/Wi-Fi?",
+          "What can a DNS resolver cache, and why can IP results vary?",
+          "What is the TCP 4-tuple?",
+          "What exactly happens in the TCP three-way handshake?",
+          "Why does TCP not preserve write() boundaries?",
+          "What can a TCP ACK prove—and what can it not prove about a payment?",
+          "Why does TLS use both asymmetric and symmetric cryptography?",
+          "What is SNI? What is ALPN?",
+          "What does a Java truststore trust?",
+          "Why can browser HTTPS succeed while a Java client fails PKIX validation?",
+          "Why is HTTP 200 not equivalent to a successful financial transaction?",
+          "Why is HTTP/2 multiplexing different from HTTP/1.1 reuse?",
+          "What is the difference between pool-acquisition timeout and connect timeout?",
+          "What does connection.close() mean on a pooled JDBC connection?",
+          "Why might an external HTTP call inside @Transactional cause DB pool saturation?",
+          "Why can't increasing Hikari's max size always improve throughput?",
+          "What's the difference between TaskScheduler and a task executor?",
+          "Why is a retry unsafe after an ambiguous payment POST without idempotency protection?",
+          "How do you persist polling progress across process restarts?",
+          "What metrics would prove your polling worker is overwhelming a downstream provider?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All twenty answers are present",
+        "Low scores produce named follow-up experiments",
+        "A repeated experiment demonstrates recall beyond polished wording"
+      ],
+      "resources": [
+        {
+          "title": "TCP specification: RFC 9293",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293"
+        },
+        {
+          "title": "TLS 1.3 specification: RFC 8446",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446"
+        },
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        },
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        }
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "networking-mini-payment-status-reconciler",
+      "title": "Mini Payment Status Reconciler",
+      "description": "Implement an observable, bounded, restart-safe payment application with a local fake provider.",
+      "learningGoals": [
+        "Connect network, HTTP, JDBC, scheduling, and concurrency behavior end to end",
+        "Prove the capstone acceptance checks under controlled failures",
+        "Explain all six oral-review scenarios without code or notes"
+      ],
+      "concepts": [
+        "Protocol outcome versus business state",
+        "Durable scheduling and idempotency",
+        "HTTP/JDBC pools, bounded concurrency, and uncertain results"
+      ],
+      "examples": [
+        "A pending fake payment remains durable through a provider timeout and becomes SUCCESS once authoritative evidence arrives."
+      ],
+      "requirements": [
+        "POST /payments: create a fake payment, return reference and PENDING.",
+        "GET /payments/{id}/status: return current simulated status.",
+        "Adjustable latency, error responses and connection drops for controlled tests.",
+        "POST /admin/payments/{id}/complete: manually switch to SUCCESS in the local simulator.",
+        "POST /payments: persist local intent and invoke provider with a stable idempotency key when creating externally.",
+        "GET /payments/{id}: expose local state.",
+        "Background worker selects *due* pending payments in bounded batches.",
+        "Outgoing calls use a shared, explicitly configured HTTP client.",
+        "PostgreSQL is accessed through HikariCP.",
+        "Separate database transactions from remote network calls.",
+        "Persist attempts and schedule future checks.",
+        "Handle duplicate callbacks and duplicate worker execution safely.",
+        "At least one repeatable integration test per failure mode.",
+        "Configurable pool sizes, connection timeouts, response timeouts and concurrency limits.",
+        "Basic counters/timers for database pool wait, HTTP acquisition/latency, polling attempts, failures and pending backlog.",
+        "No logging of secrets or sensitive payment payloads."
+      ],
+      "constraints": [
+        "Use only a local fake provider; never a production payment gateway",
+        "No production credentials or sensitive payment payloads in captures or logs",
+        "Keep TLS verification enabled; do not substitute trust-all shortcuts",
+        "Use Java/Spring, PostgreSQL/HikariCP, and a shared explicitly configured HTTP client in the lab only",
+        "Keep remote network calls outside long database transactions",
+        "Use bounded work and stable idempotency identities rather than one sleeping thread per payment"
+      ],
+      "deliverables": [
+        "Local fake-provider service and payment application",
+        "Schema and due-work claim/lease algorithm",
+        "Repeatable integration tests for each failure mode",
+        "Pool, timeout, queue, and concurrency configuration",
+        "Sanitized counters/timers and a resource-capacity diagram",
+        "Runbook and crash/recovery explanation",
+        "Six oral-review answers without code"
+      ],
+      "dependencies": [
+        "networking-unit-7"
+      ],
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "A first payment ends in PENDING and has a due timestamp."
+        },
+        {
+          "id": "acceptance-2",
+          "title": "A pending payment is checked when due, not by holding a sleeping request thread."
+        },
+        {
+          "id": "acceptance-3",
+          "title": "The worker uses the outbound HTTP connection pool and releases resources."
+        },
+        {
+          "id": "acceptance-4",
+          "title": "SUCCESS stops further checks."
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Duplicate callbacks do not duplicate business effects."
+        },
+        {
+          "id": "acceptance-6",
+          "title": "Timeout/connection reset produces an uncertain/retryable outcome, not automatic success/failure."
+        },
+        {
+          "id": "acceptance-7",
+          "title": "Pool saturation is measurable and does not create unbounded queued tasks."
+        },
+        {
+          "id": "acceptance-8",
+          "title": "A restart does not permanently lose due work."
+        },
+        {
+          "id": "acceptance-9",
+          "title": "Two worker instances cannot process the same claim at the same time without coordination; duplicate delivery is still tolerated."
+        },
+        {
+          "id": "acceptance-10",
+          "title": "The README contains a diagram, operational assumptions, tradeoffs, and failure-recovery explanations."
+        },
+        {
+          "id": "oral-review",
+          "title": "Complete the six oral design-review scenarios without notes"
+        }
+      ],
+      "material": {
+        "explanation": "Build two local services so every remote outcome can be controlled and observed. Persist creation intent, use a stable provider idempotency key, schedule per-payment due work, and separate brief database claims from network calls. A lease can expire while an old worker is still running: include stale-owner checks or fencing at result persistence, and make duplicated delivery harmless rather than promising impossible universal exactly-once execution.",
+        "workedExample": {
+          "scenario": "A payment is created PENDING at 10:00 with a 10:15 due check.",
+          "steps": [
+            "At 10:18 after downtime, a worker claims the persisted overdue row in a short transaction.",
+            "A timeout records uncertainty and a bounded next attempt without inventing a terminal outcome.",
+            "A later authoritative SUCCESS wins under the state policy and stops future checks; duplicate callbacks do not repeat effects."
+          ]
+        },
+        "commonMistakes": [
+          "Do not equate HTTP 200, TCP ACK, or a completed TLS exchange with successful payment.",
+          "Do not hold a database transaction for the whole provider wait.",
+          "A lease alone cannot prevent an expired old worker from continuing; guard stale updates and duplicate effects."
+        ],
+        "guidedExercise": [
+          "Implement the fake create/status/admin-complete endpoints and adjustable failures.",
+          "Persist local intent before external creation and define ambiguous-creation reconciliation.",
+          "Add bounded due-work discovery, claim, call, result persistence, and retry scheduling.",
+          "Run every acceptance check with sanitized evidence, then answer the oral review."
+        ],
+        "independentExercise": "Run two worker instances, slow the fake provider beyond the claim lease, crash a worker after a provider response, and prove stale persistence and duplicate delivery cannot corrupt state or repeat business effects.",
+        "recallQuestions": [
+          "500 concurrent API requests, 10 JDBC connections, slow queries: what queues and why?",
+          "1000 pending status inquiries, 20 HTTP connections: how do you enforce concurrency and rate limits?",
+          "Java reports PKIX path building failed: how do you investigate securely?",
+          "The provider processed a payment but the HTTP response was lost: what state do you record?",
+          "Two application instances poll the same transaction: how do you prevent harmful duplicate effects?",
+          "Your pool metrics look healthy but response latency has tripled: what layers do you inspect?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A first payment ends in PENDING and has a due timestamp.",
+        "A pending payment is checked when due, not by holding a sleeping request thread.",
+        "The worker uses the outbound HTTP connection pool and releases resources.",
+        "SUCCESS stops further checks.",
+        "Duplicate callbacks do not duplicate business effects.",
+        "Timeout/connection reset produces an uncertain/retryable outcome, not automatic success/failure.",
+        "Pool saturation is measurable and does not create unbounded queued tasks.",
+        "A restart does not permanently lose due work.",
+        "Two worker instances cannot process the same claim at the same time without coordination; duplicate delivery is still tolerated.",
+        "The README contains a diagram, operational assumptions, tradeoffs, and failure-recovery explanations.",
+        "Expired lease holders cannot overwrite newer claims or terminal state",
+        "Every failure mode has a repeatable integration check and no secret-bearing evidence"
+      ],
+      "resources": [
+        {
+          "title": "Spring HTTP clients and request factories",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html"
+        },
+        {
+          "title": "Spring task execution and scheduling",
+          "url": "https://docs.spring.io/spring-framework/reference/integration/scheduling.html"
+        },
+        {
+          "title": "HikariCP configuration and pool behavior",
+          "url": "https://github.com/brettwooldridge/HikariCP"
+        },
+        {
+          "title": "PostgreSQL row locking and SELECT",
+          "url": "https://www.postgresql.org/docs/current/sql-select.html"
+        },
+        {
+          "title": "Java Socket API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+        },
+        {
+          "title": "Java HttpClient API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.html"
+        }
+      ]
+    }
+  ]
+}

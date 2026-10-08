@@ -20,6 +20,7 @@ export interface ModuleDefinition {
   id: string; order: number; title: string; goal: string; dependencies: string[];
   topics: ItemDefinition[]; exercises: ItemDefinition[]; challenges: ItemDefinition[];
   outcomes?: string[]; completionCriteria?: string[]; studyGuidance?: string[];
+  sourceGuide?: LearningResource;
 }
 export interface EntryProgress {
   status: LearningStatus; completedTasks: string[]; canExplainWithoutNotes: boolean | null;
