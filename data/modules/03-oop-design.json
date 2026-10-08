@@ -10,18 +10,18 @@
     {
       "id": "oop-design-responsibility",
       "title": "Responsibility",
-      "description": "Give each object a clear reason to exist and a bounded set of duties.",
+      "description": "A responsibility is an obligation an object fulfills using information it owns or collaborators it needs.",
       "learningGoals": [
-        "Give each object a clear reason to exist and a bounded set of duties.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Each class has a concrete behavioral purpose",
+        "The refactor preserves observable rules"
       ],
       "concepts": [
-        "Responsibility",
-        "Valid state",
-        "Failure behavior"
+        "Purpose",
+        "Knowledge",
+        "Behavior ownership"
       ],
       "examples": [
-        "Apply responsibility to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "BankAccount controls balance and account state."
       ],
       "tasks": [
         {
@@ -37,24 +37,55 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
+      "dependencies": [],
+      "material": {
+        "explanation": "A responsibility is an obligation an object fulfills using information it owns or collaborators it needs. Start with behavior, then group duties that belong together. A class name is not a justification for its existence.",
+        "workedExample": {
+          "scenario": "BankAccount controls balance and account state.",
+          "steps": [
+            "It validates withdrawals.",
+            "A use-case coordinator handles loading and saving."
+          ]
+        },
+        "commonMistakes": [
+          "Creating a class for every noun can fragment one coherent responsibility."
+        ],
+        "guidedExercise": [
+          "Assign bank-account duties to owners",
+          "Explain each choice"
+        ],
+        "independentExercise": "Refactor a procedural withdrawal into the smallest useful objects.",
+        "recallQuestions": [
+          "Why does this class exist?",
+          "Which duty would not belong here?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each class has a concrete behavioral purpose",
+        "The refactor preserves observable rules"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
+      ]
     },
     {
       "id": "oop-design-information-expert",
       "title": "Information expert",
-      "description": "Place behavior with the object that owns the information it needs.",
+      "description": "Place a decision with the object that has the information needed to make it.",
       "learningGoals": [
-        "Place behavior with the object that owns the information it needs.",
-        "Explain Data ownership, Behavior placement and Invariants.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "The rule is enforced at its state owner",
+        "Infrastructure lookup stays outside domain behavior"
       ],
       "concepts": [
-        "Data ownership",
-        "Behavior placement",
-        "Invariants"
+        "Owned information",
+        "Local decisions",
+        "Invariant enforcement"
       ],
       "examples": [
-        "BankAccount owns its balance and frozen state, so it decides whether withdrawal is allowed."
+        "An account knows balance and frozen state."
       ],
       "tasks": [
         {
@@ -72,24 +103,55 @@
       ],
       "dependencies": [
         "oop-design-responsibility"
+      ],
+      "material": {
+        "explanation": "Place a decision with the object that has the information needed to make it. This reduces duplicated checks and keeps invariants near their state. Expertise does not require the object to fetch infrastructure data itself.",
+        "workedExample": {
+          "scenario": "An account knows balance and frozen state.",
+          "steps": [
+            "withdraw decides whether spending is legal.",
+            "The service obtains the account from storage."
+          ]
+        },
+        "commonMistakes": [
+          "Moving every rule into a service strips the domain object of behavior."
+        ],
+        "guidedExercise": [
+          "Move balance checks into withdraw",
+          "Keep repository calls outside the entity"
+        ],
+        "independentExercise": "Assign token expiration and revocation checks to a token model.",
+        "recallQuestions": [
+          "Who owns the facts for this decision?",
+          "Does ownership imply database access?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The rule is enforced at its state owner",
+        "Infrastructure lookup stays outside domain behavior"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-tell-don-t-ask",
       "title": "Tell, don't ask",
-      "description": "Ask objects to perform behavior instead of inspecting and mutating their state.",
+      "description": "Tell an object what operation to perform rather than extracting state and reproducing its rules elsewhere.",
       "learningGoals": [
-        "Ask objects to perform behavior instead of inspecting and mutating their state.",
-        "Explain Behavior-oriented APIs, Encapsulation and Decision ownership.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Mutation rules have one authoritative location",
+        "Read-only queries do not expose mutable internals"
       ],
       "concepts": [
-        "Behavior-oriented APIs",
+        "Behavior-oriented messages",
         "Encapsulation",
-        "Decision ownership"
+        "Decision locality"
       ],
       "examples": [
-        "Call account.withdraw(amount) instead of reading balance, checking it in a service, then calling setBalance."
+        "A caller invokes account.withdraw(5)."
       ],
       "tasks": [
         {
@@ -107,23 +169,55 @@
       ],
       "dependencies": [
         "oop-design-information-expert"
+      ],
+      "material": {
+        "explanation": "Tell an object what operation to perform rather than extracting state and reproducing its rules elsewhere. Queries still have legitimate uses; the goal is to avoid external mutation logic that bypasses invariants.",
+        "workedExample": {
+          "scenario": "A caller invokes account.withdraw(5).",
+          "steps": [
+            "The account checks balance and frozen state.",
+            "No caller sets its balance directly."
+          ]
+        },
+        "commonMistakes": [
+          "Tell-don't-ask is not a ban on every getter or query."
+        ],
+        "guidedExercise": [
+          "Compare a setter-based withdrawal with a behavior method",
+          "Identify duplicated checks"
+        ],
+        "independentExercise": "Replace external token state checks with a domain operation that has explicit failure behavior.",
+        "recallQuestions": [
+          "Which query is legitimate?",
+          "Which rule is duplicated by the caller?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Mutation rules have one authoritative location",
+        "Read-only queries do not expose mutable internals"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-high-cohesion",
       "title": "High cohesion",
-      "description": "Keep closely related behavior together around one purpose.",
+      "description": "Cohesion measures whether a component's duties support one coherent purpose.",
       "learningGoals": [
-        "Keep closely related behavior together around one purpose.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Responsibilities share a clear purpose",
+        "Splits remove unrelated duties without excessive fragmentation"
       ],
       "concepts": [
-        "High cohesion",
-        "Valid state",
-        "Failure behavior"
+        "Related behavior",
+        "Shared state",
+        "Reasons to change"
       ],
       "examples": [
-        "Apply high cohesion to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Token hashing changes for a different reason than session policy."
       ],
       "tasks": [
         {
@@ -141,23 +235,55 @@
       ],
       "dependencies": [
         "oop-design-tell-don-t-ask"
+      ],
+      "material": {
+        "explanation": "Cohesion measures whether a component's duties support one coherent purpose. Keep behavior that uses the same invariants together. Avoid a large utility or manager class that groups unrelated operations merely because they are convenient.",
+        "workedExample": {
+          "scenario": "Token hashing changes for a different reason than session policy.",
+          "steps": [
+            "Keep cryptographic operations separate.",
+            "Keep token-state rules together."
+          ]
+        },
+        "commonMistakes": [
+          "A small class is not necessarily cohesive if its methods are unrelated."
+        ],
+        "guidedExercise": [
+          "Group service methods by purpose",
+          "Identify unrelated reasons to change"
+        ],
+        "independentExercise": "Split an account-and-email manager without creating one class per method.",
+        "recallQuestions": [
+          "Which duties belong together?",
+          "What change should affect this component?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Responsibilities share a clear purpose",
+        "Splits remove unrelated duties without excessive fragmentation"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-low-coupling",
       "title": "Low coupling",
-      "description": "Reduce the assumptions one part makes about another.",
+      "description": "Coupling is the knowledge one part has about another.",
       "learningGoals": [
-        "Reduce the assumptions one part makes about another.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "The caller does not depend on storage layout",
+        "The contract expresses use-case needs"
       ],
       "concepts": [
-        "Low coupling",
-        "Valid state",
-        "Failure behavior"
+        "Dependency knowledge",
+        "Stable contracts",
+        "Change impact"
       ],
       "examples": [
-        "Apply low coupling to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A use case requests findByHash."
       ],
       "tasks": [
         {
@@ -175,23 +301,55 @@
       ],
       "dependencies": [
         "oop-design-high-cohesion"
+      ],
+      "material": {
+        "explanation": "Coupling is the knowledge one part has about another. Depend on the smallest useful behavior rather than internal fields or storage details. Some coupling is necessary; remove knowledge that makes unrelated changes propagate.",
+        "workedExample": {
+          "scenario": "A use case requests findByHash.",
+          "steps": [
+            "It does not construct SQL.",
+            "A repository implementation handles query details."
+          ]
+        },
+        "commonMistakes": [
+          "Adding interfaces everywhere does not automatically reduce meaningful coupling."
+        ],
+        "guidedExercise": [
+          "List what the token use case knows",
+          "Remove one infrastructure assumption"
+        ],
+        "independentExercise": "Replace direct table access with a repository contract justified by two callers or testing needs.",
+        "recallQuestions": [
+          "What change propagates through this dependency?",
+          "What knowledge can the caller avoid?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The caller does not depend on storage layout",
+        "The contract expresses use-case needs"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-composition",
       "title": "Composition",
-      "description": "Combine small objects instead of using inheritance for code reuse alone.",
+      "description": "Composition builds behavior by delegating to collaborators.",
       "learningGoals": [
-        "Combine small objects instead of using inheritance for code reuse alone.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Delegation relationships are explicit",
+        "Inheritance is justified by substitutability where used"
       ],
       "concepts": [
-        "Composition",
-        "Valid state",
-        "Failure behavior"
+        "Delegation",
+        "Object collaboration",
+        "Substitutability"
       ],
       "examples": [
-        "Apply composition to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A notification sender uses a retry policy."
       ],
       "tasks": [
         {
@@ -209,23 +367,55 @@
       ],
       "dependencies": [
         "oop-design-low-coupling"
+      ],
+      "material": {
+        "explanation": "Composition builds behavior by delegating to collaborators. Inheritance is useful for genuine substitutable types, not merely sharing implementation. Prefer a clear has-a relationship when behavior varies independently.",
+        "workedExample": {
+          "scenario": "A notification sender uses a retry policy.",
+          "steps": [
+            "It delegates retry decisions.",
+            "It does not become a subclass of RetryPolicy."
+          ]
+        },
+        "commonMistakes": [
+          "Shared code alone is not evidence of an is-a relationship."
+        ],
+        "guidedExercise": [
+          "Compare inheritance and delegation for notifications",
+          "State the substitution promise"
+        ],
+        "independentExercise": "Compose a session service from generator, hasher, and repository.",
+        "recallQuestions": [
+          "Is this a has-a or is-a relationship?",
+          "Which behavior varies independently?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Delegation relationships are explicit",
+        "Inheritance is justified by substitutability where used"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-dependency-inversion",
       "title": "Dependency inversion",
-      "description": "Make policy depend on contracts rather than infrastructure details.",
+      "description": "Important policy should not depend on incidental implementation details.",
       "learningGoals": [
-        "Make policy depend on contracts rather than infrastructure details.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Domain policy compiles without framework imports",
+        "A fake satisfies the same behavioral contract"
       ],
       "concepts": [
-        "Dependency inversion",
-        "Valid state",
-        "Failure behavior"
+        "Policy boundaries",
+        "Contracts",
+        "Construction"
       ],
       "examples": [
-        "Apply dependency inversion to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Token rotation depends on a token-store contract."
       ],
       "tasks": [
         {
@@ -243,23 +433,55 @@
       ],
       "dependencies": [
         "oop-design-composition"
+      ],
+      "material": {
+        "explanation": "Important policy should not depend on incidental implementation details. Define a contract at an actual boundary and supply the concrete dependency at construction. This enables testing policy without importing the framework or database.",
+        "workedExample": {
+          "scenario": "Token rotation depends on a token-store contract.",
+          "steps": [
+            "An in-memory store supports unit tests.",
+            "A JDBC adapter supplies persistence later."
+          ]
+        },
+        "commonMistakes": [
+          "Dependency inversion is not a requirement for an interface per class."
+        ],
+        "guidedExercise": [
+          "Identify the policy and infrastructure sides",
+          "Write a minimal store contract"
+        ],
+        "independentExercise": "Run a use case with manual constructor wiring and a fake store.",
+        "recallQuestions": [
+          "Which side owns the contract?",
+          "Where is the concrete adapter chosen?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Domain policy compiles without framework imports",
+        "A fake satisfies the same behavioral contract"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-entity",
       "title": "Entity",
-      "description": "Model identity and behavior that persist through state changes.",
+      "description": "An entity represents a thing whose identity remains meaningful as its state changes.",
       "learningGoals": [
-        "Model identity and behavior that persist through state changes.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Identity remains stable through transitions",
+        "Mutable values do not define entity identity"
       ],
       "concepts": [
-        "Entity",
-        "Valid state",
-        "Failure behavior"
+        "Stable identity",
+        "Lifecycle",
+        "Mutable state"
       ],
       "examples": [
-        "Apply entity to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Account A changes from ACTIVE to FROZEN."
       ],
       "tasks": [
         {
@@ -277,23 +499,121 @@
       ],
       "dependencies": [
         "oop-design-dependency-inversion"
+      ],
+      "material": {
+        "explanation": "An entity represents a thing whose identity remains meaningful as its state changes. Decide which operations preserve invariants and which identity defines equality. Persistence annotations are not what make an object an entity.",
+        "workedExample": {
+          "scenario": "Account A changes from ACTIVE to FROZEN.",
+          "steps": [
+            "Its balance and identity persist.",
+            "Another account with the same balance remains different."
+          ]
+        },
+        "commonMistakes": [
+          "Matching all field values does not necessarily make two entities identical."
+        ],
+        "guidedExercise": [
+          "Define account identity separately from balance",
+          "Model its lifecycle"
+        ],
+        "independentExercise": "Create a Session entity whose token history can change without changing session identity.",
+        "recallQuestions": [
+          "What survives a state change?",
+          "How should entity equality work?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Identity remains stable through transitions",
+        "Mutable values do not define entity identity"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
+      ]
+    },
+    {
+      "id": "oop-design-value-objects",
+      "title": "Value objects",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A value object is defined by its values rather than a separate lifecycle identity.",
+      "concepts": [
+        "Value equality",
+        "Validation",
+        "Replacement"
+      ],
+      "learningGoals": [
+        "Invalid values cannot be constructed",
+        "Equality and normalization policies are tested"
+      ],
+      "examples": [
+        "Money contains amount and currency."
+      ],
+      "material": {
+        "explanation": "A value object is defined by its values rather than a separate lifecycle identity. Validate it at construction and prefer immutability. Replace a value when it changes rather than exposing unrestricted setters.",
+        "workedExample": {
+          "scenario": "Money contains amount and currency.",
+          "steps": [
+            "Two equivalent amounts in the same currency compare by the chosen policy.",
+            "Different currencies cannot be added silently."
+          ]
+        },
+        "commonMistakes": [
+          "A primitive amount alone omits the currency and rounding contract."
+        ],
+        "guidedExercise": [
+          "Create a validated Money value",
+          "Reject incompatible arithmetic"
+        ],
+        "independentExercise": "Model CouponCode with an explicit normalization policy.",
+        "recallQuestions": [
+          "What makes this a value rather than an entity?",
+          "Where should normalization happen?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Invalid values cannot be constructed",
+        "Equality and normalization policies are tested"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
+      ],
+      "dependencies": [
+        "oop-design-entity"
       ]
     },
     {
       "id": "oop-design-domain-service",
       "title": "Domain service",
-      "description": "Place domain rules that span entities in a focused operation.",
+      "description": "A domain service holds a domain operation that does not naturally belong to one entity.",
       "learningGoals": [
-        "Place domain rules that span entities in a focused operation.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "The policy uses domain concepts only",
+        "Entity invariants remain enforced by entities"
       ],
       "concepts": [
-        "Domain service",
-        "Valid state",
-        "Failure behavior"
+        "Cross-entity rules",
+        "Domain language",
+        "Stateless policy"
       ],
       "examples": [
-        "Apply domain service to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A transfer policy evaluates two accounts and a limit."
       ],
       "tasks": [
         {
@@ -310,25 +630,56 @@
         }
       ],
       "dependencies": [
-        "oop-design-entity"
+        "oop-design-value-objects"
+      ],
+      "material": {
+        "explanation": "A domain service holds a domain operation that does not naturally belong to one entity. Keep it focused on business decisions rather than HTTP or persistence orchestration. First check whether an existing entity already owns the needed information.",
+        "workedExample": {
+          "scenario": "A transfer policy evaluates two accounts and a limit.",
+          "steps": [
+            "Accounts still own debit and credit invariants.",
+            "The use case manages atomic persistence."
+          ]
+        },
+        "commonMistakes": [
+          "A domain service should not become a dumping ground for displaced entity behavior."
+        ],
+        "guidedExercise": [
+          "Identify a genuine cross-entity rule",
+          "Keep transport details out"
+        ],
+        "independentExercise": "Design a transfer policy while keeping each account responsible for valid balances.",
+        "recallQuestions": [
+          "Why does no single entity own this rule?",
+          "What infrastructure should this service avoid?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The policy uses domain concepts only",
+        "Entity invariants remain enforced by entities"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-application-service",
       "title": "Application service",
-      "description": "Orchestrate a use case without absorbing entity invariants.",
+      "description": "An application service coordinates a use case: obtain inputs, load state, invoke domain behavior, persist, and return an outcome.",
       "learningGoals": [
-        "Orchestrate a use case without absorbing entity invariants.",
-        "Explain Use-case orchestration, Dependencies and Transaction scope.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "The use case has an explicit success and failure flow",
+        "Domain validation is not duplicated in callers"
       ],
       "concepts": [
         "Use-case orchestration",
-        "Dependencies",
-        "Transaction scope"
+        "Transaction boundary",
+        "Collaborators"
       ],
       "examples": [
-        "A refresh use case loads the token, asks the domain to validate it, rotates it, persists changes, and issues a response."
+        "Rotate a refresh token."
       ],
       "tasks": [
         {
@@ -346,23 +697,55 @@
       ],
       "dependencies": [
         "oop-design-domain-service"
+      ],
+      "material": {
+        "explanation": "An application service coordinates a use case: obtain inputs, load state, invoke domain behavior, persist, and return an outcome. It defines orchestration and atomic boundaries while delegating domain rules to their owners.",
+        "workedExample": {
+          "scenario": "Rotate a refresh token.",
+          "steps": [
+            "Load and validate domain state.",
+            "Persist revocation and replacement together, then return issuance data."
+          ]
+        },
+        "commonMistakes": [
+          "A controller should not contain the entire use-case algorithm."
+        ],
+        "guidedExercise": [
+          "Trace orchestration separately from token rules",
+          "List dependencies by behavior"
+        ],
+        "independentExercise": "Implement a withdrawal coordinator using an in-memory repository.",
+        "recallQuestions": [
+          "What belongs to orchestration?",
+          "Which domain rules should it delegate?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The use case has an explicit success and failure flow",
+        "Domain validation is not duplicated in callers"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     },
     {
       "id": "oop-design-interface-design",
       "title": "Interface design",
-      "description": "Expose the smallest contract callers actually need.",
+      "description": "Design an interface from concrete caller needs.",
       "learningGoals": [
-        "Expose the smallest contract callers actually need.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Every operation is justified by a caller",
+        "Atomicity and absence semantics are documented"
       ],
       "concepts": [
-        "Interface design",
-        "Valid state",
-        "Failure behavior"
+        "Caller-oriented contracts",
+        "Failure semantics",
+        "Minimal surface"
       ],
       "examples": [
-        "Apply interface design to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A rotation store exposes an atomic claim operation."
       ],
       "tasks": [
         {
@@ -380,6 +763,104 @@
       ],
       "dependencies": [
         "oop-design-application-service"
+      ],
+      "material": {
+        "explanation": "Design an interface from concrete caller needs. Specify absence, errors, atomic operations, and ownership of returned data. Do not expose generic CRUD methods when they weaken an invariant the use case needs to preserve.",
+        "workedExample": {
+          "scenario": "A rotation store exposes an atomic claim operation.",
+          "steps": [
+            "The result identifies whether this caller won.",
+            "Separate read and write methods cannot promise the same concurrency behavior."
+          ]
+        },
+        "commonMistakes": [
+          "A broad repository interface can hide a missing atomicity contract."
+        ],
+        "guidedExercise": [
+          "Write callers before finalizing the interface",
+          "Specify failure and concurrency semantics"
+        ],
+        "independentExercise": "Design a token repository without exposing raw tokens or arbitrary status setters.",
+        "recallQuestions": [
+          "What guarantee does the caller require?",
+          "Which method makes an invalid sequence possible?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every operation is justified by a caller",
+        "Atomicity and absence semantics are documented"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
+      ]
+    },
+    {
+      "id": "oop-design-fakes-and-behavioral-contract-tests",
+      "title": "Fakes and behavioral contract tests",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A fake implements a useful simplified behavior for tests.",
+      "concepts": [
+        "Test doubles",
+        "Observable behavior",
+        "Adapter consistency"
+      ],
+      "learningGoals": [
+        "Important contract behavior matches across adapters",
+        "Tests assert outcomes rather than incidental call order"
+      ],
+      "examples": [
+        "A fake token store rejects a duplicate hash."
+      ],
+      "material": {
+        "explanation": "A fake implements a useful simplified behavior for tests. It must preserve the contract's important rules, or tests may approve behavior the real adapter cannot provide. Reuse a small contract test against multiple implementations when that boundary matters.",
+        "workedExample": {
+          "scenario": "A fake token store rejects a duplicate hash.",
+          "steps": [
+            "The JDBC store must reject it too.",
+            "Both report absence consistently."
+          ]
+        },
+        "commonMistakes": [
+          "A fake that always succeeds can conceal uniqueness and failure bugs."
+        ],
+        "guidedExercise": [
+          "List contract behaviors",
+          "Test missing, duplicate, and successful lookup"
+        ],
+        "independentExercise": "Run the same repository behavior cases against two implementations.",
+        "recallQuestions": [
+          "Which behavior can your fake safely simplify?",
+          "What discrepancy would invalidate a unit test?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Important contract behavior matches across adapters",
+        "Tests assert outcomes rather than incidental call order"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "oop-design-interface-design"
       ]
     }
   ],
@@ -387,18 +868,18 @@
     {
       "id": "oop-design-bankaccount",
       "title": "BankAccount",
-      "description": "Practice the module by designing and testing bankaccount.",
+      "description": "Refactor working account behavior into justified responsibilities.",
       "learningGoals": [
-        "Practice the module by designing and testing bankaccount.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Refactor working account behavior into justified responsibilities.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "BankAccount",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply bankaccount to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "An active account holds 20."
       ],
       "tasks": [
         {
@@ -424,27 +905,169 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: All state and amount rules have passing tests"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: The refactor preserves observable behavior"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Callers cannot bypass balance or lifecycle rules"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Every added class or interface has a concrete justification"
         }
       ],
       "dependencies": [
-        "oop-design-interface-design"
+        "oop-design-fakes-and-behavioral-contract-tests"
       ],
       "requirements": [
-        "deposit, withdraw, freeze, unfreeze, close",
-        "Closed account cannot transact",
-        "Frozen account cannot withdraw",
-        "Amount must be positive",
-        "Balance cannot go negative"
+        "Support deposit, withdraw, freeze, unfreeze, and close",
+        "Amounts are positive and currency-compatible",
+        "Balance never goes negative",
+        "Closed accounts cannot transact; frozen accounts cannot withdraw",
+        "For this exercise close requires zero balance",
+        "State changes follow a declared repeated-action policy"
       ],
-      "constraints": [],
+      "constraints": [
+        "Start with a small procedural solution, then refactor",
+        "Plain Java; no framework imports in the domain",
+        "Introduce an interface only for a useful boundary"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Before/after responsibility comparison"
+      ],
+      "material": {
+        "explanation": "First prove the business rules with tests, then use those tests to protect a responsibility refactor. Keep balance and state invariants with the account. Explain what remains in the use-case coordinator rather than adding abstractions for appearance.",
+        "workedExample": {
+          "scenario": "An active account holds 20.",
+          "steps": [
+            "Freeze prevents withdrawing 5.",
+            "Unfreeze allows it and leaves 15; closing rejects a nonzero balance."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Implement and test the rule table in a small solution.",
+          "Move invariant checks into meaningful account behavior.",
+          "Compare class responsibilities before and after."
+        ],
+        "independentExercise": "Add a transfer use case and explain the cross-account invariant plus the eventual transaction boundary.",
+        "recallQuestions": [
+          "Which rule belongs to the account?",
+          "Why does each collaborator exist?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All state and amount rules have passing tests",
+        "The refactor preserves observable behavior",
+        "Callers cannot bypass balance or lifecycle rules",
+        "Every added class or interface has a concrete justification"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
+      ]
+    },
+    {
+      "id": "oop-design-repository-contract-comparison",
+      "title": "Repository Contract Comparison",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Missing and duplicate behavior are explicit"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: The fake satisfies observable contract tests"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Durability and concurrency limits are documented"
+        }
+      ],
+      "description": "Verify that fake and persistent adapters promise the same behavior.",
+      "learningGoals": [
+        "Verify that fake and persistent adapters promise the same behavior.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "Saving a duplicate token hash is forbidden."
+      ],
+      "requirements": [
+        "Define a minimal lookup-and-save contract from a caller",
+        "Specify missing IDs, duplicate business keys, and failure behavior",
+        "Create an in-memory adapter now; describe the persistent adapter for Module 5",
+        "Do not claim durability or cross-process atomicity from the fake"
+      ],
+      "constraints": [
+        "Plain Java tests; PostgreSQL implementation comes in Module 5"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Reusable behavioral contract cases"
+      ],
+      "material": {
+        "explanation": "A fake is useful only when its simplified behavior preserves the contract relevant to the use case. Explicitly label its limits. Reuse the same observable cases when the JDBC adapter is introduced rather than replacing the contract with database-specific methods.",
+        "workedExample": {
+          "scenario": "Saving a duplicate token hash is forbidden.",
+          "steps": [
+            "The fake rejects the second save.",
+            "The later JDBC adapter must reject the same business case."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write the caller and minimum interface.",
+          "Test missing and successful lookup.",
+          "Test a duplicate business key."
+        ],
+        "independentExercise": "Deliberately weaken the fake to always accept duplicates and show which contract test detects it.",
+        "recallQuestions": [
+          "What can the fake simplify?",
+          "What guarantee must the real adapter prove separately?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Missing and duplicate behavior are explicit",
+        "The fake satisfies observable contract tests",
+        "Durability and concurrency limits are documented"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "oop-design-fakes-and-behavioral-contract-tests"
       ]
     }
   ],
@@ -452,18 +1075,18 @@
     {
       "id": "oop-design-token-responsibilities",
       "title": "Token Responsibilities",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Assign token-system behavior to the smallest justified set of collaborators.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Assign token-system behavior to the smallest justified set of collaborators.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "The application service obtains a token and session."
       ],
       "tasks": [
         {
@@ -481,24 +1104,94 @@
         {
           "id": "deliverable-4",
           "title": "What should it not do?"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Each retained type has a concrete reason to exist"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Domain types contain no HTTP or storage calls"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Contracts define absence, failures, and relevant atomicity"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: A manual construction example exposes all real dependencies"
         }
       ],
       "dependencies": [
-        "oop-design-interface-design"
+        "oop-design-fakes-and-behavioral-contract-tests"
       ],
       "requirements": [
-        "Design RefreshToken, Session, UserSessionService",
-        "Design TokenGenerator, TokenHasher, RefreshTokenRepository, AccessTokenIssuer"
+        "Evaluate RefreshToken, Session, UserSessionService, TokenGenerator, TokenHasher, RefreshTokenRepository, AccessTokenIssuer",
+        "For each answer why it exists, what it knows, what it does, and what it must not do",
+        "Keep validity and lifecycle rules with their state owners",
+        "Keep orchestration and infrastructure boundaries explicit",
+        "Merge or omit a proposed type if no distinct responsibility justifies it"
       ],
       "constraints": [
-        "Keep domain rules separate from orchestration and infrastructure"
+        "Design first; no framework annotations",
+        "Do not introduce an interface solely to mirror each class"
       ],
       "deliverables": [
-        "For each class: Why does it exist?",
-        "What does it know?",
-        "What can it do?",
-        "What should it not do?"
+        "Responsibility table",
+        "Collaboration sequence",
+        "Minimal interfaces with behavioral guarantees",
+        "Manual constructor wiring",
+        "Unit-test plan and rationale for each abstraction"
+      ],
+      "material": {
+        "explanation": "Treat the supplied names as candidates, not a required class count. Start from the rotation use case and assign each decision to an owner. A repository contract must state any atomic guarantee the use case relies on; a generic save method may not express it.",
+        "workedExample": {
+          "scenario": "The application service obtains a token and session.",
+          "steps": [
+            "Domain objects decide whether the state permits rotation.",
+            "The store provides the protected persistence operation and the issuer creates access data."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "List each step of the use case.",
+          "Assign owned state and rules.",
+          "Remove a collaborator that only forwards a call without a useful boundary."
+        ],
+        "independentExercise": "Add session-wide revocation and identify which responsibility changes without growing unrelated components.",
+        "recallQuestions": [
+          "Why does each type exist?",
+          "Which collaborator promises atomicity?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each retained type has a concrete reason to exist",
+        "Domain types contain no HTTP or storage calls",
+        "Contracts define absence, failures, and relevant atomicity",
+        "A manual construction example exposes all real dependencies"
+      ],
+      "resources": [
+        {
+          "title": "Java object-oriented programming",
+          "url": "https://dev.java/learn/language/oop/"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Assign behavior to the information owner",
+    "Explain every retained class and interface",
+    "Preserve contracts across simplified and persistent adapters"
+  ],
+  "completionCriteria": [
+    "Bank-account refactoring preserves rule tests",
+    "The responsibility table justifies each abstraction",
+    "Repository contracts specify absence, failure, and atomicity"
+  ],
+  "studyGuidance": [
+    "Start from working behavior and refactor under tests.",
+    "The proposed token class names are candidates, not a required class count."
   ]
 }

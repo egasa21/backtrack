@@ -8,20 +8,20 @@
   ],
   "topics": [
     {
-      "id": "data-structures-array",
-      "title": "Array",
-      "description": "Use fixed-size indexed storage and reason about contiguous access.",
+      "id": "data-structures-big-o",
+      "title": "Big-O",
+      "description": "Big-O describes how cost grows with input size, not exact elapsed time.",
       "learningGoals": [
-        "Use fixed-size indexed storage and reason about contiguous access.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Time and space costs name their input size",
+        "Worst and average behavior are distinguished"
       ],
       "concepts": [
-        "Array",
-        "Valid state",
-        "Failure behavior"
+        "Input size",
+        "Growth rate",
+        "Worst and average cases"
       ],
       "examples": [
-        "Apply array to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Search a list of n sessions for an ID."
       ],
       "tasks": [
         {
@@ -37,23 +37,121 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
+      "dependencies": [],
+      "material": {
+        "explanation": "Big-O describes how cost grows with input size, not exact elapsed time. State the operation and assumptions before quoting complexity. Distinguish average, worst-case, and amortized behavior, and consider memory as well as time.",
+        "workedExample": {
+          "scenario": "Search a list of n sessions for an ID.",
+          "steps": [
+            "A missing ID can inspect all n entries.",
+            "Doubling n can double comparisons."
+          ]
+        },
+        "commonMistakes": [
+          "O(1) does not mean zero cost or always faster for tiny inputs."
+        ],
+        "guidedExercise": [
+          "Count operations for list lookup",
+          "Compare with a keyed index"
+        ],
+        "independentExercise": "Analyze a deduplication algorithm with and without a set.",
+        "recallQuestions": [
+          "What is n in your analysis?",
+          "Which assumptions support the claimed complexity?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Time and space costs name their input size",
+        "Worst and average behavior are distinguished"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
+      ]
+    },
+    {
+      "id": "data-structures-array",
+      "title": "Array",
+      "description": "An array holds a fixed number of positions with indexed access.",
+      "learningGoals": [
+        "Index boundaries are tested",
+        "Returned storage cannot mutate protected state"
+      ],
+      "concepts": [
+        "Fixed length",
+        "Indexed storage",
+        "Bounds"
+      ],
+      "examples": [
+        "Store three counters in an array."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "data-structures-big-o"
+      ],
+      "material": {
+        "explanation": "An array holds a fixed number of positions with indexed access. Growing requires another allocation and copying. Arrays of references do not make their objects immutable, and invalid indexes must be considered at boundaries.",
+        "workedExample": {
+          "scenario": "Store three counters in an array.",
+          "steps": [
+            "Read index two directly.",
+            "Index three is outside the valid range."
+          ]
+        },
+        "commonMistakes": [
+          "A final array reference does not freeze its elements."
+        ],
+        "guidedExercise": [
+          "Trace valid and invalid indexes",
+          "Copy an array before exposing it"
+        ],
+        "independentExercise": "Model fixed hourly buckets and explain rollover behavior.",
+        "recallQuestions": [
+          "When must an array be copied?",
+          "What is fixed about its size?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Index boundaries are tested",
+        "Returned storage cannot mutate protected state"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
+      ]
     },
     {
       "id": "data-structures-arraylist",
       "title": "ArrayList",
-      "description": "Understand amortized append and the cost of shifting elements.",
+      "description": "ArrayList offers indexed access over a growable array.",
       "learningGoals": [
-        "Understand amortized append and the cost of shifting elements.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Operation costs are correctly explained",
+        "Order remains correct after mutation"
       ],
       "concepts": [
-        "ArrayList",
-        "Valid state",
-        "Failure behavior"
+        "Dynamic capacity",
+        "Amortized append",
+        "Shifting elements"
       ],
       "examples": [
-        "Apply arraylist to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Append three audit events."
       ],
       "tasks": [
         {
@@ -71,23 +169,55 @@
       ],
       "dependencies": [
         "data-structures-array"
+      ],
+      "material": {
+        "explanation": "ArrayList offers indexed access over a growable array. Appends are amortized constant time, but a resize copies elements and insertion or removal near the front shifts later values. Use it for ordinary sequences unless requirements suggest otherwise.",
+        "workedExample": {
+          "scenario": "Append three audit events.",
+          "steps": [
+            "Remove the first.",
+            "Later elements shift to earlier positions."
+          ]
+        },
+        "commonMistakes": [
+          "Amortized O(1) does not mean every append costs the same."
+        ],
+        "guidedExercise": [
+          "Compare append with front insertion",
+          "Distinguish size from capacity"
+        ],
+        "independentExercise": "Store audit events and explain why it is unsuitable as a large front-removal queue.",
+        "recallQuestions": [
+          "Why is append amortized?",
+          "Which operations require shifting?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Operation costs are correctly explained",
+        "Order remains correct after mutation"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-linkedlist",
       "title": "LinkedList",
-      "description": "Compare pointer traversal with indexed access and allocation overhead.",
+      "description": "Linked lists connect nodes rather than storing a contiguous sequence.",
       "learningGoals": [
-        "Compare pointer traversal with indexed access and allocation overhead.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Search cost is included in analysis",
+        "A collection choice follows actual operations"
       ],
       "concepts": [
-        "LinkedList",
-        "Valid state",
-        "Failure behavior"
+        "Nodes",
+        "Traversal",
+        "Allocation overhead"
       ],
       "examples": [
-        "Apply linkedlist to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Read the middle of a long LinkedList."
       ],
       "tasks": [
         {
@@ -105,23 +235,55 @@
       ],
       "dependencies": [
         "data-structures-arraylist"
+      ],
+      "material": {
+        "explanation": "Linked lists connect nodes rather than storing a contiguous sequence. Locating an indexed element still requires traversal. Constant-time unlinking only helps once the relevant position is already available; extra allocations and locality also matter.",
+        "workedExample": {
+          "scenario": "Read the middle of a long LinkedList.",
+          "steps": [
+            "Traverse nodes to reach it.",
+            "Removing by index includes that search cost."
+          ]
+        },
+        "commonMistakes": [
+          "LinkedList is not automatically faster for every insertion or removal."
+        ],
+        "guidedExercise": [
+          "Compare get-by-index with sequential traversal",
+          "Account for node storage"
+        ],
+        "independentExercise": "Explain when an ArrayList or ArrayDeque better matches backend work.",
+        "recallQuestions": [
+          "What must be found before unlinking?",
+          "Why can asymptotic equality hide practical costs?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Search cost is included in analysis",
+        "A collection choice follows actual operations"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-stack",
       "title": "Stack",
-      "description": "Use last-in-first-out behavior for nested work and undo operations.",
+      "description": "A stack returns the most recently added value first.",
       "learningGoals": [
-        "Use last-in-first-out behavior for nested work and undo operations.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Pop order is LIFO",
+        "Unbalanced and empty cases have explicit outcomes"
       ],
       "concepts": [
-        "Stack",
-        "Valid state",
-        "Failure behavior"
+        "LIFO",
+        "Push and pop",
+        "Empty behavior"
       ],
       "examples": [
-        "Apply stack to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Push actions A then B."
       ],
       "tasks": [
         {
@@ -139,23 +301,55 @@
       ],
       "dependencies": [
         "data-structures-linkedlist"
+      ],
+      "material": {
+        "explanation": "A stack returns the most recently added value first. It supports nested traversal and undo-like work. In Java, Deque implementations can provide stack operations; learn the behavior rather than depending on the legacy Stack class.",
+        "workedExample": {
+          "scenario": "Push actions A then B.",
+          "steps": [
+            "Pop returns B.",
+            "The next pop returns A."
+          ]
+        },
+        "commonMistakes": [
+          "FIFO and LIFO are different contracts even when methods look similar."
+        ],
+        "guidedExercise": [
+          "Implement LIFO with ArrayDeque",
+          "Decide empty-pop behavior"
+        ],
+        "independentExercise": "Use a stack to validate simple balanced delimiters.",
+        "recallQuestions": [
+          "Which item leaves first?",
+          "When is empty input a valid result?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Pop order is LIFO",
+        "Unbalanced and empty cases have explicit outcomes"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-queue",
       "title": "Queue",
-      "description": "Use first-in-first-out processing for background work.",
+      "description": "A queue generally models first-in-first-out processing.",
       "learningGoals": [
-        "Use first-in-first-out processing for background work.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "FIFO behavior is tested",
+        "Failure and capacity policies are explicit"
       ],
       "concepts": [
-        "Queue",
-        "Valid state",
-        "Failure behavior"
+        "FIFO",
+        "Offer and poll",
+        "Bounded work"
       ],
       "examples": [
-        "Apply queue to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Enqueue EMAIL then PAYMENT."
       ],
       "tasks": [
         {
@@ -173,23 +367,55 @@
       ],
       "dependencies": [
         "data-structures-stack"
+      ],
+      "material": {
+        "explanation": "A queue generally models first-in-first-out processing. Separate adding, retrieving, and empty behavior. A real job queue also needs capacity and failure policies; collection order alone does not guarantee reliable delivery.",
+        "workedExample": {
+          "scenario": "Enqueue EMAIL then PAYMENT.",
+          "steps": [
+            "Poll EMAIL first.",
+            "A failure policy decides whether it retries or moves elsewhere."
+          ]
+        },
+        "commonMistakes": [
+          "Removing a job before handling failure can lose work."
+        ],
+        "guidedExercise": [
+          "Trace a FIFO sequence",
+          "Define behavior when empty or full"
+        ],
+        "independentExercise": "Write a single-process queue with a documented retry and capacity policy.",
+        "recallQuestions": [
+          "What happens after processing fails?",
+          "What limits queued memory?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "FIFO behavior is tested",
+        "Failure and capacity policies are explicit"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-deque",
       "title": "Deque",
-      "description": "Use a double-ended queue for stack and queue operations.",
+      "description": "A deque supports insertion and removal at both ends.",
       "learningGoals": [
-        "Use a double-ended queue for stack and queue operations.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "End choices match the declared order",
+        "Empty and capacity cases are covered"
       ],
       "concepts": [
-        "Deque",
-        "Valid state",
-        "Failure behavior"
+        "Two ends",
+        "Queue and stack operations",
+        "Method semantics"
       ],
       "examples": [
-        "Apply deque to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Add A and B at the tail."
       ],
       "tasks": [
         {
@@ -207,24 +433,55 @@
       ],
       "dependencies": [
         "data-structures-queue"
+      ],
+      "material": {
+        "explanation": "A deque supports insertion and removal at both ends. It can implement FIFO or LIFO depending on which ends you use. Choose method names that make the intended order obvious and document empty-operation behavior.",
+        "workedExample": {
+          "scenario": "Add A and B at the tail.",
+          "steps": [
+            "Remove from the head for FIFO.",
+            "Remove from the tail for LIFO."
+          ]
+        },
+        "commonMistakes": [
+          "Mixing ends accidentally can change the processing contract."
+        ],
+        "guidedExercise": [
+          "Compare queue and stack operations on ArrayDeque",
+          "Test empty polling"
+        ],
+        "independentExercise": "Implement a bounded recent-event buffer that drops the oldest value.",
+        "recallQuestions": [
+          "Which ends implement FIFO?",
+          "Why might polling differ from removing?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "End choices match the declared order",
+        "Empty and capacity cases are covered"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-hashmap",
       "title": "HashMap",
-      "description": "Use key-based lookup and explain collisions and equals/hashCode interaction.",
+      "description": "HashMap uses hashes to find candidate keys and equality to identify a match.",
       "learningGoals": [
-        "Use key-based lookup and explain collisions and equals/hashCode interaction.",
-        "Explain Hashing, Collisions and Average O(1) lookup.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Custom keys obey equals/hashCode",
+        "Collision and missing-key cases work"
       ],
       "concepts": [
-        "Hashing",
+        "Key hashing",
         "Collisions",
-        "Average O(1) lookup"
+        "Stable equality"
       ],
       "examples": [
-        "Index sessions by ID. Use a custom key and test its equals/hashCode contract. Explain why worst-case behavior differs from average lookup."
+        "Two session keys share a hash."
       ],
       "tasks": [
         {
@@ -242,24 +499,55 @@
       ],
       "dependencies": [
         "data-structures-deque"
+      ],
+      "material": {
+        "explanation": "HashMap uses hashes to find candidate keys and equality to identify a match. Average lookup is constant time under suitable conditions, not a universal worst-case promise. Ordinary HashMap does not provide atomic multi-threaded workflows.",
+        "workedExample": {
+          "scenario": "Two session keys share a hash.",
+          "steps": [
+            "Equality distinguishes them.",
+            "Both stored sessions remain retrievable."
+          ]
+        },
+        "commonMistakes": [
+          "A hash collision is not a duplicate key."
+        ],
+        "guidedExercise": [
+          "Test deliberate collisions",
+          "Demonstrate a mutable-key failure"
+        ],
+        "independentExercise": "Index sessions by a stable ID and compare lookup with a scan.",
+        "recallQuestions": [
+          "What distinguishes colliding keys?",
+          "Which concurrency guarantee is absent?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Custom keys obey equals/hashCode",
+        "Collision and missing-key cases work"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-hashset",
       "title": "HashSet",
-      "description": "Detect duplicates and reason about memory growth.",
+      "description": "HashSet uses hash-based membership to detect repeated values.",
       "learningGoals": [
-        "Detect duplicates and reason about memory growth.",
-        "Explain Deduplication, Membership and Memory growth.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Duplicates within the horizon are detected",
+        "Memory-retention limitations are stated"
       ],
       "concepts": [
-        "Deduplication",
         "Membership",
-        "Memory growth"
+        "Deduplication",
+        "Retention"
       ],
       "examples": [
-        "Reject repeated request IDs with a set. Explain why entries need expiration or eviction after millions of requests."
+        "Track request R1 twice."
       ],
       "tasks": [
         {
@@ -277,23 +565,55 @@
       ],
       "dependencies": [
         "data-structures-hashmap"
+      ],
+      "material": {
+        "explanation": "HashSet uses hash-based membership to detect repeated values. Memory grows with retained entries, so decide how long request IDs must remain. It is not a complete durable or cross-instance idempotency solution.",
+        "workedExample": {
+          "scenario": "Track request R1 twice.",
+          "steps": [
+            "Only the first insertion is new.",
+            "Expired IDs can be removed according to policy."
+          ]
+        },
+        "commonMistakes": [
+          "Keeping every ID forever makes a simple detector unbounded."
+        ],
+        "guidedExercise": [
+          "Detect duplicates",
+          "Specify an expiration horizon"
+        ],
+        "independentExercise": "Build a request detector with a clock and predictable cleanup.",
+        "recallQuestions": [
+          "What makes an ID safe to remove?",
+          "What happens across two process instances?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Duplicates within the horizon are detected",
+        "Memory-retention limitations are stated"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-tree",
       "title": "Tree",
-      "description": "Represent parent-child relationships and traversal order.",
+      "description": "Trees represent hierarchical relationships without cycles.",
       "learningGoals": [
-        "Represent parent-child relationships and traversal order.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Traversal visits expected nodes",
+        "Parent and cycle rules are explicit"
       ],
       "concepts": [
-        "Tree",
-        "Valid state",
-        "Failure behavior"
+        "Hierarchy",
+        "Traversal",
+        "Parent-child rules"
       ],
       "examples": [
-        "Apply tree to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A department has two teams."
       ],
       "tasks": [
         {
@@ -311,23 +631,55 @@
       ],
       "dependencies": [
         "data-structures-hashset"
+      ],
+      "material": {
+        "explanation": "Trees represent hierarchical relationships without cycles. Define roots, parent rules, and traversal order before implementation. For this track, understanding traversal and modeling is core; implementing a balanced tree is optional depth.",
+        "workedExample": {
+          "scenario": "A department has two teams.",
+          "steps": [
+            "Visit the department before its children.",
+            "Reject attaching an ancestor below its descendant."
+          ]
+        },
+        "commonMistakes": [
+          "A hierarchy can become a graph if multiple parents are permitted."
+        ],
+        "guidedExercise": [
+          "Represent a small category hierarchy",
+          "Trace depth-first traversal"
+        ],
+        "independentExercise": "List descendants while detecting malformed cycles.",
+        "recallQuestions": [
+          "What makes a structure a tree?",
+          "When does traversal need cycle protection?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Traversal visits expected nodes",
+        "Parent and cycle rules are explicit"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-heap",
       "title": "Heap",
-      "description": "Maintain an extremum efficiently without fully sorting every insertion.",
+      "description": "A heap maintains enough ordering to retrieve an extremum efficiently.",
       "learningGoals": [
-        "Maintain an extremum efficiently without fully sorting every insertion.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Minimum access follows the heap property",
+        "Sorted iteration is not assumed"
       ],
       "concepts": [
-        "Heap",
-        "Valid state",
-        "Failure behavior"
+        "Extremum access",
+        "Partial ordering",
+        "Insertion costs"
       ],
       "examples": [
-        "Apply heap to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Insert execution times 12, 4, and 8."
       ],
       "tasks": [
         {
@@ -345,24 +697,55 @@
       ],
       "dependencies": [
         "data-structures-tree"
+      ],
+      "material": {
+        "explanation": "A heap maintains enough ordering to retrieve an extremum efficiently. It does not keep every element globally sorted. Learn how insert and remove restore the heap property before choosing it for scheduling.",
+        "workedExample": {
+          "scenario": "Insert execution times 12, 4, and 8.",
+          "steps": [
+            "The minimum is 4.",
+            "Remaining internal order need not be sorted."
+          ]
+        },
+        "commonMistakes": [
+          "Iterating a heap does not guarantee sorted output."
+        ],
+        "guidedExercise": [
+          "Trace insertion into a small min-heap",
+          "Compare with sorting on every insertion"
+        ],
+        "independentExercise": "Explain a scheduler's insertion and earliest-removal costs.",
+        "recallQuestions": [
+          "What property does a min-heap guarantee?",
+          "What ordering does it not guarantee?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Minimum access follows the heap property",
+        "Sorted iteration is not assumed"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-priorityqueue",
       "title": "PriorityQueue",
-      "description": "Schedule the earliest job using a stable comparator.",
+      "description": "PriorityQueue exposes priority-based retrieval, typically backed by a heap.",
       "learningGoals": [
-        "Schedule the earliest job using a stable comparator.",
-        "Explain Heap ordering, Comparator and Earliest-first scheduling.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Polling follows the comparator",
+        "Ties and empty queues are tested"
       ],
       "concepts": [
-        "Heap ordering",
         "Comparator",
-        "Earliest-first scheduling"
+        "Earliest-first processing",
+        "Tie policy"
       ],
       "examples": [
-        "Insert jobs out of order by executeAt. Poll the earliest job, and use a sequence number to break ties deterministically."
+        "Jobs B and A share executeAt."
       ],
       "tasks": [
         {
@@ -380,24 +763,55 @@
       ],
       "dependencies": [
         "data-structures-heap"
+      ],
+      "material": {
+        "explanation": "PriorityQueue exposes priority-based retrieval, typically backed by a heap. The comparator determines which value wins; equal priorities need an explicit policy if deterministic ordering matters. It is not a FIFO queue or a thread-safe scheduler.",
+        "workedExample": {
+          "scenario": "Jobs B and A share executeAt.",
+          "steps": [
+            "Compare sequence numbers after time.",
+            "The earlier sequence wins the tie."
+          ]
+        },
+        "commonMistakes": [
+          "Queue iteration is not the same as polling in priority order."
+        ],
+        "guidedExercise": [
+          "Create a time-then-sequence comparator",
+          "Poll out-of-order inputs"
+        ],
+        "independentExercise": "Schedule jobs with equal deadlines and document synchronization ownership.",
+        "recallQuestions": [
+          "How are ties resolved?",
+          "What differs between iteration and polling?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Polling follows the comparator",
+        "Ties and empty queues are tested"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-graph-basics",
       "title": "Graph basics",
-      "description": "Represent dependencies, detect cycles, and traverse relationships.",
+      "description": "Graphs model relationships such as prerequisites.",
       "learningGoals": [
-        "Represent dependencies, detect cycles, and traverse relationships.",
-        "Explain Nodes and edges, Traversal and Cycle detection.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Every prerequisite precedes its dependent",
+        "Cycles are reported explicitly"
       ],
       "concepts": [
-        "Nodes and edges",
+        "Directed edges",
         "Traversal",
         "Cycle detection"
       ],
       "examples": [
-        "Treat topics as nodes and prerequisites as directed edges. Explain why a cycle makes a recommended learning order impossible."
+        "B depends on A and C depends on B."
       ],
       "tasks": [
         {
@@ -415,23 +829,55 @@
       ],
       "dependencies": [
         "data-structures-priorityqueue"
+      ],
+      "material": {
+        "explanation": "Graphs model relationships such as prerequisites. Define edge direction explicitly and track visited nodes during traversal. A dependency cycle prevents a valid topological ordering and should be reported rather than recursed through indefinitely.",
+        "workedExample": {
+          "scenario": "B depends on A and C depends on B.",
+          "steps": [
+            "A can be learned before B.",
+            "Adding A depends on C creates a cycle."
+          ]
+        },
+        "commonMistakes": [
+          "A visited set and a current recursion path serve different purposes."
+        ],
+        "guidedExercise": [
+          "Draw prerequisite edges",
+          "Detect a three-node cycle"
+        ],
+        "independentExercise": "Order a small dependency graph with disconnected nodes.",
+        "recallQuestions": [
+          "Which direction does an edge represent?",
+          "Why can a cycle block scheduling?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every prerequisite precedes its dependent",
+        "Cycles are reported explicitly"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-sorting",
       "title": "Sorting",
-      "description": "Compare ordering strategies, stability, and time-space costs.",
+      "description": "Sorting imposes an order using a comparison rule.",
       "learningGoals": [
-        "Compare ordering strategies, stability, and time-space costs.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Extreme and equal values sort correctly",
+        "Input mutation policy is documented"
       ],
       "concepts": [
-        "Sorting",
-        "Valid state",
-        "Failure behavior"
+        "Comparator contract",
+        "Stability",
+        "Cost"
       ],
       "examples": [
-        "Apply sorting to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Sort jobs by time then ID."
       ],
       "tasks": [
         {
@@ -449,24 +895,55 @@
       ],
       "dependencies": [
         "data-structures-graph-basics"
+      ],
+      "material": {
+        "explanation": "Sorting imposes an order using a comparison rule. A comparator must be consistent and avoid overflow-prone arithmetic subtraction. Decide whether equal elements must retain original order and whether mutation of the input is acceptable.",
+        "workedExample": {
+          "scenario": "Sort jobs by time then ID.",
+          "steps": [
+            "Compare fields explicitly.",
+            "Test equal times and extreme values."
+          ]
+        },
+        "commonMistakes": [
+          "Returning a-b can overflow and reverse the intended comparison."
+        ],
+        "guidedExercise": [
+          "Sort a copy of jobs",
+          "Specify a deterministic tie-breaker"
+        ],
+        "independentExercise": "Order audit records without mutating the caller's input.",
+        "recallQuestions": [
+          "What makes a comparator consistent?",
+          "When does stability matter?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Extreme and equal values sort correctly",
+        "Input mutation policy is documented"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-binary-search",
       "title": "Binary search",
-      "description": "Search sorted data while handling inclusive and exclusive bounds.",
+      "description": "Binary search repeatedly halves an ordered search range.",
       "learningGoals": [
-        "Search sorted data while handling inclusive and exclusive bounds.",
-        "Explain Sorted input, Search interval and Off-by-one boundaries.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Empty, missing, and duplicate cases pass",
+        "Each iteration shrinks the range"
       ],
       "concepts": [
         "Sorted input",
         "Search interval",
-        "Off-by-one boundaries"
+        "Boundary updates"
       ],
       "examples": [
-        "Find an expiration timestamp in a sorted list. Test an empty list, the first value, the last value, and a missing value."
+        "Search [2, 5, 5, 9] for the first 5."
       ],
       "tasks": [
         {
@@ -484,36 +961,100 @@
       ],
       "dependencies": [
         "data-structures-sorting"
+      ],
+      "material": {
+        "explanation": "Binary search repeatedly halves an ordered search range. Correctness depends on sorting and consistent bounds. Define whether you want an exact match, first match, or insertion point; duplicates make those different problems.",
+        "workedExample": {
+          "scenario": "Search [2, 5, 5, 9] for the first 5.",
+          "steps": [
+            "Keep the left candidate after a match.",
+            "Finish at index one."
+          ]
+        },
+        "commonMistakes": [
+          "Finding some matching element does not find the first duplicate."
+        ],
+        "guidedExercise": [
+          "Trace empty and single-element ranges",
+          "Choose inclusive or half-open bounds"
+        ],
+        "independentExercise": "Find the first job at or after a requested time.",
+        "recallQuestions": [
+          "Why must the input be ordered?",
+          "How do duplicate requirements change the algorithm?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Empty, missing, and duplicate cases pass",
+        "Each iteration shrinks the range"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
-      "id": "data-structures-big-o",
-      "title": "Big-O",
-      "description": "Compare growth rates and distinguish average, worst-case, and amortized costs.",
-      "learningGoals": [
-        "Compare growth rates and distinguish average, worst-case, and amortized costs.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Big-O",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply big-o to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
+      "id": "data-structures-thread-safety-and-atomic-operations",
+      "title": "Thread safety and atomic operations",
       "tasks": [
         {
           "id": "explain",
-          "title": "Explain the idea in your own words"
+          "title": "Explain the concept without notes"
         },
         {
           "id": "apply",
-          "title": "Work through a concrete example"
+          "title": "Complete the guided exercise"
         },
         {
           "id": "verify",
-          "title": "Check a boundary or failure case"
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Thread-safe individual methods do not automatically make a multi-step operation atomic.",
+      "concepts": [
+        "Shared state",
+        "Mutual exclusion",
+        "Check-then-act"
+      ],
+      "learningGoals": [
+        "The stated cap survives competing calls",
+        "Cross-instance limitations are explicit"
+      ],
+      "examples": [
+        "Two threads both see 99 requests."
+      ],
+      "material": {
+        "explanation": "Thread-safe individual methods do not automatically make a multi-step operation atomic. Identify the state transition that must have one winner. A local lock can protect one process, but it cannot coordinate separate application instances.",
+        "workedExample": {
+          "scenario": "Two threads both see 99 requests.",
+          "steps": [
+            "A protected check-and-increment admits only one.",
+            "A separate check followed by increment can admit both."
+          ]
+        },
+        "commonMistakes": [
+          "Concurrent collections do not fix every compound workflow."
+        ],
+        "guidedExercise": [
+          "Write the unsafe interleaving",
+          "Protect the full transition with a single lock"
+        ],
+        "independentExercise": "Test the rate limiter with competing callers and document its process-local scope.",
+        "recallQuestions": [
+          "Which steps must be atomic together?",
+          "What can a JVM lock not coordinate?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The stated cap survives competing calls",
+        "Cross-instance limitations are explicit"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
         }
       ],
       "dependencies": [
@@ -525,18 +1066,18 @@
     {
       "id": "data-structures-duplicate-request-detector",
       "title": "Duplicate Request Detector",
-      "description": "Practice the module by designing and testing duplicate request detector.",
+      "description": "Build membership-based detection with a bounded retention policy.",
       "learningGoals": [
-        "Practice the module by designing and testing duplicate request detector.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Build membership-based detection with a bounded retention policy.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Duplicate Request Detector",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply duplicate request detector to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "R1 arrives twice within the horizon."
       ],
       "tasks": [
         {
@@ -558,43 +1099,92 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Repeated IDs inside the horizon are detected"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Retention is testable and memory policy is explicit"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Restart and cross-instance limitations are documented"
         }
       ],
       "dependencies": [
-        "data-structures-big-o"
+        "data-structures-thread-safety-and-atomic-operations"
       ],
       "requirements": [
-        "Use HashSet",
-        "Explain lookup complexity",
-        "Measure memory usage",
-        "Consider millions of entries"
+        "Use a HashSet for request IDs in a single-process exercise",
+        "A repeated ID is detected within a declared retention horizon",
+        "Use a Clock for expiration or define a deliberate fixed-capacity policy",
+        "State average lookup and memory growth",
+        "Describe what changes with millions of entries or multiple instances"
       ],
-      "constraints": [],
+      "constraints": [
+        "No distributed claim; no Redis",
+        "Do not present ID detection as a complete side-effect transaction"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "Membership solves one part of deduplication. Retention determines memory use and how long duplicate protection lasts. Record the correctness tradeoff if you evict IDs early or limit capacity; a rejected or retried business effect needs a larger contract.",
+        "workedExample": {
+          "scenario": "R1 arrives twice within the horizon.",
+          "steps": [
+            "The second is detected.",
+            "After policy expiration, R1 may be admitted again under the stated contract."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Test new and repeated IDs.",
+          "Use a controlled clock for retention.",
+          "Analyze entries retained at a given arrival rate."
+        ],
+        "independentExercise": "Compare time-based cleanup with capacity eviction and explain which duplicates each can miss.",
+        "recallQuestions": [
+          "How long does protection last?",
+          "What information is lost on process restart?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Repeated IDs inside the horizon are detected",
+        "Retention is testable and memory policy is explicit",
+        "Restart and cross-instance limitations are documented"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-job-queue",
       "title": "Job Queue",
-      "description": "Practice the module by designing and testing job queue.",
+      "description": "Implement FIFO processing with explicit failure and capacity behavior.",
       "learningGoals": [
-        "Practice the module by designing and testing job queue.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Implement FIFO processing with explicit failure and capacity behavior.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Job Queue",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply job queue to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "EMAIL enters before PAYMENT."
       ],
       "tasks": [
         {
@@ -612,42 +1202,97 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: FIFO order and empty handling are tested"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Capacity cannot grow without bound"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: A poison job cannot retry forever"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Crash-related data loss is documented"
         }
       ],
       "dependencies": [
-        "data-structures-big-o"
+        "data-structures-thread-safety-and-atomic-operations"
       ],
       "requirements": [
-        "Jobs: EMAIL, PAYMENT, NOTIFICATION",
-        "Process FIFO",
-        "Define behavior for failed jobs"
+        "Process EMAIL, PAYMENT, and NOTIFICATION jobs in FIFO order",
+        "Define a queue capacity and behavior when full",
+        "A failed job has a bounded retry or terminal failure policy",
+        "For the first version one worker owns processing",
+        "Document that in-memory jobs disappear on restart"
       ],
-      "constraints": [],
+      "constraints": [
+        "Use ArrayDeque or another justified standard collection",
+        "No broker dependency in this exercise"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "Separate the ordering contract from delivery reliability. A collection can establish FIFO retrieval, but processing failures and process restarts require deliberate policies. Keep the first implementation small and document where its guarantees stop.",
+        "workedExample": {
+          "scenario": "EMAIL enters before PAYMENT.",
+          "steps": [
+            "EMAIL is processed first.",
+            "If it fails, the declared retry policy determines whether later work proceeds."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Test ordering and empty behavior.",
+          "Fill to capacity and try one extra job.",
+          "Inject one processing failure."
+        ],
+        "independentExercise": "Add a maximum attempt count and terminal-failure record without infinite retry.",
+        "recallQuestions": [
+          "What does FIFO guarantee?",
+          "What happens if the worker crashes after removal?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "FIFO order and empty handling are tested",
+        "Capacity cannot grow without bound",
+        "A poison job cannot retry forever",
+        "Crash-related data loss is documented"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     },
     {
       "id": "data-structures-scheduler",
       "title": "Scheduler",
-      "description": "Practice the module by designing and testing scheduler.",
+      "description": "Schedule by execution time with deterministic ties and controllable time.",
       "learningGoals": [
-        "Practice the module by designing and testing scheduler.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Schedule by execution time with deterministic ties and controllable time.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Scheduler",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply scheduler to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Insert jobs due at 12:05, 12:01, and 12:01."
       ],
       "tasks": [
         {
@@ -665,25 +1310,80 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Jobs never run before executeAt"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Equal-time jobs follow the tie policy"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Polling order, empty input, and failure are tested"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: No test depends on actual waiting"
         }
       ],
       "dependencies": [
-        "data-structures-big-o"
+        "data-structures-thread-safety-and-atomic-operations"
       ],
       "requirements": [
-        "Each job has executeAt and payload",
-        "Run earliest job first",
-        "Define tie-breaking behavior"
+        "Each job has executeAt, payload, and a stable sequence or ID",
+        "Poll the earliest job first using PriorityQueue",
+        "Only jobs due at or before the injected current time may execute",
+        "Equal times use a declared tie-breaker",
+        "Define processing failure and empty-queue behavior"
       ],
-      "constraints": [],
+      "constraints": [
+        "Use a standard PriorityQueue; no custom heap required",
+        "No sleeping tests"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "Priority determines which pending job is next, while the clock determines whether it is due. Keep those decisions separate. Avoid assuming iterator order is scheduled order or that PriorityQueue provides synchronization.",
+        "workedExample": {
+          "scenario": "Insert jobs due at 12:05, 12:01, and 12:01.",
+          "steps": [
+            "At 12:01, the tie-breaker orders the first two due jobs.",
+            "The 12:05 job stays pending."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write the time-then-sequence comparator.",
+          "Advance a test clock to the deadline.",
+          "Poll until no due job remains."
+        ],
+        "independentExercise": "Inject one job failure and decide whether retry preserves original priority or receives a new execution time.",
+        "recallQuestions": [
+          "How do due-time and priority differ?",
+          "Who owns thread safety?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Jobs never run before executeAt",
+        "Equal-time jobs follow the tie policy",
+        "Polling order, empty input, and failure are tested",
+        "No test depends on actual waiting"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     }
   ],
@@ -691,18 +1391,18 @@
     {
       "id": "data-structures-in-memory-rate-limiter",
       "title": "In-memory Rate Limiter",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Implement a precisely defined process-local rate limit with a clock and concurrency check.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Implement a precisely defined process-local rate limit with a clock and concurrency check.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "U1 makes 100 requests before 12:01Z."
       ],
       "tasks": [
         {
@@ -720,27 +1420,104 @@
         {
           "id": "deliverable-4",
           "title": "Boundary and concurrency tests"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Exactly 100 requests can be admitted per user and fixed bucket"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: The 101st rejects and a different user retains its own allowance"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Boundary behavior is deterministic without sleeping tests"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Competing local callers cannot exceed the bucket cap"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: Stale-state cleanup and process-local limits are documented"
         }
       ],
       "dependencies": [
-        "data-structures-big-o"
+        "data-structures-thread-safety-and-atomic-operations"
       ],
       "requirements": [
-        "Maximum 100 requests per user per minute",
-        "Separate users",
-        "Define window behavior",
-        "Handle concurrent requests",
-        "Bound memory growth"
+        "Allow at most 100 requests per user per fixed UTC-minute bucket",
+        "Buckets start at multiples of 60 seconds; explain why adjacent buckets permit bursts",
+        "The 101st request in the same bucket is rejected without increasing admitted count",
+        "A new bucket resets that user allowance; users are independent",
+        "Make the full check-and-increment atomic for competing local threads",
+        "Remove stale user entries and describe cleanup work and memory limits",
+        "Document restart behavior and lack of cross-instance enforcement"
       ],
       "constraints": [
-        "Use in-memory storage"
+        "In-memory only; no Redis or database",
+        "Use standard collections and a controllable time source",
+        "A simple lock is acceptable if its throughput ceiling is documented"
       ],
       "deliverables": [
-        "Requirements and window rules",
-        "Data structure choice",
-        "Algorithm",
-        "Boundary and concurrency tests"
+        "Fixed-window contract and boundary examples",
+        "Data structure and memory policy",
+        "Atomic algorithm",
+        "Plain-Java implementation",
+        "Sequential, boundary, and concurrent tests",
+        "Limitations and alternative-window comparison"
+      ],
+      "material": {
+        "explanation": "Choose one window model and make it executable. Fixed windows are intentionally simple but do not promise at most 100 across every rolling 60-second span. Synchronization must protect the compound decision, while cleanup prevents permanently retaining inactive users.",
+        "workedExample": {
+          "scenario": "U1 makes 100 requests before 12:01Z.",
+          "steps": [
+            "The 101st in that bucket rejects.",
+            "At 12:01Z a new bucket admits U1 under the fixed-window rule."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Test requests 1, 100, and 101 for one user.",
+          "Use fixed times before and at a boundary.",
+          "Coordinate competing callers with a barrier rather than a sleep."
+        ],
+        "independentExercise": "Explain how a sliding-window contract would change state and memory costs without implementing it unless needed.",
+        "recallQuestions": [
+          "Which burst can a fixed window allow?",
+          "What does the local lock fail to coordinate?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Exactly 100 requests can be admitted per user and fixed bucket",
+        "The 101st rejects and a different user retains its own allowance",
+        "Boundary behavior is deterministic without sleeping tests",
+        "Competing local callers cannot exceed the bucket cap",
+        "Stale-state cleanup and process-local limits are documented"
+      ],
+      "resources": [
+        {
+          "title": "Collections and streams",
+          "url": "https://dev.java/learn/api/collections-and-streams/"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Choose collections from access, ordering, and retention requirements",
+    "Explain time and space costs with assumptions",
+    "Protect process-local compound operations"
+  ],
+  "completionCriteria": [
+    "Rate-limit boundary and concurrency tests pass",
+    "Queue and scheduler failure policies are explicit",
+    "Retention and cross-instance limits are explained"
+  ],
+  "studyGuidance": [
+    "Lookup, deduplication, queues, heaps, and complexity are the main practice.",
+    "Tree modeling and traversal are core; writing a balanced tree is optional depth.",
+    "Use a standard deque and priority queue rather than custom structures."
   ]
 }

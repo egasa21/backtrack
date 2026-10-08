@@ -10,18 +10,18 @@
     {
       "id": "database-relational-modeling",
       "title": "Relational modeling",
-      "description": "Turn domain relationships into tables without duplicating facts.",
+      "description": "Relational modeling organizes facts into rows with explicit relationships and constraints.",
       "learningGoals": [
-        "Turn domain relationships into tables without duplicating facts.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Relationships and cardinalities are explicit",
+        "Repeated facts have a consistency plan"
       ],
       "concepts": [
-        "Relational modeling",
-        "Valid state",
-        "Failure behavior"
+        "Facts",
+        "Relationships",
+        "Normalization"
       ],
       "examples": [
-        "Apply relational modeling to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A user owns several sessions."
       ],
       "tasks": [
         {
@@ -37,23 +37,55 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
+      "dependencies": [],
+      "material": {
+        "explanation": "Relational modeling organizes facts into rows with explicit relationships and constraints. Avoid repeating one fact in many places unless you also define how consistency is maintained. Model access patterns after defining domain meaning.",
+        "workedExample": {
+          "scenario": "A user owns several sessions.",
+          "steps": [
+            "Store user facts once in users.",
+            "Sessions reference the user's ID."
+          ]
+        },
+        "commonMistakes": [
+          "A table for every class is not automatically a good relational model."
+        ],
+        "guidedExercise": [
+          "Draw users and sessions",
+          "Identify repeated facts"
+        ],
+        "independentExercise": "Model reservations and stock while naming every relationship.",
+        "recallQuestions": [
+          "Which facts have one owner?",
+          "Which duplication creates update anomalies?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Relationships and cardinalities are explicit",
+        "Repeated facts have a consistency plan"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ]
     },
     {
       "id": "database-primary-keys",
       "title": "Primary keys",
-      "description": "Choose stable row identifiers and understand identity constraints.",
+      "description": "A primary key uniquely identifies a row and is non-null.",
       "learningGoals": [
-        "Choose stable row identifiers and understand identity constraints.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Row identity survives attribute changes",
+        "Business uniqueness is enforced separately"
       ],
       "concepts": [
-        "Primary keys",
-        "Valid state",
-        "Failure behavior"
+        "Row identity",
+        "Stability",
+        "Uniqueness"
       ],
       "examples": [
-        "Apply primary keys to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A user changes email."
       ],
       "tasks": [
         {
@@ -71,23 +103,55 @@
       ],
       "dependencies": [
         "database-relational-modeling"
+      ],
+      "material": {
+        "explanation": "A primary key uniquely identifies a row and is non-null. Prefer an identity that remains stable as other attributes change. Choosing a generated ID does not remove the need for separate business uniqueness constraints.",
+        "workedExample": {
+          "scenario": "A user changes email.",
+          "steps": [
+            "Its user ID remains stable.",
+            "Session references still identify the same user."
+          ]
+        },
+        "commonMistakes": [
+          "A generated primary key does not prevent duplicate business records."
+        ],
+        "guidedExercise": [
+          "Choose keys for three auth tables",
+          "Separate email uniqueness from identity"
+        ],
+        "independentExercise": "Compare generated IDs with natural keys for coupon codes.",
+        "recallQuestions": [
+          "Which identifier can change?",
+          "What does the primary key not guarantee?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Row identity survives attribute changes",
+        "Business uniqueness is enforced separately"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
       ]
     },
     {
       "id": "database-foreign-keys",
       "title": "Foreign keys",
-      "description": "Preserve referential integrity when related rows change.",
+      "description": "A foreign key ensures a referenced row exists under the defined constraint.",
       "learningGoals": [
-        "Preserve referential integrity when related rows change.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Orphan rows cannot be inserted",
+        "Deletion behavior is tested"
       ],
       "concepts": [
-        "Foreign keys",
-        "Valid state",
-        "Failure behavior"
+        "Referential integrity",
+        "Deletion policy",
+        "Parent-child facts"
       ],
       "examples": [
-        "Apply foreign keys to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A session references a missing user."
       ],
       "tasks": [
         {
@@ -105,24 +169,55 @@
       ],
       "dependencies": [
         "database-primary-keys"
+      ],
+      "material": {
+        "explanation": "A foreign key ensures a referenced row exists under the defined constraint. Decide what happens when the parent is deleted: reject, cascade, or clear the relationship where valid. An application check alone cannot provide the same concurrent guarantee.",
+        "workedExample": {
+          "scenario": "A session references a missing user.",
+          "steps": [
+            "The insert is rejected.",
+            "Deleting a valid user follows an explicit session policy."
+          ]
+        },
+        "commonMistakes": [
+          "A foreign key does not automatically choose the right deletion policy."
+        ],
+        "guidedExercise": [
+          "Create and violate a session foreign key",
+          "Test parent deletion"
+        ],
+        "independentExercise": "Design token-to-session relationships without orphan tokens.",
+        "recallQuestions": [
+          "Who enforces parent existence?",
+          "What should deletion do to children?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Orphan rows cannot be inserted",
+        "Deletion behavior is tested"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
       ]
     },
     {
       "id": "database-unique-constraints",
       "title": "Unique constraints",
-      "description": "Enforce uniqueness atomically at the persistence boundary.",
+      "description": "A unique constraint lets the database arbitrate conflicting writes.",
       "learningGoals": [
-        "Enforce uniqueness atomically at the persistence boundary.",
-        "Explain Atomic enforcement, Duplicate writes and Constraint errors.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Concurrent duplicates cannot both commit",
+        "Conflict behavior is explicit"
       ],
       "concepts": [
-        "Atomic enforcement",
-        "Duplicate writes",
-        "Constraint errors"
+        "Atomic uniqueness",
+        "Conflicting inserts",
+        "Null semantics"
       ],
       "examples": [
-        "Make token_hash unique. Explain why checking for an existing hash in application code is insufficient under concurrent inserts."
+        "Two transactions insert the same token hash."
       ],
       "tasks": [
         {
@@ -140,23 +235,187 @@
       ],
       "dependencies": [
         "database-foreign-keys"
+      ],
+      "material": {
+        "explanation": "A unique constraint lets the database arbitrate conflicting writes. Define the exact columns and treatment of nulls instead of assuming application checks are sufficient. Translate conflicts into a deliberate use-case outcome.",
+        "workedExample": {
+          "scenario": "Two transactions insert the same token hash.",
+          "steps": [
+            "One can succeed.",
+            "The other receives a uniqueness conflict."
+          ]
+        },
+        "commonMistakes": [
+          "A preceding existence query cannot prevent a concurrent duplicate insert."
+        ],
+        "guidedExercise": [
+          "Create a token-hash uniqueness constraint",
+          "Attempt duplicate insertion"
+        ],
+        "independentExercise": "Enforce one redemption per user and voucher using a composite constraint.",
+        "recallQuestions": [
+          "What defines the unique business key?",
+          "How do nullable values affect uniqueness?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Concurrent duplicates cannot both commit",
+        "Conflict behavior is explicit"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ]
+    },
+    {
+      "id": "database-sql-reads-writes-and-parameters",
+      "title": "SQL reads, writes, and parameters",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Write and execute SQL directly before delegating it to an ORM.",
+      "concepts": [
+        "CRUD",
+        "Predicates",
+        "Prepared statements"
+      ],
+      "learningGoals": [
+        "Values are parameterized",
+        "Missing and conditional-update outcomes are distinguished"
+      ],
+      "examples": [
+        "Revoke one active session by ID."
+      ],
+      "material": {
+        "explanation": "Write and execute SQL directly before delegating it to an ORM. Bind untrusted values as parameters, inspect affected-row counts, and distinguish no match from query failure. Update statements should express the intended state condition.",
+        "workedExample": {
+          "scenario": "Revoke one active session by ID.",
+          "steps": [
+            "Use a parameter for the ID.",
+            "Check whether the update affected zero or one row."
+          ]
+        },
+        "commonMistakes": [
+          "String concatenation is not safe parameter binding."
+        ],
+        "guidedExercise": [
+          "Execute select, insert, update, and delete",
+          "Bind values without concatenating SQL"
+        ],
+        "independentExercise": "Write a coupon redemption update that requires remaining uses above zero.",
+        "recallQuestions": [
+          "What does a zero affected-row count mean?",
+          "Which query parts cannot be bound as ordinary values?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Values are parameterized",
+        "Missing and conditional-update outcomes are distinguished"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ],
+      "dependencies": [
+        "database-unique-constraints"
+      ]
+    },
+    {
+      "id": "database-joins-and-aggregation",
+      "title": "Joins and aggregation",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Joins combine related rows; aggregation summarizes them.",
+      "concepts": [
+        "Related rows",
+        "Outer joins",
+        "Grouped results"
+      ],
+      "learningGoals": [
+        "Zero-child parents are handled deliberately",
+        "Multiple children do not corrupt counts"
+      ],
+      "examples": [
+        "User U1 has two active sessions and U2 has none."
+      ],
+      "material": {
+        "explanation": "Joins combine related rows; aggregation summarizes them. One-to-many joins can multiply rows, so count the intended entity and understand whether absent children should remain visible. Grouping must match the question being answered.",
+        "workedExample": {
+          "scenario": "User U1 has two active sessions and U2 has none.",
+          "steps": [
+            "A left join retains both users.",
+            "The chosen count reports 2 and 0."
+          ]
+        },
+        "commonMistakes": [
+          "Counting joined rows can inflate totals or count a null placeholder."
+        ],
+        "guidedExercise": [
+          "Compare inner and left joins",
+          "Count active sessions per user"
+        ],
+        "independentExercise": "List users with no active sessions and verify the result using fixtures.",
+        "recallQuestions": [
+          "Which rows disappear in an inner join?",
+          "What exactly does your count measure?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Zero-child parents are handled deliberately",
+        "Multiple children do not corrupt counts"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ],
+      "dependencies": [
+        "database-sql-reads-writes-and-parameters"
       ]
     },
     {
       "id": "database-indexes",
       "title": "Indexes",
-      "description": "Trade write cost and storage for faster lookup on real access patterns.",
+      "description": "Indexes can accelerate matching, ordering, and joining but consume storage and write effort.",
       "learningGoals": [
-        "Trade write cost and storage for faster lookup on real access patterns.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Each index has a concrete query justification",
+        "Read and write tradeoffs are documented"
       ],
       "concepts": [
-        "Indexes",
-        "Valid state",
-        "Failure behavior"
+        "Access paths",
+        "Write overhead",
+        "Column order"
       ],
       "examples": [
-        "Apply indexes to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Query sessions by user and recent activity."
       ],
       "tasks": [
         {
@@ -173,17 +432,114 @@
         }
       ],
       "dependencies": [
-        "database-unique-constraints"
+        "database-joins-and-aggregation"
+      ],
+      "material": {
+        "explanation": "Indexes can accelerate matching, ordering, and joining but consume storage and write effort. Choose them from actual queries and inspect plans. A foreign key does not automatically imply the referencing-side index you need.",
+        "workedExample": {
+          "scenario": "Query sessions by user and recent activity.",
+          "steps": [
+            "Consider a matching composite index.",
+            "Compare the plan on realistic data."
+          ]
+        },
+        "commonMistakes": [
+          "An index on every column can make writes expensive without improving key queries."
+        ],
+        "guidedExercise": [
+          "List common auth queries",
+          "Propose indexes from predicates and order"
+        ],
+        "independentExercise": "Measure a token-hash lookup and a session-list query.",
+        "recallQuestions": [
+          "Which query benefits from this index?",
+          "What cost does every write pay?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each index has a concrete query justification",
+        "Read and write tradeoffs are documented"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ]
+    },
+    {
+      "id": "database-pagination-and-query-plans",
+      "title": "Pagination and query plans",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Pagination needs a deterministic order, usually with a unique tie-breaker.",
+      "concepts": [
+        "Stable ordering",
+        "Keyset cursors",
+        "EXPLAIN"
+      ],
+      "learningGoals": [
+        "No ties create duplicate or missing rows in a static dataset",
+        "The plan is interpreted using real row counts"
+      ],
+      "examples": [
+        "List sessions ordered by created_at and id."
+      ],
+      "material": {
+        "explanation": "Pagination needs a deterministic order, usually with a unique tie-breaker. Offset pages can drift under concurrent writes; keyset cursors follow the last observed key. Query plans show chosen work, not a guarantee that the query is cheap.",
+        "workedExample": {
+          "scenario": "List sessions ordered by created_at and id.",
+          "steps": [
+            "Carry both last values in a cursor.",
+            "Fetch rows beyond that boundary."
+          ]
+        },
+        "commonMistakes": [
+          "LIMIT without a stable order is not repeatable pagination."
+        ],
+        "guidedExercise": [
+          "Create tied timestamps",
+          "Compare offset and keyset pages"
+        ],
+        "independentExercise": "Inspect EXPLAIN for the query; use ANALYZE only when its execution is safe.",
+        "recallQuestions": [
+          "Why is a tie-breaker needed?",
+          "What does EXPLAIN ANALYZE actually do?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No ties create duplicate or missing rows in a static dataset",
+        "The plan is interpreted using real row counts"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: using EXPLAIN",
+          "url": "https://www.postgresql.org/docs/current/using-explain.html"
+        }
+      ],
+      "dependencies": [
+        "database-indexes"
       ]
     },
     {
       "id": "database-transactions",
       "title": "Transactions",
-      "description": "Group state changes into an atomic unit of work.",
+      "description": "A transaction groups related database changes into one commit or rollback.",
       "learningGoals": [
-        "Group state changes into an atomic unit of work.",
-        "Explain Atomicity, Commit and Rollback.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "An injected failure leaves neither partial change committed",
+        "Success commits the complete unit"
       ],
       "concepts": [
         "Atomicity",
@@ -191,7 +547,7 @@
         "Rollback"
       ],
       "examples": [
-        "Revoke token X and create token Y in the same transaction. If insertion fails, neither change should be committed."
+        "Revoke X and insert replacement Y."
       ],
       "tasks": [
         {
@@ -208,24 +564,57 @@
         }
       ],
       "dependencies": [
-        "database-indexes"
+        "database-pagination-and-query-plans"
+      ],
+      "material": {
+        "explanation": "A transaction groups related database changes into one commit or rollback. Know the connection's autocommit behavior and ensure every statement participates in the intended transaction. Database atomicity does not include arbitrary external API calls.",
+        "workedExample": {
+          "scenario": "Revoke X and insert replacement Y.",
+          "steps": [
+            "If insertion fails, roll back revocation.",
+            "On success commit both changes."
+          ]
+        },
+        "commonMistakes": [
+          "Placing statements near each other does not make them atomic."
+        ],
+        "guidedExercise": [
+          "Execute a two-statement transaction",
+          "Inject failure between writes"
+        ],
+        "independentExercise": "Reserve stock and record the reservation in one atomic unit.",
+        "recallQuestions": [
+          "Which connection owns the transaction?",
+          "What side effects cannot roll back with it?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "An injected failure leaves neither partial change committed",
+        "Success commits the complete unit"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
       ]
     },
     {
       "id": "database-acid",
       "title": "ACID",
-      "description": "Explain atomicity, consistency, isolation, and durability using a failure scenario.",
+      "description": "ACID names related transaction properties, not a promise that business logic is automatically correct.",
       "learningGoals": [
-        "Explain atomicity, consistency, isolation, and durability using a failure scenario.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Each property has a concrete scenario",
+        "Business rules are not delegated to the acronym"
       ],
       "concepts": [
-        "ACID",
-        "Valid state",
-        "Failure behavior"
+        "Atomicity",
+        "Consistency",
+        "Isolation",
+        "Durability"
       ],
       "examples": [
-        "Apply acid to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Record a reservation and decrement stock."
       ],
       "tasks": [
         {
@@ -243,23 +632,55 @@
       ],
       "dependencies": [
         "database-transactions"
+      ],
+      "material": {
+        "explanation": "ACID names related transaction properties, not a promise that business logic is automatically correct. Constraints help consistency; isolation controls concurrent observations; durability depends on configured persistence guarantees. Translate each property into a concrete failure scenario.",
+        "workedExample": {
+          "scenario": "Record a reservation and decrement stock.",
+          "steps": [
+            "Atomicity prevents only one write committing.",
+            "Constraints and isolation still matter for valid stock."
+          ]
+        },
+        "commonMistakes": [
+          "ACID does not invent your missing business invariant."
+        ],
+        "guidedExercise": [
+          "Explain each property using reservation examples",
+          "Identify the application rules still needed"
+        ],
+        "independentExercise": "Classify failure cases as atomicity, consistency, isolation, or durability concerns.",
+        "recallQuestions": [
+          "Which property prevents partial commit?",
+          "Why can a transaction still contain wrong logic?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each property has a concrete scenario",
+        "Business rules are not delegated to the acronym"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
       ]
     },
     {
       "id": "database-isolation-levels",
       "title": "Isolation levels",
-      "description": "Reason about what concurrent transactions can observe.",
+      "description": "Isolation determines what concurrent transactions may observe.",
       "learningGoals": [
-        "Reason about what concurrent transactions can observe.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "The observed interleaving is documented",
+        "The chosen protection matches the invariant"
       ],
       "concepts": [
-        "Isolation levels",
-        "Valid state",
-        "Failure behavior"
+        "Snapshots",
+        "Concurrent visibility",
+        "Anomalies"
       ],
       "examples": [
-        "Apply isolation levels to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Two reads run in one Read Committed transaction."
       ],
       "tasks": [
         {
@@ -277,24 +698,55 @@
       ],
       "dependencies": [
         "database-acid"
+      ],
+      "material": {
+        "explanation": "Isolation determines what concurrent transactions may observe. PostgreSQL commonly uses Read Committed, with a fresh snapshot per statement; stronger levels change behavior and may require retries. Test actual interleavings instead of assuming a transaction serializes everything.",
+        "workedExample": {
+          "scenario": "Two reads run in one Read Committed transaction.",
+          "steps": [
+            "Another transaction commits between them.",
+            "The second statement may see newer committed data."
+          ]
+        },
+        "commonMistakes": [
+          "A transaction does not automatically provide one immutable snapshot."
+        ],
+        "guidedExercise": [
+          "Run two database sessions",
+          "Record observations at two isolation levels"
+        ],
+        "independentExercise": "Explain which isolation or conditional write protects a stock reservation.",
+        "recallQuestions": [
+          "What does a statement snapshot mean?",
+          "When can a stronger level require retry?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The observed interleaving is documented",
+        "The chosen protection matches the invariant"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
       ]
     },
     {
       "id": "database-race-conditions",
       "title": "Race conditions",
-      "description": "Identify check-then-act operations that fail under concurrency.",
+      "description": "A race arises when overlapping operations invalidate assumptions between reads and writes.",
       "learningGoals": [
-        "Identify check-then-act operations that fail under concurrency.",
-        "Explain Check-then-act, Interleaving and Atomic updates.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Exactly one reservation succeeds for one available unit",
+        "The loser causes no partial write"
       ],
       "concepts": [
+        "Interleavings",
         "Check-then-act",
-        "Interleaving",
-        "Atomic updates"
+        "Atomic predicates"
       ],
       "examples": [
-        "A and B both read token X as active. Write their interleaving and identify the single operation that must select one winner."
+        "A and B see one item available."
       ],
       "tasks": [
         {
@@ -312,24 +764,55 @@
       ],
       "dependencies": [
         "database-isolation-levels"
+      ],
+      "material": {
+        "explanation": "A race arises when overlapping operations invalidate assumptions between reads and writes. Write the interleaving explicitly, then move the decision into a protected transaction or atomic conditional statement. A delayed sleep is not proof of correctness.",
+        "workedExample": {
+          "scenario": "A and B see one item available.",
+          "steps": [
+            "Both try to reserve it.",
+            "A conditional decrement permits only the transaction that finds stock above zero."
+          ]
+        },
+        "commonMistakes": [
+          "Checking stock in Java and updating later leaves a race window."
+        ],
+        "guidedExercise": [
+          "Draw the unsafe schedule",
+          "Replace it with a conditional update"
+        ],
+        "independentExercise": "Use two connections and a start barrier to test the last-item race.",
+        "recallQuestions": [
+          "Which assumption becomes stale?",
+          "How does the losing caller learn it lost?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Exactly one reservation succeeds for one available unit",
+        "The loser causes no partial write"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
       ]
     },
     {
       "id": "database-optimistic-locking",
       "title": "Optimistic locking",
-      "description": "Reject stale updates using a version check and plan retries.",
+      "description": "Optimistic locking detects that state changed since it was read.",
       "learningGoals": [
-        "Reject stale updates using a version check and plan retries.",
-        "Explain Version column, Conditional updates and Conflict handling.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Stale updates cannot overwrite newer state",
+        "Conflict and retry outcomes are explicit"
       ],
       "concepts": [
-        "Version column",
+        "Versions",
         "Conditional updates",
-        "Conflict handling"
+        "Conflict policy"
       ],
       "examples": [
-        "UPDATE a token only when version equals the value read. Treat an affected-row count of zero as a conflict."
+        "Both callers read version 3."
       ],
       "tasks": [
         {
@@ -347,23 +830,55 @@
       ],
       "dependencies": [
         "database-race-conditions"
+      ],
+      "material": {
+        "explanation": "Optimistic locking detects that state changed since it was read. Include an expected version in the update and check the affected-row count. Decide whether to retry the whole use case or return a conflict; never silently overwrite the newer state.",
+        "workedExample": {
+          "scenario": "Both callers read version 3.",
+          "steps": [
+            "A writes version 4 conditionally.",
+            "B's version-3 update affects zero rows."
+          ]
+        },
+        "commonMistakes": [
+          "A version column does nothing unless updates check it."
+        ],
+        "guidedExercise": [
+          "Reproduce a stale write",
+          "Handle zero affected rows"
+        ],
+        "independentExercise": "Protect concurrent account updates and define a bounded retry policy.",
+        "recallQuestions": [
+          "What does a version conflict mean?",
+          "When is retrying unsafe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Stale updates cannot overwrite newer state",
+        "Conflict and retry outcomes are explicit"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
       ]
     },
     {
       "id": "database-pessimistic-locking",
       "title": "Pessimistic locking",
-      "description": "Serialize conflicting work with locks and bounded transaction scope.",
+      "description": "Pessimistic locking reserves access to conflicting rows during a transaction.",
       "learningGoals": [
-        "Serialize conflicting work with locks and bounded transaction scope.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Validation uses the protected current state",
+        "External waiting is excluded from lock scope"
       ],
       "concepts": [
-        "Pessimistic locking",
-        "Valid state",
-        "Failure behavior"
+        "Row locks",
+        "Transaction scope",
+        "Lock duration"
       ],
       "examples": [
-        "Apply pessimistic locking to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A locks token X for rotation."
       ],
       "tasks": [
         {
@@ -381,23 +896,55 @@
       ],
       "dependencies": [
         "database-optimistic-locking"
+      ],
+      "material": {
+        "explanation": "Pessimistic locking reserves access to conflicting rows during a transaction. Acquire locks in a consistent order and keep the transaction short. Waiting on an external API while holding a row lock can amplify contention and failure.",
+        "workedExample": {
+          "scenario": "A locks token X for rotation.",
+          "steps": [
+            "B waits for the lock.",
+            "After A commits, B must re-evaluate X's changed state."
+          ]
+        },
+        "commonMistakes": [
+          "Getting the lock does not mean earlier validation is still valid."
+        ],
+        "guidedExercise": [
+          "Trace a lock-and-revalidate flow",
+          "Measure what happens to the second connection"
+        ],
+        "independentExercise": "Reserve stock with row locking and compare it to a conditional update.",
+        "recallQuestions": [
+          "When are row locks released?",
+          "What must be rechecked after waiting?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Validation uses the protected current state",
+        "External waiting is excluded from lock scope"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
       ]
     },
     {
       "id": "database-deadlocks",
       "title": "Deadlocks",
-      "description": "Explain circular waits and choose consistent lock ordering.",
+      "description": "A deadlock occurs when transactions wait on each other's locks in a cycle.",
       "learningGoals": [
-        "Explain circular waits and choose consistent lock ordering.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Lock order is consistent",
+        "A deadlock failure does not produce partial committed work"
       ],
       "concepts": [
-        "Deadlocks",
-        "Valid state",
-        "Failure behavior"
+        "Circular waits",
+        "Lock ordering",
+        "Retryable failures"
       ],
       "examples": [
-        "Apply deadlocks to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A locks account 1 then requests 2."
       ],
       "tasks": [
         {
@@ -415,6 +962,174 @@
       ],
       "dependencies": [
         "database-pessimistic-locking"
+      ],
+      "material": {
+        "explanation": "A deadlock occurs when transactions wait on each other's locks in a cycle. Use consistent acquisition order to reduce risk and recognize that a database may abort a participant. Recovery must restart a valid unit of work, not continue an aborted transaction.",
+        "workedExample": {
+          "scenario": "A locks account 1 then requests 2.",
+          "steps": [
+            "B locks 2 then requests 1.",
+            "Ordering both by ID avoids that particular cycle."
+          ]
+        },
+        "commonMistakes": [
+          "Short transactions can still deadlock if lock order conflicts."
+        ],
+        "guidedExercise": [
+          "Draw a two-transaction wait cycle",
+          "Choose a shared lock order"
+        ],
+        "independentExercise": "Test two opposing transfers with bounded recovery after an aborted transaction.",
+        "recallQuestions": [
+          "What creates the cycle?",
+          "What must be retried after an abort?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lock order is consistent",
+        "A deadlock failure does not produce partial committed work"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
+      ]
+    },
+    {
+      "id": "database-jdbc-and-repository-adapters",
+      "title": "JDBC and repository adapters",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "JDBC makes SQL execution, transactions, and resource ownership visible.",
+      "concepts": [
+        "Connections",
+        "Prepared statements",
+        "Resource lifetime"
+      ],
+      "learningGoals": [
+        "Resources close on both paths",
+        "SQL and database types remain inside the adapter"
+      ],
+      "examples": [
+        "Find a token by hash."
+      ],
+      "material": {
+        "explanation": "JDBC makes SQL execution, transactions, and resource ownership visible. A repository adapter translates rows and database failures into its contract. Close connections, statements, and result sets appropriately; do not leak database types into domain policy.",
+        "workedExample": {
+          "scenario": "Find a token by hash.",
+          "steps": [
+            "Bind the hash in a prepared statement.",
+            "Map one row and close resources, or report absence."
+          ]
+        },
+        "commonMistakes": [
+          "Returning an open ResultSet shifts hidden resource obligations to callers."
+        ],
+        "guidedExercise": [
+          "Implement one lookup adapter",
+          "Test empty, duplicate, and unavailable-store behavior"
+        ],
+        "independentExercise": "Run repository contract tests against an in-memory store and PostgreSQL.",
+        "recallQuestions": [
+          "Who owns the connection?",
+          "Which failures belong in the repository contract?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Resources close on both paths",
+        "SQL and database types remain inside the adapter"
+      ],
+      "resources": [
+        {
+          "title": "JDBC API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.sql/java/sql/package-summary.html"
+        }
+      ],
+      "dependencies": [
+        "database-deadlocks"
+      ]
+    },
+    {
+      "id": "database-migrations-and-integration-tests",
+      "title": "Migrations and integration tests",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Migrations make schema changes ordered and reviewable.",
+      "concepts": [
+        "Schema evolution",
+        "Repeatability",
+        "Real database behavior"
+      ],
+      "learningGoals": [
+        "An empty database reaches the expected schema",
+        "Real constraints and transaction rollback are tested"
+      ],
+      "examples": [
+        "Create users, sessions, and tokens from migrations."
+      ],
+      "material": {
+        "explanation": "Migrations make schema changes ordered and reviewable. Test them on an empty database and validate the resulting constraints with a real engine. In-memory fakes cannot prove actual SQL syntax, locking, or constraint behavior.",
+        "workedExample": {
+          "scenario": "Create users, sessions, and tokens from migrations.",
+          "steps": [
+            "Run against a fresh database.",
+            "Attempt invalid and duplicate rows."
+          ]
+        },
+        "commonMistakes": [
+          "A passing fake-repository test does not validate PostgreSQL behavior."
+        ],
+        "guidedExercise": [
+          "Apply schema migrations from empty state",
+          "Test actual constraints"
+        ],
+        "independentExercise": "Use Testcontainers for a reproducible repository integration check.",
+        "recallQuestions": [
+          "What does an integration test prove beyond a unit test?",
+          "How can a migration break an existing database?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "An empty database reaches the expected schema",
+        "Real constraints and transaction rollback are tested"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        },
+        {
+          "title": "Testcontainers for Java",
+          "url": "https://java.testcontainers.org/"
+        }
+      ],
+      "dependencies": [
+        "database-jdbc-and-repository-adapters"
       ]
     }
   ],
@@ -422,18 +1137,18 @@
     {
       "id": "database-session-tables",
       "title": "Session Tables",
-      "description": "Practice the module by designing and testing session tables.",
+      "description": "Build the users, sessions, and refresh_tokens schema with actual constraints.",
       "learningGoals": [
-        "Practice the module by designing and testing session tables.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Build the users, sessions, and refresh_tokens schema with actual constraints.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Session Tables",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply session tables to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "User U1 owns session S1 and token X."
       ],
       "tasks": [
         {
@@ -463,47 +1178,382 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Migrations create valid relationships from an empty database"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Orphan tokens and duplicate hashes are rejected"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Queries support session listing and token lineage"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Raw token values are absent from schema and fixtures"
         }
       ],
       "dependencies": [
-        "database-deadlocks"
+        "database-migrations-and-integration-tests"
       ],
       "requirements": [
-        "Design users, sessions, refresh_tokens",
-        "Should token_hash be unique?",
-        "Should session_id be indexed?",
-        "Should revoked_at be nullable?",
-        "Should raw token ever be stored?",
-        "How do we identify the token that replaced another?"
+        "Choose stable primary keys and explicit foreign keys",
+        "Enforce token_hash uniqueness; never store raw refresh tokens",
+        "Define nullable revoked_at and expiration semantics",
+        "Represent token replacement and session or family ownership",
+        "Index the queries you will actually run",
+        "Specify deletion and retention behavior"
       ],
-      "constraints": [],
+      "constraints": [
+        "Use real PostgreSQL for the learning exercise; the roadmap app stays local-only"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Schema migration and sample rows"
+      ],
+      "material": {
+        "explanation": "Move from an entity sketch to executable schema. Separate identity, lifecycle fields, relationships, and constraints. Justify each index with a query and ensure the lineage model supports replacement and reuse investigation without storing secrets.",
+        "workedExample": {
+          "scenario": "User U1 owns session S1 and token X.",
+          "steps": [
+            "X rotates into Y in the same family.",
+            "The schema can locate X, its replacement, and its owning session."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Draw cardinalities and row ownership.",
+          "Write the migration.",
+          "Try invalid foreign keys and duplicate hashes."
+        ],
+        "independentExercise": "Write the query that lists active sessions for one user and the query that identifies a replayed token family.",
+        "recallQuestions": [
+          "Which facts identify replacement?",
+          "What should deletion preserve for auditing?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Migrations create valid relationships from an empty database",
+        "Orphan tokens and duplicate hashes are rejected",
+        "Queries support session listing and token lineage",
+        "Raw token values are absent from schema and fixtures"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ]
+    },
+    {
+      "id": "database-sql-query-lab",
+      "title": "SQL Query Lab",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Observed rows match the predicted dataset"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Users with zero sessions are handled correctly"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Tied timestamps do not duplicate static pages"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Parameterized and conditional-update behavior is demonstrated"
+        }
+      ],
+      "description": "Execute queries against a small dataset before adding an ORM.",
+      "learningGoals": [
+        "Execute queries against a small dataset before adding an ORM.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "U1 has two active sessions and U2 has none."
+      ],
+      "requirements": [
+        "Seed users with zero, one, and multiple sessions",
+        "Select active sessions and aggregate counts per user",
+        "Use inner and left joins intentionally",
+        "Parameterize input values in Java execution",
+        "Perform a conditional revocation and inspect affected rows",
+        "Implement stable pagination with tied timestamps"
+      ],
+      "constraints": [
+        "Use PostgreSQL and JDBC for executable checks",
+        "Inspect EXPLAIN before and after one justified index"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "SQL file and observed query results"
+      ],
+      "material": {
+        "explanation": "A small known dataset lets you verify meaning independently of query complexity. Predict exact rows first, then run SQL. Include zero-child rows, duplicates in joined results, null lifecycle fields, and tied ordering values.",
+        "workedExample": {
+          "scenario": "U1 has two active sessions and U2 has none.",
+          "steps": [
+            "A left-joined count returns U1=2 and U2=0.",
+            "An inner join intentionally omits U2."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Seed the dataset and predict query output.",
+          "Run joins and aggregation.",
+          "Test two pages with a unique tie-breaker."
+        ],
+        "independentExercise": "Add enough data to inspect a realistic query plan and explain when the index does not help.",
+        "recallQuestions": [
+          "What exactly is the aggregate counting?",
+          "Which ordering makes pagination repeatable?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Observed rows match the predicted dataset",
+        "Users with zero sessions are handled correctly",
+        "Tied timestamps do not duplicate static pages",
+        "Parameterized and conditional-update behavior is demonstrated"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: queries",
+          "url": "https://www.postgresql.org/docs/current/queries.html"
+        }
+      ],
+      "dependencies": [
+        "database-migrations-and-integration-tests"
+      ]
+    },
+    {
+      "id": "database-jdbc-repository",
+      "title": "JDBC Repository",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Resources close after success and failure"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Inputs are bound rather than concatenated"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Contract cases agree across adapters"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: A real-database failure leaves no partial committed changes"
+        }
+      ],
+      "description": "Implement a database adapter for the earlier repository contract.",
+      "learningGoals": [
+        "Implement a database adapter for the earlier repository contract.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "Save X then look it up by hash."
+      ],
+      "requirements": [
+        "Use prepared statements and explicit resource ownership",
+        "Map rows to plain domain values",
+        "Distinguish absence, duplicate business key, and infrastructure failure",
+        "Use one transaction for dependent writes",
+        "Reuse applicable in-memory repository contract cases",
+        "Verify schema and rollback against a real database"
+      ],
+      "constraints": [
+        "No Spring Data yet",
+        "Use a fresh migrated database for integration checks"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "JDBC adapter and integration evidence"
+      ],
+      "material": {
+        "explanation": "This is the bridge from plain Java to persistence. Keep query details inside the adapter and preserve the earlier contract. A real database test should prove what the fake cannot: SQL execution, constraints, and commit/rollback behavior.",
+        "workedExample": {
+          "scenario": "Save X then look it up by hash.",
+          "steps": [
+            "Attempt a duplicate and observe the contract failure.",
+            "Inject a second-write failure and verify rollback."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Implement one parameterized lookup.",
+          "Add save with uniqueness handling.",
+          "Test a transaction using two dependent writes."
+        ],
+        "independentExercise": "Run the same missing and duplicate behavior cases against the fake and JDBC adapter.",
+        "recallQuestions": [
+          "Which failures leak database details?",
+          "Which check proves actual rollback?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Resources close after success and failure",
+        "Inputs are bound rather than concatenated",
+        "Contract cases agree across adapters",
+        "A real-database failure leaves no partial committed changes"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: SQL tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        }
+      ],
+      "dependencies": [
+        "database-migrations-and-integration-tests"
       ]
     }
   ],
   "challenges": [
     {
-      "id": "database-concurrent-refresh-rotation",
-      "title": "Concurrent Refresh Rotation",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "id": "database-last-item-reservation",
+      "title": "Last Item Reservation",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Exactly one of two competitors succeeds"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Final availability is zero with exactly one active reservation"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Injected failure rolls back both changes"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Duplicate request behavior does not decrement stock twice"
+        }
+      ],
+      "description": "Prove a stock invariant with two competing real database transactions.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Prove a stock invariant with two competing real database transactions.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "Stock starts at one."
+      ],
+      "requirements": [
+        "One available item and two simultaneous reservation requests",
+        "Exactly one request can create an active reservation",
+        "The losing request leaves no partial reservation or stock change",
+        "Choose a conditional update or row-lock strategy and justify it",
+        "Give each request a duplicate identity and define retry behavior",
+        "Record affected rows, commits, and rejected outcomes"
+      ],
+      "constraints": [
+        "Real PostgreSQL; use separate connections",
+        "A JVM lock alone is not a solution",
+        "Use a barrier or controlled interleaving, not timing luck"
+      ],
+      "deliverables": [
+        "Unsafe interleaving",
+        "Protected SQL and transaction boundary",
+        "Schema constraints",
+        "Concurrent integration check",
+        "Duplicate and rollback cases",
+        "Strategy comparison"
+      ],
+      "material": {
+        "explanation": "Use a non-authentication domain to prove transaction reasoning transfers. The admission decision and reservation creation must agree. Write the unsafe schedule first, then show why the chosen database mechanism yields a single winner.",
+        "workedExample": {
+          "scenario": "Stock starts at one.",
+          "steps": [
+            "A and B start competing transactions.",
+            "One commits a reservation and zero availability; the other cannot reserve a second item."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Create minimal stock and reservation tables.",
+          "Implement the protected transition.",
+          "Force two connections to compete and inspect final rows."
+        ],
+        "independentExercise": "Inject failure after decreasing stock but before creating the reservation and verify rollback.",
+        "recallQuestions": [
+          "What selects the winner?",
+          "Which two writes must commit together?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Exactly one of two competitors succeeds",
+        "Final availability is zero with exactly one active reservation",
+        "Injected failure rolls back both changes",
+        "Duplicate request behavior does not decrement stock twice"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
+      ],
+      "dependencies": [
+        "database-migrations-and-integration-tests"
+      ]
+    },
+    {
+      "id": "database-concurrent-refresh-rotation",
+      "title": "Concurrent Refresh Rotation",
+      "description": "Implement the atomic persistence decision for concurrent refresh and replay handling.",
+      "learningGoals": [
+        "Implement the atomic persistence decision for concurrent refresh and replay handling.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "A consumes X and creates Y."
       ],
       "tasks": [
         {
@@ -525,26 +1575,104 @@
         {
           "id": "deliverable-5",
           "title": "Concurrency test plan"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: A parent never has two committed children"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Child-insertion failure preserves the original active parent"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Reuse handling durably applies the declared family policy"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Two-connection tests use controlled coordination"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: Lost-response recovery and strict-policy tradeoffs are documented"
         }
       ],
       "dependencies": [
-        "database-deadlocks"
+        "database-migrations-and-integration-tests"
       ],
       "requirements": [
-        "Requests A and B both use token X nearly simultaneously",
-        "Both validate X and try to rotate",
-        "Prevent two child tokens from being committed"
+        "Requests A and B both present active token X at nearly the same time",
+        "Only one may consume X and persist child Y",
+        "Consume parent and create replacement in the same transaction",
+        "Revalidate after acquiring any lock or losing a conditional update",
+        "Persist lineage so a later replay can identify the active family",
+        "If reuse revokes a family, the revocation must commit even though the public operation rejects",
+        "Specify response-loss behavior under the chosen strict or bounded-retry policy"
       ],
       "constraints": [
-        "Do not rely on a single-instance application lock"
+        "Use real PostgreSQL and separate connections",
+        "No single-instance lock as the primary guarantee",
+        "Do not return or persist raw tokens in diagnostic evidence"
       ],
       "deliverables": [
-        "Transaction boundaries",
-        "Locking or atomic update strategy",
-        "Unique constraints",
-        "Failure and retry behavior",
-        "Concurrency test plan"
+        "Schema and atomic SQL or locking strategy",
+        "Transaction and rollback rules",
+        "Concurrent integration tests",
+        "Reuse and family-revocation tests",
+        "Response-loss policy and client recovery",
+        "Comparison with optimistic alternatives"
+      ],
+      "material": {
+        "explanation": "This challenge turns the earlier algorithm into a real persistence guarantee. Pay particular attention to security mutations during rejected requests: throwing an exception inside a rollback boundary can accidentally undo family revocation. Verify durable final state, not just one successful response.",
+        "workedExample": {
+          "scenario": "A consumes X and creates Y.",
+          "steps": [
+            "B then observes X as consumed.",
+            "Under strict reuse handling, B commits revocation of the affected family and returns a safe rejection."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Create the lineage schema and constraints.",
+          "Protect consume-and-replace in one transaction.",
+          "Test both the winning rotation and durable reuse response."
+        ],
+        "independentExercise": "Fail child insertion and prove parent consumption rolls back; separately prove a replay rejection does not roll back required family revocation.",
+        "recallQuestions": [
+          "What happens after a caller waits for the lock?",
+          "Can a rejected response still require a committed security change?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A parent never has two committed children",
+        "Child-insertion failure preserves the original active parent",
+        "Reuse handling durably applies the declared family policy",
+        "Two-connection tests use controlled coordination",
+        "Lost-response recovery and strict-policy tradeoffs are documented"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Write and inspect actual SQL before an ORM",
+    "Define schema constraints and transaction boundaries",
+    "Prove concurrent invariants with a real database"
+  ],
+  "completionCriteria": [
+    "The JDBC adapter and migrations work on a fresh database",
+    "The last-item reservation has exactly one winner",
+    "Rotation and rollback tests inspect committed state"
+  ],
+  "studyGuidance": [
+    "Perform the SQL lab before concurrency challenges.",
+    "Study the last-item reservation before returning to token rotation.",
+    "Use separate connections and controlled coordination in race tests."
   ]
 }

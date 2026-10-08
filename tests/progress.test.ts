@@ -76,3 +76,40 @@ test("every JSON module has unique routes, tasks and valid acyclic dependencies"
   }
   ids.forEach(id => visit(id));
 });
+
+test("all lessons and practice have substantive material, verification criteria, and safe source links", () => {
+  for (const module of modules) {
+    assert.ok(module.outcomes?.length && module.completionCriteria?.length && module.studyGuidance?.length, module.id);
+    for (const item of [...module.topics, ...module.exercises, ...module.challenges]) {
+      const material = item.material;
+      assert.ok(material, `Missing material: ${item.id}`);
+      assert.ok(material.explanation.length >= 100, `Missing explanation: ${item.id}`);
+      assert.ok(material.workedExample.scenario && material.workedExample.steps.length >= 2, item.id);
+      assert.ok(material.commonMistakes.length && material.guidedExercise.length && material.independentExercise, item.id);
+      assert.ok(material.recallQuestions.length >= 2 && item.acceptanceCriteria && item.acceptanceCriteria.length >= 2, item.id);
+      assert.ok(item.resources?.length, `Missing references: ${item.id}`);
+      for (const reference of item.resources) {
+        const url = new URL(reference.url);
+        assert.equal(url.protocol, "https:");
+        assert.ok(reference.title && !url.username && !url.password);
+      }
+    }
+  }
+});
+
+test("curriculum expansion preserves every original module, item, and task identity", () => {
+  const original: Record<string, { items: Record<string, string[]> }> = JSON.parse(readFileSync("tests/curriculum-v1-ids.json", "utf8"));
+  const progress = emptyProgress();
+  for (const [moduleId, snapshot] of Object.entries(original)) {
+    const module = modules.find(m => m.id === moduleId);
+    assert.ok(module, `Removed module: ${moduleId}`);
+    progress.modules[moduleId] = { ...defaultEntry(), notes: "Keep my module notes" };
+    for (const [itemId, taskIds] of Object.entries(snapshot.items)) {
+      const item = [...module.topics, ...module.exercises, ...module.challenges].find(i => i.id === itemId);
+      assert.ok(item, `Removed item: ${itemId}`);
+      for (const taskId of taskIds) assert.ok(item.tasks.some(t => t.id === taskId), `Removed task: ${itemId}/${taskId}`);
+      progress.items[itemId] = { ...defaultEntry(), status: "COMPLETED", completedTasks: taskIds, notes: "Keep my notes", aiHelp: "HINT", canExplainWithoutNotes: true };
+    }
+  }
+  assert.deepEqual(parseExport(exportProgress(progress)), progress);
+});

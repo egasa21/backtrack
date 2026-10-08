@@ -4,7 +4,18 @@ import definition from "@/data/roadmap.json";
 import type { ModuleDefinition, RoadmapDefinition } from "@/types/roadmap";
 export const roadmap: RoadmapDefinition = definition;
 const directory = path.join(process.cwd(), "data/modules");
-export const modules: ModuleDefinition[] = readdirSync(directory).filter(file => file.endsWith(".json")).map(file => JSON.parse(readFileSync(path.join(directory, file), "utf8"))).sort((a, b) => a.order - b.order);
+export const modules: ModuleDefinition[] = readdirSync(directory).filter(file => file.endsWith(".json")).map(file => {
+  try {
+    return JSON.parse(readFileSync(path.join(directory, file), "utf8"));
+  } catch (error) {
+    throw new Error(`Cannot load data/modules/${file}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+  }
+}).sort((a, b) => a.order - b.order);
+// The shared navigation only needs summaries; full lessons belong to their detail routes.
+export const catalog: ModuleDefinition[] = modules.map(module => ({
+  ...module,
+  ...Object.fromEntries((["topics", "exercises", "challenges"] as const).map(section => [section, module[section].map(({ material, acceptanceCriteria, resources, ...item }) => item)])),
+}));
 const ids = new Set<string>();
 for (const module of modules) {
   for (const entry of [module, ...module.topics, ...module.exercises, ...module.challenges]) {

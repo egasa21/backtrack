@@ -6,13 +6,142 @@
   "dependencies": [],
   "topics": [
     {
+      "id": "java-core-java-toolchain-and-build-basics",
+      "title": "Java toolchain and build basics",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "The JDK compiles Java source into bytecode; the runtime executes it.",
+      "concepts": [
+        "JDK",
+        "Compilation",
+        "Dependency management"
+      ],
+      "learningGoals": [
+        "A clean checkout builds with a documented JDK",
+        "A failing test causes the build to fail"
+      ],
+      "examples": [
+        "A coupon project builds on a fresh checkout."
+      ],
+      "material": {
+        "explanation": "The JDK compiles Java source into bytecode; the runtime executes it. A repeatable build must compile and run tests outside your IDE. Choose Maven or Gradle and use its wrapper.",
+        "workedExample": {
+          "scenario": "A coupon project builds on a fresh checkout.",
+          "steps": [
+            "Record the JDK version.",
+            "Run the wrapper to compile and test."
+          ]
+        },
+        "commonMistakes": [
+          "An IDE run configuration is not a reproducible build."
+        ],
+        "guidedExercise": [
+          "Create a plain Java project",
+          "Run one passing and one failing test from the terminal"
+        ],
+        "independentExercise": "Document how another person can build the project without your IDE.",
+        "recallQuestions": [
+          "What does the compiler produce?",
+          "Why commit the build wrapper?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A clean checkout builds with a documented JDK",
+        "A failing test causes the build to fail"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "java-core-values-references-and-null",
+      "title": "Values, references, and null",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Java passes arguments by value.",
+      "concepts": [
+        "Primitive values",
+        "Object references",
+        "Aliasing"
+      ],
+      "learningGoals": [
+        "Mutation and reassignment predictions match execution",
+        "Required null inputs are rejected explicitly"
+      ],
+      "examples": [
+        "Two variables reference one GiftCard."
+      ],
+      "material": {
+        "explanation": "Java passes arguments by value. For an object, the copied value is a reference: two variables can reach the same mutable object. Null represents no object and must be handled at explicit boundaries.",
+        "workedExample": {
+          "scenario": "Two variables reference one GiftCard.",
+          "steps": [
+            "Spending through either reference changes the same card.",
+            "Reassigning a method parameter does not reassign the caller's variable."
+          ]
+        },
+        "commonMistakes": [
+          "Java does not pass objects by reference."
+        ],
+        "guidedExercise": [
+          "Predict mutation versus reassignment",
+          "Reject a null required argument"
+        ],
+        "independentExercise": "Write examples distinguishing equal strings, identical references, and absent values.",
+        "recallQuestions": [
+          "What is copied into a method parameter?",
+          "Why can two variables observe the same mutation?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Mutation and reassignment predictions match execution",
+        "Required null inputs are rejected explicitly"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ],
+      "dependencies": [
+        "java-core-java-toolchain-and-build-basics"
+      ]
+    },
+    {
       "id": "java-core-classes-and-objects",
       "title": "Classes and objects",
-      "description": "Separate a class definition from the identity and state of each instance.",
+      "description": "A class defines an object's state and behavior; each instance has its own identity.",
       "learningGoals": [
-        "Separate a class definition from the identity and state of each instance.",
-        "Explain Identity, State and Behavior.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Two instances retain independent state",
+        "Behavior changes only the intended instance"
       ],
       "concepts": [
         "Identity",
@@ -20,7 +149,7 @@
         "Behavior"
       ],
       "examples": [
-        "Create two GiftCard objects with different balances. Spend from one and verify the other is unchanged."
+        "Create two cards with balances 50 and 20."
       ],
       "tasks": [
         {
@@ -36,24 +165,57 @@
           "title": "Check a boundary or failure case without AI implementation help"
         }
       ],
-      "dependencies": []
+      "dependencies": [
+        "java-core-values-references-and-null"
+      ],
+      "material": {
+        "explanation": "A class defines an object's state and behavior; each instance has its own identity. Instance fields belong to an object, while static fields are shared. Put state-changing rules behind behavior methods.",
+        "workedExample": {
+          "scenario": "Create two cards with balances 50 and 20.",
+          "steps": [
+            "Spend 10 from the first.",
+            "Their balances become 40 and 20."
+          ]
+        },
+        "commonMistakes": [
+          "A static balance would accidentally share money across cards."
+        ],
+        "guidedExercise": [
+          "Create two independent instances",
+          "Compare instance and static fields"
+        ],
+        "independentExercise": "Model a coupon with a code, expiration, and remaining uses.",
+        "recallQuestions": [
+          "What belongs to the class rather than an instance?",
+          "Why is a card more than a bag of fields?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Two instances retain independent state",
+        "Behavior changes only the intended instance"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ]
     },
     {
       "id": "java-core-constructors",
       "title": "Constructors",
-      "description": "Establish valid object state at creation and reject invalid inputs.",
+      "description": "A constructor establishes a valid starting state.",
       "learningGoals": [
-        "Establish valid object state at creation and reject invalid inputs.",
-        "Explain Required fields, Validation and Valid initial state.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Invalid construction cannot produce an object",
+        "Valid boundary values are tested"
       ],
       "concepts": [
-        "Required fields",
-        "Validation",
-        "Valid initial state"
+        "Valid initial state",
+        "Required inputs",
+        "Validation"
       ],
       "examples": [
-        "Reject a Coupon with a blank code or discount outside 1–100. Avoid creating an object that must be fixed later."
+        "Construct a 150-percent coupon."
       ],
       "tasks": [
         {
@@ -71,24 +233,55 @@
       ],
       "dependencies": [
         "java-core-classes-and-objects"
+      ],
+      "material": {
+        "explanation": "A constructor establishes a valid starting state. Reject missing or impossible values immediately rather than requiring callers to repair an object after creation. Constructor validation does not replace validation of later mutations.",
+        "workedExample": {
+          "scenario": "Construct a 150-percent coupon.",
+          "steps": [
+            "Reject the discount before storing state.",
+            "A valid 10-percent coupon starts usable."
+          ]
+        },
+        "commonMistakes": [
+          "Setters after construction cannot guarantee an object was always valid."
+        ],
+        "guidedExercise": [
+          "List valid coupon ranges",
+          "Reject blank code and invalid discount"
+        ],
+        "independentExercise": "Construct a GiftCard that rejects negative opening balances.",
+        "recallQuestions": [
+          "Which rules belong at construction?",
+          "Which rules must also be checked later?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Invalid construction cannot produce an object",
+        "Valid boundary values are tested"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-encapsulation",
       "title": "Encapsulation",
-      "description": "Protect state with behavior instead of exposing mutable fields.",
+      "description": "Encapsulation keeps an object's invariants under its own control.",
       "learningGoals": [
-        "Protect state with behavior instead of exposing mutable fields.",
-        "Explain Private state, Behavior methods and Invariant protection.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "All public mutation paths enforce invariants",
+        "Callers cannot mutate internal collections"
       ],
       "concepts": [
         "Private state",
-        "Behavior methods",
-        "Invariant protection"
+        "Invariant ownership",
+        "Defensive access"
       ],
       "examples": [
-        "Expose spend(amount) on GiftCard rather than setBalance(balance). Ensure all balance changes enforce the same rules."
+        "A card holds 20."
       ],
       "tasks": [
         {
@@ -106,24 +299,55 @@
       ],
       "dependencies": [
         "java-core-constructors"
+      ],
+      "material": {
+        "explanation": "Encapsulation keeps an object's invariants under its own control. A private field with an unrestricted setter still exposes the rule. Prefer meaningful operations and avoid returning mutable internal collections.",
+        "workedExample": {
+          "scenario": "A card holds 20.",
+          "steps": [
+            "spend(25) rejects without changing balance.",
+            "spend(5) leaves 15."
+          ]
+        },
+        "commonMistakes": [
+          "Private fields alone do not make a design encapsulated."
+        ],
+        "guidedExercise": [
+          "Replace setBalance with spend",
+          "Try mutating a returned collection"
+        ],
+        "independentExercise": "Expose coupon activation and redemption without public state setters.",
+        "recallQuestions": [
+          "How can a getter break encapsulation?",
+          "Who guarantees a nonnegative balance?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All public mutation paths enforce invariants",
+        "Callers cannot mutate internal collections"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-interfaces",
       "title": "Interfaces",
-      "description": "Define a behavior contract without coupling callers to its implementation.",
+      "description": "An interface describes operations callers rely on.",
       "learningGoals": [
-        "Define a behavior contract without coupling callers to its implementation.",
-        "Explain Contracts, Substitutability and Implementation independence.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "The caller uses only the contract",
+        "Implementations obey the same behavioral expectations"
       ],
       "concepts": [
-        "Contracts",
+        "Behavior contracts",
         "Substitutability",
-        "Implementation independence"
+        "Caller needs"
       ],
       "examples": [
-        "Define TokenHasher with hash and matches methods. Test a token service using a small fake without changing its callers."
+        "A service depends on a TokenHasher contract."
       ],
       "tasks": [
         {
@@ -141,23 +365,55 @@
       ],
       "dependencies": [
         "java-core-encapsulation"
+      ],
+      "material": {
+        "explanation": "An interface describes operations callers rely on. Implementations must preserve the same meaning of success and failure. Introduce a contract for a real boundary, not automatically for every class.",
+        "workedExample": {
+          "scenario": "A service depends on a TokenHasher contract.",
+          "steps": [
+            "A fake records calls in a test.",
+            "The production implementation preserves matching semantics."
+          ]
+        },
+        "commonMistakes": [
+          "An interface with no useful boundary only adds indirection."
+        ],
+        "guidedExercise": [
+          "Write the smallest hasher contract",
+          "State its failure behavior"
+        ],
+        "independentExercise": "Define a notification boundary and two small implementations with consistent behavior.",
+        "recallQuestions": [
+          "What does the caller need to know?",
+          "What must every implementation preserve?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The caller uses only the contract",
+        "Implementations obey the same behavioral expectations"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-enums",
       "title": "Enums",
-      "description": "Represent a finite set of valid values and transitions.",
+      "description": "Enums represent named values from a finite set.",
       "learningGoals": [
-        "Represent a finite set of valid values and transitions.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Unknown states cannot enter the model",
+        "Illegal transitions preserve the previous state"
       ],
       "concepts": [
-        "Enums",
-        "Valid state",
-        "Failure behavior"
+        "Finite states",
+        "Exhaustive handling",
+        "Legal transitions"
       ],
       "examples": [
-        "Apply enums to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A card is ACTIVE, BLOCKED, or EXPIRED."
       ],
       "tasks": [
         {
@@ -175,24 +431,55 @@
       ],
       "dependencies": [
         "java-core-interfaces"
+      ],
+      "material": {
+        "explanation": "Enums represent named values from a finite set. They prevent arbitrary strings but do not enforce transitions by themselves. Keep legal transitions in domain behavior rather than scattered string comparisons.",
+        "workedExample": {
+          "scenario": "A card is ACTIVE, BLOCKED, or EXPIRED.",
+          "steps": [
+            "Blocking changes ACTIVE to BLOCKED.",
+            "Spending while BLOCKED is rejected."
+          ]
+        },
+        "commonMistakes": [
+          "An enum does not automatically make every state change legal."
+        ],
+        "guidedExercise": [
+          "Replace status strings with an enum",
+          "Write a transition table"
+        ],
+        "independentExercise": "Model order status while rejecting repeated cancellation.",
+        "recallQuestions": [
+          "What does an enum prevent?",
+          "Where do transition rules belong?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Unknown states cannot enter the model",
+        "Illegal transitions preserve the previous state"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-records",
       "title": "Records",
-      "description": "Model immutable data carriers and understand shallow immutability.",
+      "description": "Records provide a concise representation of fixed components with generated accessors and equality.",
       "learningGoals": [
-        "Model immutable data carriers and understand shallow immutability.",
-        "Explain Value equality, Final components and Shallow immutability.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Record values remain stable after caller mutation",
+        "Equality behavior is demonstrated"
       ],
       "concepts": [
-        "Value equality",
-        "Final components",
+        "Value carriers",
+        "Generated equality",
         "Shallow immutability"
       ],
       "examples": [
-        "Model a Money record. If a record contains a List, copy the list so callers cannot mutate it through the record."
+        "A receipt record contains line items."
       ],
       "tasks": [
         {
@@ -210,24 +497,55 @@
       ],
       "dependencies": [
         "java-core-enums"
+      ],
+      "material": {
+        "explanation": "Records provide a concise representation of fixed components with generated accessors and equality. Their component references are final, but referenced objects can still mutate. Copy mutable inputs when the record promises stable values.",
+        "workedExample": {
+          "scenario": "A receipt record contains line items.",
+          "steps": [
+            "Copy the input list at construction.",
+            "Later changes to the caller's list do not alter the receipt."
+          ]
+        },
+        "commonMistakes": [
+          "A record containing a mutable list is not automatically deeply immutable."
+        ],
+        "guidedExercise": [
+          "Create a receipt record",
+          "Attempt to mutate its input list"
+        ],
+        "independentExercise": "Model a token issuance result without exposing mutable secret buffers.",
+        "recallQuestions": [
+          "What does final protect?",
+          "When does a record need defensive copying?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Record values remain stable after caller mutation",
+        "Equality behavior is demonstrated"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-exceptions",
       "title": "Exceptions",
-      "description": "Distinguish recoverable failures from programmer errors and preserve causes.",
+      "description": "Exceptions signal that normal completion did not occur.",
       "learningGoals": [
-        "Distinguish recoverable failures from programmer errors and preserve causes.",
-        "Explain Checked and unchecked failures, Exception causes and Failure atomicity.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Failures are distinguishable by category",
+        "Rejected operations leave state unchanged"
       ],
       "concepts": [
-        "Checked and unchecked failures",
-        "Exception causes",
+        "Failure categories",
+        "Cause preservation",
         "Failure atomicity"
       ],
       "examples": [
-        "Attempt to spend more than a gift card balance. Reject the operation and verify the balance remains unchanged."
+        "A card holds 10 and spend(15) fails."
       ],
       "tasks": [
         {
@@ -245,23 +563,55 @@
       ],
       "dependencies": [
         "java-core-records"
+      ],
+      "material": {
+        "explanation": "Exceptions signal that normal completion did not occur. Distinguish invalid input, rejected business operations, and infrastructure failures. Preserve useful causes and ensure a rejected operation does not partially mutate state.",
+        "workedExample": {
+          "scenario": "A card holds 10 and spend(15) fails.",
+          "steps": [
+            "Throw a meaningful failure.",
+            "Verify the balance is still 10."
+          ]
+        },
+        "commonMistakes": [
+          "Catching Exception and continuing can hide an invalid state."
+        ],
+        "guidedExercise": [
+          "Test a rejected spend",
+          "Inspect the failure type and message"
+        ],
+        "independentExercise": "Separate a missing token from an unavailable token store in your design.",
+        "recallQuestions": [
+          "Which failures should callers handle?",
+          "What must remain unchanged after rejection?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Failures are distinguishable by category",
+        "Rejected operations leave state unchanged"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-collections",
       "title": "Collections",
-      "description": "Choose collection contracts based on ordering, uniqueness, and lookup needs.",
+      "description": "Collection choices follow required operations: sequence, unique membership, or keyed lookup.",
       "learningGoals": [
-        "Choose collection contracts based on ordering, uniqueness, and lookup needs.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Each choice follows explicit access requirements",
+        "Ordering and duplicate behavior are tested"
       ],
       "concepts": [
-        "Collections",
-        "Valid state",
-        "Failure behavior"
+        "Interfaces",
+        "Ordering",
+        "Uniqueness"
       ],
       "examples": [
-        "Apply collections to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A service needs users by ID and ordered audit events."
       ],
       "tasks": [
         {
@@ -279,24 +629,55 @@
       ],
       "dependencies": [
         "java-core-exceptions"
+      ],
+      "material": {
+        "explanation": "Collection choices follow required operations: sequence, unique membership, or keyed lookup. Program against an appropriate contract while understanding implementation costs, mutation, iteration, and null policies.",
+        "workedExample": {
+          "scenario": "A service needs users by ID and ordered audit events.",
+          "steps": [
+            "Choose Map for ID lookup.",
+            "Choose List for event order."
+          ]
+        },
+        "commonMistakes": [
+          "Choosing by familiarity ignores ordering and duplicate requirements."
+        ],
+        "guidedExercise": [
+          "State required operations before choosing a collection",
+          "Compare list, set, and map"
+        ],
+        "independentExercise": "Choose structures for active sessions and revoked token IDs with reasons.",
+        "recallQuestions": [
+          "Which contract preserves duplicates?",
+          "What operation makes a map useful?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each choice follows explicit access requirements",
+        "Ordering and duplicate behavior are tested"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-list",
       "title": "List",
-      "description": "Represent ordered values, duplicates, and indexed access.",
+      "description": "A List represents an ordered sequence and may contain duplicates.",
       "learningGoals": [
-        "Represent ordered values, duplicates, and indexed access.",
-        "Explain Ordering, Duplicate values and Indexed access.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Order and duplicates are preserved",
+        "Empty and invalid-index behavior is explicit"
       ],
       "concepts": [
-        "Ordering",
-        "Duplicate values",
+        "Sequence",
+        "Duplicates",
         "Indexed access"
       ],
       "examples": [
-        "Store an ordered audit-event history. Decide whether duplicate events are valid and how removal changes indexes."
+        "Events are login, refresh, refresh."
       ],
       "tasks": [
         {
@@ -314,24 +695,55 @@
       ],
       "dependencies": [
         "java-core-collections"
+      ],
+      "material": {
+        "explanation": "A List represents an ordered sequence and may contain duplicates. Indexes describe positions, not permanent identity. Removing elements shifts later positions, so business identifiers should not depend on list indexes.",
+        "workedExample": {
+          "scenario": "Events are login, refresh, refresh.",
+          "steps": [
+            "All three remain in order.",
+            "Removing index zero moves later positions."
+          ]
+        },
+        "commonMistakes": [
+          "A list index is not a stable database-style identifier."
+        ],
+        "guidedExercise": [
+          "Append duplicate events",
+          "Inspect positions after removal"
+        ],
+        "independentExercise": "Implement an ordered session-event history and test empty access.",
+        "recallQuestions": [
+          "Does a List imply unique values?",
+          "Why should an entity ID differ from its index?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Order and duplicates are preserved",
+        "Empty and invalid-index behavior is explicit"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-set",
       "title": "Set",
-      "description": "Represent unique membership and understand equality-based deduplication.",
+      "description": "A Set expresses unique membership using its equality rules.",
       "learningGoals": [
-        "Represent unique membership and understand equality-based deduplication.",
-        "Explain Membership, Uniqueness and Equality.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Repeated IDs do not increase size",
+        "Retention and ordering assumptions are documented"
       ],
       "concepts": [
-        "Membership",
-        "Uniqueness",
-        "Equality"
+        "Unique membership",
+        "Equality",
+        "Deduplication"
       ],
       "examples": [
-        "Track revoked token IDs with a Set. Add the same ID twice and explain why the size does not increase."
+        "Add request ID R1 twice."
       ],
       "tasks": [
         {
@@ -349,24 +761,55 @@
       ],
       "dependencies": [
         "java-core-list"
+      ],
+      "material": {
+        "explanation": "A Set expresses unique membership using its equality rules. Iteration order depends on the implementation. Uniqueness applies to the chosen key: two requests with different IDs can still represent the same business operation.",
+        "workedExample": {
+          "scenario": "Add request ID R1 twice.",
+          "steps": [
+            "The second insertion reports existing membership.",
+            "The set still contains one ID."
+          ]
+        },
+        "commonMistakes": [
+          "A set alone does not define a business idempotency policy."
+        ],
+        "guidedExercise": [
+          "Detect repeated IDs",
+          "Compare ordering assumptions"
+        ],
+        "independentExercise": "Track revoked token IDs and define when entries can be removed.",
+        "recallQuestions": [
+          "What makes two values duplicates?",
+          "How does unbounded membership affect memory?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Repeated IDs do not increase size",
+        "Retention and ordering assumptions are documented"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-map",
       "title": "Map",
-      "description": "Associate unique keys with values and handle absent keys explicitly.",
+      "description": "A Map associates each unique key with a value.",
       "learningGoals": [
-        "Associate unique keys with values and handle absent keys explicitly.",
-        "Explain Key-value lookup, Absent keys and Unique keys.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Missing lookup is handled safely",
+        "Duplicate-key behavior is deliberate"
       ],
       "concepts": [
-        "Key-value lookup",
-        "Absent keys",
-        "Unique keys"
+        "Key-value association",
+        "Missing keys",
+        "Replacement"
       ],
       "examples": [
-        "Store users by ID. Compare a missing key with a key explicitly mapped to null; prefer a contract that avoids ambiguity."
+        "Store session S1 for user U1."
       ],
       "tasks": [
         {
@@ -384,23 +827,55 @@
       ],
       "dependencies": [
         "java-core-set"
+      ],
+      "material": {
+        "explanation": "A Map associates each unique key with a value. Inserting an existing key can replace its value. Decide whether missing keys and null values are allowed, and never assume a lookup succeeded before using its result.",
+        "workedExample": {
+          "scenario": "Store session S1 for user U1.",
+          "steps": [
+            "Replace S1 with an updated session.",
+            "Looking up S2 reports absence."
+          ]
+        },
+        "commonMistakes": [
+          "A key can map to null in some implementations, so null need not prove absence."
+        ],
+        "guidedExercise": [
+          "Test insert, replace, and missing lookup",
+          "Choose a null policy"
+        ],
+        "independentExercise": "Build a user-by-ID index with explicit duplicate-ID behavior.",
+        "recallQuestions": [
+          "What happens when a key is inserted twice?",
+          "How do you represent an absent value?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Missing lookup is handled safely",
+        "Duplicate-key behavior is deliberate"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-optional",
       "title": "Optional",
-      "description": "Represent an absent return value without treating Optional as a universal field type.",
+      "description": "Optional expresses that a returned value may be absent.",
       "learningGoals": [
-        "Represent an absent return value without treating Optional as a universal field type.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Both present and absent cases are covered",
+        "Absence does not become an accidental exception"
       ],
       "concepts": [
-        "Optional",
-        "Valid state",
-        "Failure behavior"
+        "Absent results",
+        "Explicit branching",
+        "Lazy defaults"
       ],
       "examples": [
-        "Apply optional to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A repository lookup returns no token."
       ],
       "tasks": [
         {
@@ -418,24 +893,55 @@
       ],
       "dependencies": [
         "java-core-map"
+      ],
+      "material": {
+        "explanation": "Optional expresses that a returned value may be absent. It encourages deliberate handling but does not replace all null validation or every field type. Avoid blindly calling get and distinguish cheap defaults from expensive fallback work.",
+        "workedExample": {
+          "scenario": "A repository lookup returns no token.",
+          "steps": [
+            "The caller maps absence to a rejection.",
+            "No token behavior is invoked."
+          ]
+        },
+        "commonMistakes": [
+          "Optional.get without a presence decision just moves the failure."
+        ],
+        "guidedExercise": [
+          "Handle present and absent lookup",
+          "Compare eager and lazy fallbacks"
+        ],
+        "independentExercise": "Write a coupon lookup that does not expose null to its caller.",
+        "recallQuestions": [
+          "What does Optional communicate?",
+          "When does a fallback expression execute?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Both present and absent cases are covered",
+        "Absence does not become an accidental exception"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-instant",
       "title": "Instant",
-      "description": "Represent a point on the UTC timeline and inject time for deterministic tests.",
+      "description": "Instant identifies a point on the timeline independent of local display conventions.",
       "learningGoals": [
-        "Represent a point on the UTC timeline and inject time for deterministic tests.",
-        "Explain UTC timeline, Clock injection and Expiration boundary.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Validity uses timeline values",
+        "The exact expiration boundary is tested"
       ],
       "concepts": [
-        "UTC timeline",
-        "Clock injection",
-        "Expiration boundary"
+        "Timeline points",
+        "UTC",
+        "Expiration comparisons"
       ],
       "examples": [
-        "A reset token expires at issuedAt.plus(Duration.ofMinutes(15)). Reject it when now is equal to or later than expiresAt."
+        "Issued at 10:00Z, a token expires at 10:15Z."
       ],
       "tasks": [
         {
@@ -453,24 +959,55 @@
       ],
       "dependencies": [
         "java-core-optional"
+      ],
+      "material": {
+        "explanation": "Instant identifies a point on the timeline independent of local display conventions. Compare instants for token expiration, and choose whether equality with expiresAt is already expired. Keep human time zones separate from validity rules.",
+        "workedExample": {
+          "scenario": "Issued at 10:00Z, a token expires at 10:15Z.",
+          "steps": [
+            "10:14:59Z is valid.",
+            "10:15:00Z is expired under the chosen rule."
+          ]
+        },
+        "commonMistakes": [
+          "A local date-time without a zone is not an unambiguous instant."
+        ],
+        "guidedExercise": [
+          "Calculate a token expiration",
+          "Test the equality boundary"
+        ],
+        "independentExercise": "Display the same expiration in two zones while keeping identical validity.",
+        "recallQuestions": [
+          "What changes when a time zone changes?",
+          "Is equality with expiresAt valid in your policy?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Validity uses timeline values",
+        "The exact expiration boundary is tested"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-duration",
       "title": "Duration",
-      "description": "Represent elapsed time and compare expiration windows at their boundaries.",
+      "description": "Duration represents an amount of elapsed time rather than a calendar date.",
       "learningGoals": [
-        "Represent elapsed time and compare expiration windows at their boundaries.",
-        "Explain Elapsed time, Units and Boundary comparisons.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Time units are explicit",
+        "Invalid zero or negative lifetimes are rejected"
       ],
       "concepts": [
         "Elapsed time",
         "Units",
-        "Boundary comparisons"
+        "Immutable arithmetic"
       ],
       "examples": [
-        "Express the reset-token lifetime as Duration.ofMinutes(15). Test one instant before, exactly at, and after expiration."
+        "A reset lifetime is 15 minutes."
       ],
       "tasks": [
         {
@@ -488,23 +1025,121 @@
       ],
       "dependencies": [
         "java-core-instant"
+      ],
+      "material": {
+        "explanation": "Duration represents an amount of elapsed time rather than a calendar date. Express lifetimes with explicit units and distinguish a duration from an instant. Calendar days across clock changes need different reasoning from fixed elapsed hours.",
+        "workedExample": {
+          "scenario": "A reset lifetime is 15 minutes.",
+          "steps": [
+            "Add it to issuedAt.",
+            "The result is an expiration instant, not another duration."
+          ]
+        },
+        "commonMistakes": [
+          "A duration is not a timestamp or a local calendar day."
+        ],
+        "guidedExercise": [
+          "Express lifetimes without magic milliseconds",
+          "Compare short and long durations"
+        ],
+        "independentExercise": "Make token lifetime configurable through a validated Duration.",
+        "recallQuestions": [
+          "What is produced by adding Duration to Instant?",
+          "Why can a calendar day differ from 24 hours?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Time units are explicit",
+        "Invalid zero or negative lifetimes are rejected"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ]
+    },
+    {
+      "id": "java-core-clock-injection",
+      "title": "Clock injection",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Obtain current time through an injected Clock when behavior depends on time.",
+      "concepts": [
+        "Controllable time",
+        "Constructor dependencies",
+        "Deterministic tests"
+      ],
+      "learningGoals": [
+        "No expiration test relies on sleeping",
+        "Production and test clocks use the same behavior path"
+      ],
+      "examples": [
+        "A test fixes the clock at expiresAt."
+      ],
+      "material": {
+        "explanation": "Obtain current time through an injected Clock when behavior depends on time. Production can use a real clock while tests use fixed instants. This removes sleeps and makes expiration tests repeatable.",
+        "workedExample": {
+          "scenario": "A test fixes the clock at expiresAt.",
+          "steps": [
+            "The service reads the injected clock.",
+            "The token is rejected without waiting."
+          ]
+        },
+        "commonMistakes": [
+          "Sleeping in a test is slow and can still miss the intended boundary."
+        ],
+        "guidedExercise": [
+          "Replace direct now calls with a clock",
+          "Use two fixed clocks around expiration"
+        ],
+        "independentExercise": "Test coupon expiration at three exact instants without sleeps.",
+        "recallQuestions": [
+          "Why is time a dependency?",
+          "What makes a fixed-clock test deterministic?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No expiration test relies on sleeping",
+        "Production and test clocks use the same behavior path"
+      ],
+      "resources": [
+        {
+          "title": "Clock API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html"
+        }
+      ],
+      "dependencies": [
+        "java-core-duration"
       ]
     },
     {
       "id": "java-core-immutability",
       "title": "Immutability",
-      "description": "Prevent accidental mutation and use defensive copies for mutable members.",
+      "description": "Immutable objects cannot change their observable value after creation.",
       "learningGoals": [
-        "Prevent accidental mutation and use defensive copies for mutable members.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Inputs cannot alter the value after construction",
+        "Returned values cannot mutate internals"
       ],
       "concepts": [
-        "Immutability",
-        "Valid state",
-        "Failure behavior"
+        "Stable values",
+        "Defensive copies",
+        "Controlled mutation"
       ],
       "examples": [
-        "Apply immutability to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A receipt copies its items."
       ],
       "tasks": [
         {
@@ -521,25 +1156,56 @@
         }
       ],
       "dependencies": [
-        "java-core-duration"
+        "java-core-clock-injection"
+      ],
+      "material": {
+        "explanation": "Immutable objects cannot change their observable value after creation. They reduce aliasing surprises and make value reasoning easier. Domain entities may still need controlled mutation; do not confuse immutability with a ban on useful behavior.",
+        "workedExample": {
+          "scenario": "A receipt copies its items.",
+          "steps": [
+            "A caller edits the original list.",
+            "The receipt's observable content remains unchanged."
+          ]
+        },
+        "commonMistakes": [
+          "Final references do not prevent mutation of referenced objects."
+        ],
+        "guidedExercise": [
+          "Identify all reachable mutable state",
+          "Copy or safely expose it"
+        ],
+        "independentExercise": "Create an immutable Money value and compare it with a mutable account entity.",
+        "recallQuestions": [
+          "What does observable immutability mean?",
+          "Which domain state genuinely needs to change?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Inputs cannot alter the value after construction",
+        "Returned values cannot mutate internals"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-equals",
       "title": "equals",
-      "description": "Define logical equality with reflexivity, symmetry, and transitivity.",
+      "description": "equals defines logical equality and must behave consistently as an equivalence relation.",
       "learningGoals": [
-        "Define logical equality with reflexivity, symmetry, and transitivity.",
-        "Explain Reflexivity, Symmetry and Transitivity.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Equality laws pass focused tests",
+        "The identity or value decision is documented"
       ],
       "concepts": [
-        "Reflexivity",
-        "Symmetry",
-        "Transitivity"
+        "Logical equality",
+        "Equivalence relation",
+        "Identity choice"
       ],
       "examples": [
-        "Compare two Coupon objects with the same code. Decide whether equality follows code identity or every field."
+        "Two CouponCode values contain SAVE10."
       ],
       "tasks": [
         {
@@ -557,24 +1223,55 @@
       ],
       "dependencies": [
         "java-core-immutability"
+      ],
+      "material": {
+        "explanation": "equals defines logical equality and must behave consistently as an equivalence relation. Decide whether objects represent identity or values before implementing it. Equality used in collections must agree with hashCode.",
+        "workedExample": {
+          "scenario": "Two CouponCode values contain SAVE10.",
+          "steps": [
+            "They compare equal even as different objects.",
+            "Their hashes must also match."
+          ]
+        },
+        "commonMistakes": [
+          "Reference identity and logical equality answer different questions."
+        ],
+        "guidedExercise": [
+          "Test reflexivity, symmetry, and transitivity",
+          "Compare null and a different type"
+        ],
+        "independentExercise": "Define equality for a session identifier without mutable status fields.",
+        "recallQuestions": [
+          "What makes two entities the same entity?",
+          "Why does equality need transitivity?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Equality laws pass focused tests",
+        "The identity or value decision is documented"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-hashcode",
       "title": "hashCode",
-      "description": "Ensure equal objects have equal hashes and avoid mutable map keys.",
+      "description": "A hash narrows lookup candidates; equality decides whether keys match.",
       "learningGoals": [
-        "Ensure equal objects have equal hashes and avoid mutable map keys.",
-        "Explain Equality contract, Hash buckets and Mutable keys.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Equal values have equal hashes",
+        "Collisions preserve correct lookup behavior"
       ],
       "concepts": [
-        "Equality contract",
         "Hash buckets",
-        "Mutable keys"
+        "Equality contract",
+        "Key stability"
       ],
       "examples": [
-        "Insert an object into HashMap, mutate a field used by hashCode, and explain why a later lookup may fail."
+        "Insert a key whose hash uses mutable status."
       ],
       "tasks": [
         {
@@ -592,16 +1289,47 @@
       ],
       "dependencies": [
         "java-core-equals"
+      ],
+      "material": {
+        "explanation": "A hash narrows lookup candidates; equality decides whether keys match. Equal objects must have equal hashes, but unequal objects may collide. Fields used by hash-based keys must remain stable while the key is stored.",
+        "workedExample": {
+          "scenario": "Insert a key whose hash uses mutable status.",
+          "steps": [
+            "Change status.",
+            "Lookup may fail because it searches a different bucket."
+          ]
+        },
+        "commonMistakes": [
+          "A hash is not an object's memory address or a unique identifier."
+        ],
+        "guidedExercise": [
+          "Reproduce a mutable-key lookup failure",
+          "Replace the key with a stable value"
+        ],
+        "independentExercise": "Test custom session keys with deliberate collisions.",
+        "recallQuestions": [
+          "Can different objects share a hash?",
+          "Why can mutation break lookup?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Equal values have equal hashes",
+        "Collisions preserve correct lookup behavior"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-generics",
       "title": "Generics",
-      "description": "Write type-safe reusable code and distinguish bounds from wildcards.",
+      "description": "Generics describe type-safe operations without erasing useful caller information at compile time.",
       "learningGoals": [
-        "Write type-safe reusable code and distinguish bounds from wildcards.",
-        "Explain Type parameters, Bounds and Wildcards.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "The example compiles without unchecked casts",
+        "Read and write constraints are explained"
       ],
       "concepts": [
         "Type parameters",
@@ -609,7 +1337,7 @@
         "Wildcards"
       ],
       "examples": [
-        "Write a typed repository contract. Explain why List<GiftCard> cannot be treated as List<Object>."
+        "List<GiftCard> is not List<Object>."
       ],
       "tasks": [
         {
@@ -627,6 +1355,434 @@
       ],
       "dependencies": [
         "java-core-hashcode"
+      ],
+      "material": {
+        "explanation": "Generics describe type-safe operations without erasing useful caller information at compile time. Invariance prevents unsafe writes through a widened collection type. Bounds and wildcards express which values may be read or written.",
+        "workedExample": {
+          "scenario": "List<GiftCard> is not List<Object>.",
+          "steps": [
+            "Adding a String through the latter would corrupt the promise.",
+            "A read-only wildcard can express a narrower need."
+          ]
+        },
+        "commonMistakes": [
+          "A generic type does not make arbitrary runtime casts safe."
+        ],
+        "guidedExercise": [
+          "Write a typed lookup contract",
+          "Explain an unsafe collection assignment"
+        ],
+        "independentExercise": "Write a helper that reads a collection of entities without adding incompatible values.",
+        "recallQuestions": [
+          "Why are generic collections invariant?",
+          "What does an upper bound permit?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The example compiles without unchecked casts",
+        "Read and write constraints are explained"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ]
+    },
+    {
+      "id": "java-core-bigdecimal-and-money",
+      "title": "BigDecimal and money",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Money needs an explicit currency and rounding policy.",
+      "concepts": [
+        "Decimal arithmetic",
+        "Scale",
+        "Rounding policy"
+      ],
+      "learningGoals": [
+        "Money operations follow a stated scale and rounding rule",
+        "Equivalent amounts and fractional discounts are tested"
+      ],
+      "examples": [
+        "A balance is 10.00 and a charge is 0.10."
+      ],
+      "material": {
+        "explanation": "Money needs an explicit currency and rounding policy. BigDecimal avoids binary floating-point surprises, but scale affects equals and division may require a rounding decision. Construct decimal inputs from intended decimal text.",
+        "workedExample": {
+          "scenario": "A balance is 10.00 and a charge is 0.10.",
+          "steps": [
+            "Subtract using decimal values.",
+            "The remaining amount is 9.90 under a two-decimal policy."
+          ]
+        },
+        "commonMistakes": [
+          "BigDecimal does not choose a currency or rounding rule for you."
+        ],
+        "guidedExercise": [
+          "Compare equals with compareTo for different scales",
+          "Specify rounding at a business boundary"
+        ],
+        "independentExercise": "Calculate a percentage discount and reject excess spending without double.",
+        "recallQuestions": [
+          "When should rounding happen?",
+          "Why can equals differ from numeric comparison?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Money operations follow a stated scale and rounding rule",
+        "Equivalent amounts and fractional discounts are tested"
+      ],
+      "resources": [
+        {
+          "title": "BigDecimal API",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html"
+        }
+      ],
+      "dependencies": [
+        "java-core-generics"
+      ]
+    },
+    {
+      "id": "java-core-lambdas-and-functional-interfaces",
+      "title": "Lambdas and functional interfaces",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A lambda supplies behavior for a functional interface with one abstract method.",
+      "concepts": [
+        "Behavior parameters",
+        "Captured values",
+        "Predicates"
+      ],
+      "learningGoals": [
+        "The callback's inputs and outputs are explicit",
+        "Filtering does not mutate domain state"
+      ],
+      "examples": [
+        "Filter coupons using an isActive predicate."
+      ],
+      "material": {
+        "explanation": "A lambda supplies behavior for a functional interface with one abstract method. Captured local variables must be effectively final. Prefer small, readable predicates; do not hide state mutation inside a callback.",
+        "workedExample": {
+          "scenario": "Filter coupons using an isActive predicate.",
+          "steps": [
+            "Evaluate the predicate per coupon.",
+            "Keep redemption outside the filtering callback."
+          ]
+        },
+        "commonMistakes": [
+          "A short lambda is not automatically free of side effects."
+        ],
+        "guidedExercise": [
+          "Pass a predicate to a helper",
+          "Compare the lambda with a named method"
+        ],
+        "independentExercise": "Define an expiration predicate using an injected clock.",
+        "recallQuestions": [
+          "What makes an interface functional?",
+          "Which captured values remain mutable?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The callback's inputs and outputs are explicit",
+        "Filtering does not mutate domain state"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ],
+      "dependencies": [
+        "java-core-bigdecimal-and-money"
+      ]
+    },
+    {
+      "id": "java-core-streams-and-collectors",
+      "title": "Streams and collectors",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Streams describe a sequence of transformations and execute when a terminal operation consumes it.",
+      "concepts": [
+        "Lazy pipelines",
+        "Terminal operations",
+        "Side effects"
+      ],
+      "learningGoals": [
+        "The result matches a straightforward loop",
+        "Empty input and duplicate values are covered"
+      ],
+      "examples": [
+        "Select active coupons and collect their codes."
+      ],
+      "material": {
+        "explanation": "Streams describe a sequence of transformations and execute when a terminal operation consumes it. They are single-use and should usually avoid stateful callbacks. Choose loops when they communicate mutation or control flow more clearly.",
+        "workedExample": {
+          "scenario": "Select active coupons and collect their codes.",
+          "steps": [
+            "Filter rejects inactive entries.",
+            "Map extracts codes and collection produces the result."
+          ]
+        },
+        "commonMistakes": [
+          "Parallel streams are not a default performance improvement."
+        ],
+        "guidedExercise": [
+          "Rewrite one loop as filter and map",
+          "Explain the terminal operation"
+        ],
+        "independentExercise": "Group session counts by user using a collector, then compare readability with a loop.",
+        "recallQuestions": [
+          "When does a pipeline execute?",
+          "Why is shared mutation risky?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The result matches a straightforward loop",
+        "Empty input and duplicate values are covered"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ],
+      "dependencies": [
+        "java-core-lambdas-and-functional-interfaces"
+      ]
+    },
+    {
+      "id": "java-core-assertions-and-junit",
+      "title": "Assertions and JUnit",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A test sets up controlled inputs, performs an operation, and asserts observable behavior.",
+      "concepts": [
+        "Observable outcomes",
+        "Arrange-act-assert",
+        "Failure tests"
+      ],
+      "learningGoals": [
+        "Changing the rule makes a relevant test fail",
+        "Tests run from the build wrapper"
+      ],
+      "examples": [
+        "A card starts with 10."
+      ],
+      "material": {
+        "explanation": "A test sets up controlled inputs, performs an operation, and asserts observable behavior. Test both the returned outcome and important state changes. Java assert can be disabled; use a test runner for repeatable verification.",
+        "workedExample": {
+          "scenario": "A card starts with 10.",
+          "steps": [
+            "Spend 4.",
+            "Assert a balance of 6 and rejection of a later oversized spend."
+          ]
+        },
+        "commonMistakes": [
+          "A test that only runs code without asserting anything can miss a bug."
+        ],
+        "guidedExercise": [
+          "Write a success test and rejection test",
+          "Break the implementation and observe a failure"
+        ],
+        "independentExercise": "Test constructor validation and spend failure without Spring.",
+        "recallQuestions": [
+          "What behavior does your assertion prove?",
+          "Why test state after an exception?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Changing the rule makes a relevant test fail",
+        "Tests run from the build wrapper"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "java-core-streams-and-collectors"
+      ]
+    },
+    {
+      "id": "java-core-parameterized-and-boundary-tests",
+      "title": "Parameterized and boundary tests",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Parameterized tests run the same behavior check with different inputs.",
+      "concepts": [
+        "Case tables",
+        "Boundary partitions",
+        "Expected exceptions"
+      ],
+      "learningGoals": [
+        "Every stated boundary has a case",
+        "Failure output identifies the failing input"
+      ],
+      "examples": [
+        "Test discounts -1, 0, 1, 100, and 101."
+      ],
+      "material": {
+        "explanation": "Parameterized tests run the same behavior check with different inputs. Choose cases from rules and boundaries rather than random examples alone. Keep expected outcomes visible so a failing row identifies a broken rule.",
+        "workedExample": {
+          "scenario": "Test discounts -1, 0, 1, 100, and 101.",
+          "steps": [
+            "Accept only the specified range.",
+            "Each case has an explicit expected result."
+          ]
+        },
+        "commonMistakes": [
+          "Many repeated examples do not guarantee boundary coverage."
+        ],
+        "guidedExercise": [
+          "Build a discount case table",
+          "Add expiration before, at, and after the deadline"
+        ],
+        "independentExercise": "Test gift-card amount validation with named cases.",
+        "recallQuestions": [
+          "How do you choose boundary cases?",
+          "When should cases use separate tests?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every stated boundary has a case",
+        "Failure output identifies the failing input"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "java-core-assertions-and-junit"
+      ]
+    },
+    {
+      "id": "java-core-debugging-and-resource-handling",
+      "title": "Debugging and resource handling",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Debugging tests a hypothesis about a failure.",
+      "concepts": [
+        "Stack traces",
+        "Breakpoints",
+        "Try-with-resources"
+      ],
+      "learningGoals": [
+        "The cause is reproduced with a small check",
+        "Resources close on success and failure"
+      ],
+      "examples": [
+        "A file-based fixture fails to load."
+      ],
+      "material": {
+        "explanation": "Debugging tests a hypothesis about a failure. Read the first useful cause, reproduce it with small inputs, and inspect state at the boundary. Close resources deterministically with try-with-resources rather than relying on garbage collection.",
+        "workedExample": {
+          "scenario": "A file-based fixture fails to load.",
+          "steps": [
+            "Inspect the path and original exception cause.",
+            "Close the reader even if parsing fails."
+          ]
+        },
+        "commonMistakes": [
+          "Swallowing a stack trace removes the evidence needed to fix the cause."
+        ],
+        "guidedExercise": [
+          "Reproduce a null lookup failure",
+          "Read a small fixture with automatic closing"
+        ],
+        "independentExercise": "Find and explain an intentionally broken coupon test before changing code.",
+        "recallQuestions": [
+          "What evidence disproves your hypothesis?",
+          "Why must resource closing happen on failure?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The cause is reproduced with a small check",
+        "Resources close on success and failure"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
+      ],
+      "dependencies": [
+        "java-core-parameterized-and-boundary-tests"
       ]
     }
   ],
@@ -634,18 +1790,18 @@
     {
       "id": "java-core-coupon",
       "title": "Coupon",
-      "description": "Practice the module by designing and testing coupon.",
+      "description": "Model a coupon whose valid state and redemption rules cannot be bypassed.",
       "learningGoals": [
-        "Practice the module by designing and testing coupon.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Model a coupon whose valid state and redemption rules cannot be bypassed.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Coupon",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply coupon to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "An active 10-percent coupon has two uses and expires at noon."
       ],
       "tasks": [
         {
@@ -671,44 +1827,99 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Invalid codes, discounts, and use limits cannot construct a coupon"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Inactive, expired, and exhausted coupons reject redemption without mutation"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Exactly one use is consumed per successful redemption"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Money rounding and expiration boundaries have tests"
         }
       ],
       "dependencies": [
-        "java-core-generics"
+        "java-core-debugging-and-resource-handling"
       ],
       "requirements": [
-        "Coupon code",
-        "Percentage discount",
-        "Expiration",
-        "Maximum usage count",
-        "Activation state"
+        "Nonblank code; percentage discount from 1 through 100",
+        "Positive maximum uses and explicit active state",
+        "Expiration supplied as Instant; expired when now is at or after expiresAt",
+        "Redemption requires active, unexpired, unused capacity",
+        "A rejected redemption does not consume a use",
+        "Compute a monetary discount under a stated rounding policy"
       ],
-      "constraints": [],
+      "constraints": [
+        "Plain Java; no Spring or database",
+        "Use an in-memory implementation and a repeatable build",
+        "Write acceptance cases before implementation"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "Use Coupon to practice constructor validation, controlled mutation, time, and decimal arithmetic together. Keep the coupon responsible for its own usability rules. Choose whether codes are normalized and document that policy; do not silently change identity.",
+        "workedExample": {
+          "scenario": "An active 10-percent coupon has two uses and expires at noon.",
+          "steps": [
+            "One successful redemption consumes one use.",
+            "At noon another redemption is rejected without consuming the remaining use."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write the usable/not-usable decision table.",
+          "Use an injected Clock to test before, at, and after expiration.",
+          "Test the final available use and every rejection state."
+        ],
+        "independentExercise": "Add activation and deactivation, then prove callers cannot bypass the same redemption rules.",
+        "recallQuestions": [
+          "Which object owns remaining uses?",
+          "Where and how is discount rounding applied?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Invalid codes, discounts, and use limits cannot construct a coupon",
+        "Inactive, expired, and exhausted coupons reject redemption without mutation",
+        "Exactly one use is consumed per successful redemption",
+        "Money rounding and expiration boundaries have tests"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-gift-card",
       "title": "Gift Card",
-      "description": "Practice the module by designing and testing gift card.",
+      "description": "Implement a monetary balance with explicit currency, time, and state rules.",
       "learningGoals": [
-        "Practice the module by designing and testing gift card.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Implement a monetary balance with explicit currency, time, and state rules.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Gift Card",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply gift card to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A card holds 10.00 and spends 3.25."
       ],
       "tasks": [
         {
@@ -734,44 +1945,99 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: No operation creates a negative balance"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Wrong currency and invalid amounts reject without mutation"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Blocking and expiration prevent spending"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Exact-balance spending and rounding policy are tested"
         }
       ],
       "dependencies": [
-        "java-core-generics"
+        "java-core-debugging-and-resource-handling"
       ],
       "requirements": [
-        "Initial balance",
-        "Spend balance",
-        "Prevent negative balance",
-        "Expiration",
-        "Block and unblock"
+        "Opening balance is nonnegative with a stated currency and decimal scale",
+        "Spend amount must be positive, compatible in currency, and no greater than balance",
+        "Blocked or expired cards cannot spend",
+        "block and unblock follow a declared repeated-action policy",
+        "Expiration equality counts as expired",
+        "Rejection preserves both balance and state"
       ],
-      "constraints": [],
+      "constraints": [
+        "Plain Java; no Spring or database",
+        "Use an in-memory implementation and a repeatable build",
+        "Write acceptance cases before implementation"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "The balance invariant belongs to the card, while money can be an immutable value. Choose exact decimal representation and rounding rules. Do not expose a balance setter or use doubles merely because the examples look simple.",
+        "workedExample": {
+          "scenario": "A card holds 10.00 and spends 3.25.",
+          "steps": [
+            "Balance becomes 6.75.",
+            "A later spend of 7.00 is rejected and balance remains 6.75."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "List valid spend conditions.",
+          "Test zero, negative, exact balance, and excessive amounts.",
+          "Use fixed clocks and blocked state in rejection tests."
+        ],
+        "independentExercise": "Add a receipt result without returning mutable internal state or changing rejection behavior.",
+        "recallQuestions": [
+          "Why can balance not be freely set?",
+          "How do amount equality and decimal scale interact?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No operation creates a negative balance",
+        "Wrong currency and invalid amounts reject without mutation",
+        "Blocking and expiration prevent spending",
+        "Exact-balance spending and rounding policy are tested"
+      ],
+      "resources": [
+        {
+          "title": "Java language and APIs",
+          "url": "https://dev.java/learn/"
+        }
       ]
     },
     {
       "id": "java-core-api-key",
       "title": "API Key",
-      "description": "Practice the module by designing and testing api key.",
+      "description": "Build a small in-memory credential lifecycle without storing raw secrets.",
       "learningGoals": [
-        "Practice the module by designing and testing api key.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Build a small in-memory credential lifecycle without storing raw secrets.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "API Key",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply api key to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Issue key K and persist only its hash."
       ],
       "tasks": [
         {
@@ -797,27 +2063,83 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Persisted state and diagnostic messages never contain raw keys"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Generation uses a cryptographically suitable source"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Unknown, expired, and revoked keys are rejected"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Tests use deterministic collaborators without weakening production generation"
         }
       ],
       "dependencies": [
-        "java-core-generics"
+        "java-core-debugging-and-resource-handling"
       ],
       "requirements": [
-        "Generate key",
-        "Hash key",
-        "Validate",
-        "Expire",
-        "Revoke"
+        "Generate unpredictable raw key bytes with SecureRandom and encode for transport",
+        "Use a standard cryptographic digest for this high-entropy token lookup exercise",
+        "Store a key ID, hash, expiration, and revocation state; not the raw key",
+        "Return the raw key only at issuance",
+        "Validation rejects unknown, expired, or revoked keys",
+        "Never log keys; this policy is not password hashing"
       ],
-      "constraints": [],
+      "constraints": [
+        "Plain Java; no Spring or database",
+        "Use an in-memory implementation and a repeatable build",
+        "Write acceptance cases before implementation",
+        "Use standard vetted cryptographic APIs; do not invent an algorithm"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "Practice key issuance and lifecycle before adding HTTP. Separate randomness, hashing, and validity decisions. Tests should verify observable format and lifecycle behavior, not try to statistically prove that your random generator is secure.",
+        "workedExample": {
+          "scenario": "Issue key K and persist only its hash.",
+          "steps": [
+            "Presenting K resolves its state successfully.",
+            "After revocation, presenting K fails."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Draw where raw and hashed values exist.",
+          "Implement issuance and validation as separate operations.",
+          "Test unknown, revoked, and exact-expiration cases."
+        ],
+        "independentExercise": "Inject a generator in tests, retain secure randomness in production, and explain why passwords need a different policy.",
+        "recallQuestions": [
+          "Which parts of this exercise are secrets?",
+          "Why is a predictable encoded ID not a secure key?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Persisted state and diagnostic messages never contain raw keys",
+        "Generation uses a cryptographically suitable source",
+        "Unknown, expired, and revoked keys are rejected",
+        "Tests use deterministic collaborators without weakening production generation"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     }
   ],
@@ -825,18 +2147,18 @@
     {
       "id": "java-core-password-reset-token",
       "title": "Password Reset Token",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Build a plain-Java one-use reset-token lifecycle with deterministic tests.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Build a plain-Java one-use reset-token lifecycle with deterministic tests.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "A token is issued at 10:00Z for U1."
       ],
       "tasks": [
         {
@@ -862,32 +2184,103 @@
         {
           "id": "deliverable-6",
           "title": "Boundary and failure tests"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Before, at, and after the 15-minute boundary are tested"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Successful use consumes exactly one token"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Used and invalidated tokens always reject without unrelated mutation"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Raw credentials are neither stored nor logged"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: The plain-Java build runs all tests without Spring"
         }
       ],
       "dependencies": [
-        "java-core-generics"
+        "java-core-debugging-and-resource-handling"
       ],
       "requirements": [
-        "Belongs to one user",
-        "Expires after 15 minutes",
-        "One-time use",
-        "Cannot be reused",
-        "Can be invalidated"
+        "Each token belongs to one user and expires 15 minutes after issuance",
+        "At or after expiresAt, use is rejected",
+        "Successful consumption marks the token used exactly once",
+        "Invalidated, unknown, or already-used tokens cannot be consumed",
+        "Use an unpredictable token and retain only its verification representation in storage",
+        "A failed attempt does not accidentally consume an unrelated token"
       ],
       "constraints": [
-        "No Spring",
-        "No database",
-        "Plain Java",
-        "In-memory storage"
+        "Plain Java; no Spring or database",
+        "Use an in-memory implementation and a repeatable build",
+        "Write acceptance cases before implementation",
+        "Single-process sequential lifecycle first; document that concurrent consumption is a later extension"
       ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Domain model",
-        "Algorithm",
-        "Implementation",
-        "Boundary and failure tests"
+        "Requirement and decision table",
+        "Token state model",
+        "Consumption algorithm and responsibilities",
+        "In-memory implementation",
+        "JUnit cases and a runnable build",
+        "Explain-without-notes reflection"
+      ],
+      "material": {
+        "explanation": "Combine object state, constructors, collections, time, and tests. Keep HTTP, email delivery, and password mutation outside this first challenge. State the security-sensitive boundaries while focusing implementation on a small token lifecycle.",
+        "workedExample": {
+          "scenario": "A token is issued at 10:00Z for U1.",
+          "steps": [
+            "It works once at 10:14Z.",
+            "Its second use and any use at 10:15Z reject under the lifecycle policy."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write cases for unknown, valid, expired, used, and invalidated tokens.",
+          "Choose the state owner and inject time.",
+          "Implement only after expected outcomes are explicit."
+        ],
+        "independentExercise": "Invalidate an older reset token when issuing a replacement for the same user and prove that the new one still works.",
+        "recallQuestions": [
+          "What prevents second use?",
+          "Why can the expiration test avoid sleeping?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Before, at, and after the 15-minute boundary are tested",
+        "Successful use consumes exactly one token",
+        "Used and invalidated tokens always reject without unrelated mutation",
+        "Raw credentials are neither stored nor logged",
+        "The plain-Java build runs all tests without Spring"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: password recovery",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Build and test plain Java outside the IDE",
+    "Model valid state, money, and token lifecycles",
+    "Explain identity, equality, collections, and time"
+  ],
+  "completionCriteria": [
+    "The reset-token challenge passes its lifecycle cases",
+    "Money and expiration rules are explained without notes",
+    "A repeatable build runs meaningful tests"
+  ],
+  "studyGuidance": [
+    "Use the standard library before adding dependencies.",
+    "Write boundary cases before implementation; tests continue throughout the track."
   ]
 }

@@ -12,7 +12,7 @@
     "Tests"
   ],
   "rules": [
-    "Before implementation, write requirements, rules, data, algorithm, responsibilities, and failure cases.",
+    "Before implementation, write requirements, rules, data, algorithm, responsibilities, failure cases, and expected acceptance-test outcomes.",
     "Ask AI to review your design or give one hint before asking for implementation.",
     "Work independently for 25 minutes before asking AI for implementation help.",
     "After finishing a topic, explain it without looking at code or notes.",

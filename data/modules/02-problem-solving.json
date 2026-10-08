@@ -10,18 +10,18 @@
     {
       "id": "problem-solving-requirement-decomposition",
       "title": "Requirement decomposition",
-      "description": "Break a request into inputs, outputs, rules, and observable outcomes.",
+      "description": "Turn a feature request into observable behavior before choosing classes.",
       "learningGoals": [
-        "Break a request into inputs, outputs, rules, and observable outcomes.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Every rule has an observable outcome",
+        "Unresolved business decisions are recorded"
       ],
       "concepts": [
-        "Requirement decomposition",
-        "Valid state",
-        "Failure behavior"
+        "Inputs",
+        "Outputs",
+        "Observable rules"
       ],
       "examples": [
-        "Apply requirement decomposition to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A voucher can be redeemed once per user."
       ],
       "tasks": [
         {
@@ -37,24 +37,121 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
+      "dependencies": [],
+      "material": {
+        "explanation": "Turn a feature request into observable behavior before choosing classes. Separate stated rules from assumptions and unresolved questions. A requirement should identify an actor, an action, and an outcome you can verify.",
+        "workedExample": {
+          "scenario": "A voucher can be redeemed once per user.",
+          "steps": [
+            "Identify voucherCode and userId as inputs.",
+            "Define successful redemption and repeated-use rejection."
+          ]
+        },
+        "commonMistakes": [
+          "Choosing method names before clarifying behavior can conceal missing rules."
+        ],
+        "guidedExercise": [
+          "Split voucher redemption into rules",
+          "List unresolved questions"
+        ],
+        "independentExercise": "Decompose inventory reservation into input, success, rejection, and expiration behavior.",
+        "recallQuestions": [
+          "Which statements are assumptions?",
+          "How would you verify the requirement?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every rule has an observable outcome",
+        "Unresolved business decisions are recorded"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ]
+    },
+    {
+      "id": "problem-solving-decision-tables-and-acceptance-cases",
+      "title": "Decision tables and acceptance cases",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A decision table combines conditions with expected actions.",
+      "concepts": [
+        "Conditions",
+        "Actions",
+        "Rule coverage"
+      ],
+      "learningGoals": [
+        "No meaningful condition combination is left undefined",
+        "Each important row has a test case"
+      ],
+      "examples": [
+        "Cancellation sees CREATED, PAID, SHIPPED, or CANCELLED."
+      ],
+      "material": {
+        "explanation": "A decision table combines conditions with expected actions. It exposes missing combinations and conflicting rules. Convert important rows into acceptance cases before implementing branches.",
+        "workedExample": {
+          "scenario": "Cancellation sees CREATED, PAID, SHIPPED, or CANCELLED.",
+          "steps": [
+            "Specify one action for each state.",
+            "Add a missing-order case."
+          ]
+        },
+        "commonMistakes": [
+          "A happy-path example does not cover all rule combinations."
+        ],
+        "guidedExercise": [
+          "Build a cancellation decision table",
+          "Translate rows into input-output cases"
+        ],
+        "independentExercise": "Create a refund table combining duplicate key, amount, and remaining balance.",
+        "recallQuestions": [
+          "Which combinations need distinct behavior?",
+          "What makes a row redundant?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No meaningful condition combination is left undefined",
+        "Each important row has a test case"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-requirement-decomposition"
+      ]
     },
     {
       "id": "problem-solving-preconditions",
       "title": "Preconditions",
-      "description": "State what must be true before an operation can begin.",
+      "description": "Preconditions describe what must be true before an operation proceeds.",
       "learningGoals": [
-        "State what must be true before an operation can begin.",
-        "Explain Input validity, Required state and Rejection.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Rejections are explicit and repeatable",
+        "No state changes before a rejected precondition"
       ],
       "concepts": [
-        "Input validity",
+        "Valid inputs",
         "Required state",
-        "Rejection"
+        "Rejection order"
       ],
       "examples": [
-        "Before cancellation, require an existing order in a cancellable state. Specify the error for each rejected state."
+        "Cancel an order in PAID state."
       ],
       "tasks": [
         {
@@ -71,25 +168,56 @@
         }
       ],
       "dependencies": [
-        "problem-solving-requirement-decomposition"
+        "problem-solving-decision-tables-and-acceptance-cases"
+      ],
+      "material": {
+        "explanation": "Preconditions describe what must be true before an operation proceeds. State whether failure returns a result or raises a domain error. Check requirements at the boundary that owns them, and avoid changing state before all necessary checks pass.",
+        "workedExample": {
+          "scenario": "Cancel an order in PAID state.",
+          "steps": [
+            "Verify it exists.",
+            "Reject the transition without modifying payment or order state."
+          ]
+        },
+        "commonMistakes": [
+          "A failed precondition must not leave partial side effects."
+        ],
+        "guidedExercise": [
+          "List cancellation preconditions",
+          "Choose a consistent rejection order"
+        ],
+        "independentExercise": "Specify reservation preconditions for quantity and available stock.",
+        "recallQuestions": [
+          "Which object owns each check?",
+          "What happens if multiple checks fail?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Rejections are explicit and repeatable",
+        "No state changes before a rejected precondition"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-postconditions",
       "title": "Postconditions",
-      "description": "State what must be true after success and after failure.",
+      "description": "Postconditions state what is true after completion.",
       "learningGoals": [
-        "State what must be true after success and after failure.",
-        "Explain Success outcome, Failure outcome and Observable state.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Success satisfies every promised state change",
+        "Failure preserves documented invariants"
       ],
       "concepts": [
-        "Success outcome",
-        "Failure outcome",
-        "Observable state"
+        "Success guarantees",
+        "Failure guarantees",
+        "Side effects"
       ],
       "examples": [
-        "After a successful refund, the total refunded amount increases once. After a rejected refund, no money state changes."
+        "Refund 20 from an unrefunded payment of 100."
       ],
       "tasks": [
         {
@@ -107,24 +235,55 @@
       ],
       "dependencies": [
         "problem-solving-preconditions"
+      ],
+      "material": {
+        "explanation": "Postconditions state what is true after completion. Describe successful state changes and what remains unchanged after failure. Include externally visible side effects so a returned success cannot hide incomplete work.",
+        "workedExample": {
+          "scenario": "Refund 20 from an unrefunded payment of 100.",
+          "steps": [
+            "Refunded total becomes 20.",
+            "A rejected second request changes neither total nor audit state."
+          ]
+        },
+        "commonMistakes": [
+          "Returning success does not prove all required state changes occurred."
+        ],
+        "guidedExercise": [
+          "Write refund success and rejection postconditions",
+          "Check before-and-after state"
+        ],
+        "independentExercise": "Define reservation postconditions for stock, reservation ID, and expiration.",
+        "recallQuestions": [
+          "What must be true after success?",
+          "What must remain unchanged after failure?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Success satisfies every promised state change",
+        "Failure preserves documented invariants"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-invariants",
       "title": "Invariants",
-      "description": "Identify rules that must remain true through every state change.",
+      "description": "An invariant must hold for all publicly observable valid states.",
       "learningGoals": [
-        "Identify rules that must remain true through every state change.",
-        "Explain Always-valid rules, Atomic changes and State consistency.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "All operations preserve the invariant",
+        "A competing-request example exposes the atomicity requirement"
       ],
       "concepts": [
         "Always-valid rules",
         "Atomic changes",
-        "State consistency"
+        "Domain ownership"
       ],
       "examples": [
-        "The sum of refunds must never exceed the paid amount, even when two refund requests arrive concurrently."
+        "A payment totals 100 and refunds total 80."
       ],
       "tasks": [
         {
@@ -142,23 +301,55 @@
       ],
       "dependencies": [
         "problem-solving-postconditions"
+      ],
+      "material": {
+        "explanation": "An invariant must hold for all publicly observable valid states. Identify the state needed to enforce it and put the check with that owner. Multi-object invariants may require an atomic boundary rather than independent local checks.",
+        "workedExample": {
+          "scenario": "A payment totals 100 and refunds total 80.",
+          "steps": [
+            "A new refund of 30 is rejected.",
+            "The refunded total never exceeds 100."
+          ]
+        },
+        "commonMistakes": [
+          "Checking each request amount against the original payment ignores previous refunds."
+        ],
+        "guidedExercise": [
+          "Express the refund invariant mathematically",
+          "Trace two competing requests"
+        ],
+        "independentExercise": "Maintain available stock plus active reservations without negative quantities.",
+        "recallQuestions": [
+          "When must an invariant hold?",
+          "Which state is needed to enforce it?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All operations preserve the invariant",
+        "A competing-request example exposes the atomicity requirement"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-happy-path",
       "title": "Happy path",
-      "description": "Trace the smallest valid sequence from input to successful result.",
+      "description": "The happy path is one minimal successful flow, useful for establishing the algorithm's backbone.",
       "learningGoals": [
-        "Trace the smallest valid sequence from input to successful result.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "The flow identifies reads, writes, and result",
+        "Its assumptions are explicit"
       ],
       "concepts": [
-        "Happy path",
-        "Valid state",
-        "Failure behavior"
+        "Minimal valid scenario",
+        "State tracing",
+        "Result shape"
       ],
       "examples": [
-        "Apply happy path to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Redeem an active unused voucher."
       ],
       "tasks": [
         {
@@ -176,23 +367,55 @@
       ],
       "dependencies": [
         "problem-solving-invariants"
+      ],
+      "material": {
+        "explanation": "The happy path is one minimal successful flow, useful for establishing the algorithm's backbone. Trace inputs, reads, decisions, mutations, and output separately. It is a starting point, not evidence that the feature is complete.",
+        "workedExample": {
+          "scenario": "Redeem an active unused voucher.",
+          "steps": [
+            "Load and validate it.",
+            "Record redemption and return the defined result."
+          ]
+        },
+        "commonMistakes": [
+          "A successful demo can hide missing rejection and concurrency behavior."
+        ],
+        "guidedExercise": [
+          "Trace one voucher success step by step",
+          "Annotate every state write"
+        ],
+        "independentExercise": "Describe a successful reservation without adding implementation classes.",
+        "recallQuestions": [
+          "What data is read before writing?",
+          "What output proves success?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The flow identifies reads, writes, and result",
+        "Its assumptions are explicit"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-failure-path",
       "title": "Failure path",
-      "description": "Specify rejection behavior and preserve valid state after failure.",
+      "description": "A failure path describes rejection or interruption at a specific step.",
       "learningGoals": [
-        "Specify rejection behavior and preserve valid state after failure.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Every side-effecting step has a failure outcome",
+        "Uncertain outcomes are distinguished from definite rejection"
       ],
       "concepts": [
-        "Failure path",
-        "Valid state",
-        "Failure behavior"
+        "Failure categories",
+        "Cleanup",
+        "Error contract"
       ],
       "examples": [
-        "Apply failure path to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Refund recording fails after validation."
       ],
       "tasks": [
         {
@@ -210,23 +433,55 @@
       ],
       "dependencies": [
         "problem-solving-happy-path"
+      ],
+      "material": {
+        "explanation": "A failure path describes rejection or interruption at a specific step. Distinguish business rejection from infrastructure uncertainty. State whether prior work rolls back, remains committed, or requires recovery.",
+        "workedExample": {
+          "scenario": "Refund recording fails after validation.",
+          "steps": [
+            "Do not report a completed refund.",
+            "Identify any external effect whose outcome is unknown."
+          ]
+        },
+        "commonMistakes": [
+          "A timeout does not prove an external action never occurred."
+        ],
+        "guidedExercise": [
+          "Insert a failure at each refund step",
+          "Specify state after failure"
+        ],
+        "independentExercise": "Design reservation behavior when persistence fails before confirmation.",
+        "recallQuestions": [
+          "Which failures are safe to retry?",
+          "What can remain uncertain?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every side-effecting step has a failure outcome",
+        "Uncertain outcomes are distinguished from definite rejection"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-edge-cases",
       "title": "Edge cases",
-      "description": "Find boundaries, empty values, duplicate calls, and time-based surprises.",
+      "description": "Edge cases arise at limits and unusual but valid combinations.",
       "learningGoals": [
-        "Find boundaries, empty values, duplicate calls, and time-based surprises.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Boundary outcomes are decided before implementation",
+        "Empty and repeated inputs have explicit behavior"
       ],
       "concepts": [
-        "Edge cases",
-        "Valid state",
-        "Failure behavior"
+        "Boundaries",
+        "Empty inputs",
+        "Repeated operations"
       ],
       "examples": [
-        "Apply edge cases to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A reservation expires at noon."
       ],
       "tasks": [
         {
@@ -244,24 +499,55 @@
       ],
       "dependencies": [
         "problem-solving-failure-path"
+      ],
+      "material": {
+        "explanation": "Edge cases arise at limits and unusual but valid combinations. Derive them from the rules: zero, maximum, empty, exact time, duplicates, and competing actions. Record expected results before running code.",
+        "workedExample": {
+          "scenario": "A reservation expires at noon.",
+          "steps": [
+            "Test just before noon.",
+            "At noon reject confirmation under the declared expiration rule."
+          ]
+        },
+        "commonMistakes": [
+          "Random tests alone may never exercise the exact boundary."
+        ],
+        "guidedExercise": [
+          "Enumerate voucher time and usage boundaries",
+          "Define duplicate behavior"
+        ],
+        "independentExercise": "Create refund cases for zero, negative, exact remaining, and excess amounts.",
+        "recallQuestions": [
+          "What changes exactly at the limit?",
+          "Which repeated action should be harmless?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Boundary outcomes are decided before implementation",
+        "Empty and repeated inputs have explicit behavior"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-state-transitions",
       "title": "State transitions",
-      "description": "Define legal transitions and reject repeated or forbidden actions.",
+      "description": "A transition moves a domain object between valid states under specified conditions.",
       "learningGoals": [
-        "Define legal transitions and reject repeated or forbidden actions.",
-        "Explain States, Allowed transitions and Repeated actions.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Forbidden edges cannot mutate state",
+        "Repeated terminal actions follow a documented policy"
       ],
       "concepts": [
-        "States",
-        "Allowed transitions",
-        "Repeated actions"
+        "Transition tables",
+        "Terminal states",
+        "Atomic transitions"
       ],
       "examples": [
-        "Draw CREATED → PAID → SHIPPED. Reject cancellation for PAID, SHIPPED, or already CANCELLED orders."
+        "CREATED may become CANCELLED."
       ],
       "tasks": [
         {
@@ -279,6 +565,170 @@
       ],
       "dependencies": [
         "problem-solving-edge-cases"
+      ],
+      "material": {
+        "explanation": "A transition moves a domain object between valid states under specified conditions. List allowed edges and terminal states. Under concurrency, checking and applying a transition must act as one protected decision.",
+        "workedExample": {
+          "scenario": "CREATED may become CANCELLED.",
+          "steps": [
+            "PAID and SHIPPED reject cancellation in this exercise.",
+            "CANCELLED rejects another cancellation."
+          ]
+        },
+        "commonMistakes": [
+          "A public status setter bypasses the transition rules."
+        ],
+        "guidedExercise": [
+          "Draw the cancellation states",
+          "Test every allowed and rejected edge"
+        ],
+        "independentExercise": "Model reservation ACTIVE to CONFIRMED, RELEASED, or EXPIRED.",
+        "recallQuestions": [
+          "Which states are terminal?",
+          "What if two transitions compete?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Forbidden edges cannot mutate state",
+        "Repeated terminal actions follow a documented policy"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ]
+    },
+    {
+      "id": "problem-solving-idempotency-and-duplicate-requests",
+      "title": "Idempotency and duplicate requests",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Idempotency means repeating the same intended operation does not create additional effects.",
+      "concepts": [
+        "Request identity",
+        "Stable outcomes",
+        "Payload consistency"
+      ],
+      "learningGoals": [
+        "A repeated key cannot create a second effect",
+        "Mismatched payload and retention rules are explicit"
+      ],
+      "examples": [
+        "Refund request key K refunds 10."
+      ],
+      "material": {
+        "explanation": "Idempotency means repeating the same intended operation does not create additional effects. Define how a request is identified, how long its result is retained, and what happens when the same key carries different input.",
+        "workedExample": {
+          "scenario": "Refund request key K refunds 10.",
+          "steps": [
+            "Repeating K returns its stored result.",
+            "K with amount 20 is rejected as a conflict."
+          ]
+        },
+        "commonMistakes": [
+          "Deduplicating raw request bodies is not a complete business identity policy."
+        ],
+        "guidedExercise": [
+          "Define a refund idempotency contract",
+          "Trace a lost response and retry"
+        ],
+        "independentExercise": "Design an in-memory reservation request registry with bounded retention.",
+        "recallQuestions": [
+          "What identifies one operation?",
+          "What if the same key changes payload?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A repeated key cannot create a second effect",
+        "Mismatched payload and retention rules are explicit"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-state-transitions"
+      ]
+    },
+    {
+      "id": "problem-solving-algorithm-walkthroughs-and-test-design",
+      "title": "Algorithm walkthroughs and test design",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Write an algorithm as ordered decisions and state changes before implementation.",
+      "concepts": [
+        "Pseudocode",
+        "Decision points",
+        "Behavioral tests"
+      ],
+      "learningGoals": [
+        "Every decision traces to a requirement",
+        "Tests check behavior rather than private implementation details"
+      ],
+      "examples": [
+        "Walk through two partial refunds of 30 and 40."
+      ],
+      "material": {
+        "explanation": "Write an algorithm as ordered decisions and state changes before implementation. Use concrete traces to check it, then turn each meaningful branch into a test. Include failure cases rather than treating tests as a finishing ritual.",
+        "workedExample": {
+          "scenario": "Walk through two partial refunds of 30 and 40.",
+          "steps": [
+            "Remaining refundable amount becomes 30.",
+            "A third refund of 31 is rejected."
+          ]
+        },
+        "commonMistakes": [
+          "Pseudocode with only method names can hide the actual decisions."
+        ],
+        "guidedExercise": [
+          "Annotate a refund algorithm with rule references",
+          "Choose a test per decision"
+        ],
+        "independentExercise": "Design reserveStock with happy, rejection, duplicate, and expiration cases.",
+        "recallQuestions": [
+          "Which rule justifies each branch?",
+          "What observation would expose a broken branch?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every decision traces to a requirement",
+        "Tests check behavior rather than private implementation details"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-idempotency-and-duplicate-requests"
       ]
     }
   ],
@@ -286,18 +736,18 @@
     {
       "id": "problem-solving-voucher-redemption",
       "title": "Voucher Redemption",
-      "description": "Practice the module by designing and testing voucher redemption.",
+      "description": "Specify redeemVoucher(voucherCode, userId) before choosing its implementation.",
       "learningGoals": [
-        "Practice the module by designing and testing voucher redemption.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Specify redeemVoucher(voucherCode, userId) before choosing its implementation.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Voucher Redemption",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply voucher redemption to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "U1 redeems a voucher with one remaining use."
       ],
       "tasks": [
         {
@@ -315,42 +765,96 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Every voucher-state combination has a defined result"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Success records a redemption and consumes exactly one use"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Repeated and rejected requests leave state unchanged"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Concurrency risks and future atomic boundary are named"
         }
       ],
       "dependencies": [
-        "problem-solving-state-transitions"
+        "problem-solving-algorithm-walkthroughs-and-test-design"
       ],
       "requirements": [
-        "Design redeemVoucher(voucherCode, userId)",
-        "Validate activation, expiration, and remaining uses",
-        "Reject duplicate or invalid redemption"
+        "Reject missing, inactive, expired, or exhausted vouchers",
+        "One redemption per user and voucher in this exercise",
+        "A successful operation consumes exactly one use and records the redemption",
+        "Declare code normalization and unknown-user behavior",
+        "List the concurrent check-then-act risk without solving persistence yet"
       ],
-      "constraints": [],
+      "constraints": [
+        "Design first; plain Java is optional after the design passes its cases"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "Decompose the operation into decisions, state changes, and result. Distinguish a repeated business action from a transport retry. For this exercise, define already-redeemed as a stable rejection; later idempotent APIs can use a separate request identity.",
+        "workedExample": {
+          "scenario": "U1 redeems a voucher with one remaining use.",
+          "steps": [
+            "The use becomes zero and the redemption is recorded.",
+            "A second attempt changes neither fact."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write the decision table and failure order.",
+          "Trace successful and repeated use.",
+          "Mark which writes must eventually be atomic."
+        ],
+        "independentExercise": "Change the rule to one redemption per household and identify which assumptions and tests must change.",
+        "recallQuestions": [
+          "What identifies a duplicate redemption?",
+          "Which state changes must agree?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every voucher-state combination has a defined result",
+        "Success records a redemption and consumes exactly one use",
+        "Repeated and rejected requests leave state unchanged",
+        "Concurrency risks and future atomic boundary are named"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-order-cancellation",
       "title": "Order Cancellation",
-      "description": "Practice the module by designing and testing order cancellation.",
+      "description": "Turn a cancellation policy into a complete transition table.",
       "learningGoals": [
-        "Practice the module by designing and testing order cancellation.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Turn a cancellation policy into a complete transition table.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Order Cancellation",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply order cancellation to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Order O1 starts CREATED."
       ],
       "tasks": [
         {
@@ -368,42 +872,97 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Only CREATED can transition to CANCELLED"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: PAID, SHIPPED, and repeated cancellation reject without mutation"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Missing-order behavior is defined"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Every state has an acceptance case"
         }
       ],
       "dependencies": [
-        "problem-solving-state-transitions"
+        "problem-solving-algorithm-walkthroughs-and-test-design"
       ],
       "requirements": [
-        "PAID orders cannot be cancelled",
+        "CREATED orders may become CANCELLED",
+        "PAID orders cannot be cancelled under this exercise policy",
         "SHIPPED orders cannot be cancelled",
-        "CANCELLED orders cannot be cancelled again"
+        "CANCELLED orders reject repeated cancellation",
+        "Unknown orders have a defined error",
+        "Refunding a paid order is a different use case"
       ],
-      "constraints": [],
+      "constraints": [
+        "Do not silently relax the given business rules"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "The aim is to make a precise policy executable, not to choose the universally correct order workflow. Record the stated policy and its rejection behavior, then place transitions at the state owner. Verify that rejection cannot overwrite another valid state.",
+        "workedExample": {
+          "scenario": "Order O1 starts CREATED.",
+          "steps": [
+            "cancelOrder changes it to CANCELLED.",
+            "A repeat attempt is rejected while state remains CANCELLED."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Enumerate every starting state.",
+          "Write one acceptance case per state and the missing-order case.",
+          "Implement only after the transition table is complete."
+        ],
+        "independentExercise": "Add an independently specified return/refund workflow without changing cancellation semantics.",
+        "recallQuestions": [
+          "Why is a paid refund separate here?",
+          "What must happen after a rejected transition?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Only CREATED can transition to CANCELLED",
+        "PAID, SHIPPED, and repeated cancellation reject without mutation",
+        "Missing-order behavior is defined",
+        "Every state has an acceptance case"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
       ]
     },
     {
       "id": "problem-solving-refund-processing",
       "title": "Refund Processing",
-      "description": "Practice the module by designing and testing refund processing.",
+      "description": "Design a refund with cumulative limits and explicit duplicate-request behavior.",
       "learningGoals": [
-        "Practice the module by designing and testing refund processing.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Design a refund with cumulative limits and explicit duplicate-request behavior.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Refund Processing",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply refund processing to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A payment totals 100 and has 30 already refunded."
       ],
       "tasks": [
         {
@@ -425,26 +984,172 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Cumulative refunds never exceed the paid amount"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Zero, negative, and excess amounts reject"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Repeated keys create no second refund and changed payload conflicts"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Concurrent and uncertain-outcome cases are specified"
         }
       ],
       "dependencies": [
-        "problem-solving-state-transitions"
+        "problem-solving-algorithm-walkthroughs-and-test-design"
       ],
       "requirements": [
-        "Design processRefund(transactionId, amount)",
-        "Support partial refund",
-        "Prevent duplicate refund",
-        "Reject refund larger than remaining original amount"
+        "Design processRefund(transactionId, amount) with a separate request identity for retries",
+        "Amount is positive, currency-compatible, and no greater than the remaining refundable amount",
+        "Support multiple partial refunds whose total never exceeds the payment",
+        "Same request key and payload return the existing outcome; changed payload conflicts",
+        "A timeout from an external payment provider may leave an uncertain outcome",
+        "Describe concurrency risks before choosing persistence"
       ],
-      "constraints": [],
+      "constraints": [
+        "Design first; do not claim a JVM lock solves multi-instance behavior"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "A refund is constrained by previous refunds, not only the original charge. Include request identity and outcome retention in the contract so a lost response does not cause an accidental second effect. Separate provider uncertainty from definite rejection.",
+        "workedExample": {
+          "scenario": "A payment totals 100 and has 30 already refunded.",
+          "steps": [
+            "A new 20 refund leaves 50 refundable.",
+            "Repeating its request key does not add another 20."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write the cumulative invariant.",
+          "Build a duplicate-key and payload decision table.",
+          "Trace two simultaneous partial refunds."
+        ],
+        "independentExercise": "Specify recovery when the provider accepts the refund but the local result is not yet recorded.",
+        "recallQuestions": [
+          "Why is transaction ID alone insufficient for multiple refunds?",
+          "What proves an external refund did not occur?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cumulative refunds never exceed the paid amount",
+        "Zero, negative, and excess amounts reject",
+        "Repeated keys create no second refund and changed payload conflicts",
+        "Concurrent and uncertain-outcome cases are specified"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ]
+    },
+    {
+      "id": "problem-solving-inventory-reservation",
+      "title": "Inventory Reservation",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Stock conservation and nonnegative availability hold"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Release and expiry cannot restore units twice"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Expiration equality and competing terminal actions are specified"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Duplicate requests have a precise policy"
+        }
+      ],
+      "description": "Transfer the same reasoning to stock reservation instead of authentication.",
+      "learningGoals": [
+        "Transfer the same reasoning to stock reservation instead of authentication.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "Stock is five and a reservation requests two."
+      ],
+      "requirements": [
+        "reserveStock(itemId, quantity, requestKey) reserves a positive quantity",
+        "Available stock must never become negative",
+        "Reservations start ACTIVE and can become CONFIRMED, RELEASED, or EXPIRED",
+        "Release and expiration restore reserved stock exactly once",
+        "Repeated request keys obey a stated payload and outcome policy",
+        "Expired reservations cannot be confirmed"
+      ],
+      "constraints": [
+        "Design first; use a controllable clock for any implementation"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record"
+      ],
+      "material": {
+        "explanation": "This exercise checks whether you can transfer invariants and lifecycle reasoning to a new domain. Identify how physical stock, active reservations, and available stock relate. Describe terminal actions and competing confirmation versus expiration.",
+        "workedExample": {
+          "scenario": "Stock is five and a reservation requests two.",
+          "steps": [
+            "Available stock becomes three.",
+            "Release restores five once; a second release adds nothing."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write the stock conservation rule.",
+          "Draw reservation states.",
+          "Trace expiration and confirmation at the same boundary."
+        ],
+        "independentExercise": "Design two simultaneous reservations for the last item and identify the required atomic decision.",
+        "recallQuestions": [
+          "What restores stock exactly once?",
+          "Which operation owns expiration versus confirmation?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Stock conservation and nonnegative availability hold",
+        "Release and expiry cannot restore units twice",
+        "Expiration equality and competing terminal actions are specified",
+        "Duplicate requests have a precise policy"
+      ],
+      "resources": [
+        {
+          "title": "JUnit: writing tests",
+          "url": "https://docs.junit.org/current/user-guide/"
+        }
+      ],
+      "dependencies": [
+        "problem-solving-algorithm-walkthroughs-and-test-design"
       ]
     }
   ],
@@ -452,18 +1157,18 @@
     {
       "id": "problem-solving-refresh-token-rotation",
       "title": "Refresh Token Rotation",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Design rotateRefreshToken before writing implementation code.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Design rotateRefreshToken before writing implementation code.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "X is active and belongs to S1."
       ],
       "tasks": [
         {
@@ -497,32 +1202,102 @@
         {
           "id": "deliverable-8",
           "title": "Concurrency risks"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Every input state has an explicit output and mutation policy"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: At most one replacement per parent is an invariant"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: A lost response has documented recovery rather than automatic unsafe replay"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Reuse policy names the active family or session effect"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: The proposed atomic boundary and concurrency risks are clear"
         }
       ],
       "dependencies": [
-        "problem-solving-state-transitions"
+        "problem-solving-algorithm-walkthroughs-and-test-design"
       ],
       "requirements": [
-        "Design rotateRefreshToken(rawRefreshToken)",
-        "Validate opaque token",
-        "Detect expiration and revocation",
-        "Rotate token and prevent reuse",
-        "Keep token family",
-        "Handle concurrent refresh"
+        "Receive an opaque raw refresh token and resolve its verification state",
+        "Validate session, expiration, revocation, and prior consumption",
+        "Describe the atomic consume-and-replace decision",
+        "Keep replacement lineage and the owning session or family",
+        "Define reuse behavior and preserve the absolute session deadline",
+        "Specify concurrent use and lost-response client recovery"
       ],
       "constraints": [
-        "Do not write implementation code first"
+        "Design only first; no implementation code",
+        "Do not claim a local lock coordinates multiple instances"
       ],
       "deliverables": [
-        "Input",
-        "Output",
-        "Preconditions",
-        "Algorithm",
-        "State changes",
-        "Dependencies",
+        "Input and output contract",
+        "Preconditions and invariants",
+        "Decision table and algorithm",
+        "State changes and dependencies",
         "Failure cases",
-        "Concurrency risks"
+        "Concurrency interleavings",
+        "Lost-response recovery policy"
+      ],
+      "material": {
+        "explanation": "This is an algorithm challenge, not a security-framework exercise. Make every branch observable and mark the boundary that must later become atomic. Under a strict reuse policy a legitimate retry may force reauthentication; document that tradeoff instead of inventing safe retries.",
+        "workedExample": {
+          "scenario": "X is active and belongs to S1.",
+          "steps": [
+            "A successful rotation consumes X and creates Y in its lineage.",
+            "Re-presenting X follows the declared family-revocation and recovery policy."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Write unknown, expired, revoked, and consumed cases.",
+          "Trace two callers using X.",
+          "Trace commit followed by a lost response."
+        ],
+        "independentExercise": "Compare strict reuse rejection with a carefully bounded retry protocol and list any extra state or risks required.",
+        "recallQuestions": [
+          "What state proves previous consumption?",
+          "What does the client do if Y never arrives?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every input state has an explicit output and mutation policy",
+        "At most one replacement per parent is an invariant",
+        "A lost response has documented recovery rather than automatic unsafe replay",
+        "Reuse policy names the active family or session effect",
+        "The proposed atomic boundary and concurrency risks are clear"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Decompose business requests into rules and observable outcomes",
+    "Design algorithms with duplicate and failure behavior",
+    "Transfer reasoning between vouchers, refunds, and inventory"
+  ],
+  "completionCriteria": [
+    "Decision tables cover successful and rejected paths",
+    "Each algorithm preserves its stated invariants",
+    "Concurrency and external uncertainty are named, even before solving them"
+  ],
+  "studyGuidance": [
+    "Begin with plain language and traces before choosing classes.",
+    "Use the inventory exercise to check transfer beyond authentication."
   ]
 }

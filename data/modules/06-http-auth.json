@@ -10,18 +10,18 @@
     {
       "id": "http-auth-http-request",
       "title": "HTTP request",
-      "description": "Describe method, target, headers, and body as separate parts.",
+      "description": "An HTTP request names a target and method, carries metadata in headers, and may contain a body.",
       "learningGoals": [
-        "Describe method, target, headers, and body as separate parts.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Method, path, metadata, and body are distinguished",
+        "Malformed input has a defined response"
       ],
       "concepts": [
-        "HTTP request",
-        "Valid state",
-        "Failure behavior"
+        "Method",
+        "Target",
+        "Headers and body"
       ],
       "examples": [
-        "Apply http request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "POST /login carries JSON credentials."
       ],
       "tasks": [
         {
@@ -37,23 +37,55 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
+      "dependencies": [],
+      "material": {
+        "explanation": "An HTTP request names a target and method, carries metadata in headers, and may contain a body. Parse each part under an explicit contract. Authentication, validation, and business behavior are separate decisions even when triggered by one request.",
+        "workedExample": {
+          "scenario": "POST /login carries JSON credentials.",
+          "steps": [
+            "Content-Type identifies the body format.",
+            "The server validates the shape before authenticating."
+          ]
+        },
+        "commonMistakes": [
+          "A well-formed request is not necessarily authorized or valid business input."
+        ],
+        "guidedExercise": [
+          "Annotate a raw login request",
+          "Separate syntax, identity, and rules"
+        ],
+        "independentExercise": "Write a reservation request contract with required and optional fields.",
+        "recallQuestions": [
+          "Which information belongs in headers?",
+          "What must be checked before domain work?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Method, path, metadata, and body are distinguished",
+        "Malformed input has a defined response"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
+      ]
     },
     {
       "id": "http-auth-http-response",
       "title": "HTTP response",
-      "description": "Describe status, headers, and body for success and failure.",
+      "description": "A response reports the outcome of the request using a status, headers, and an optional representation.",
       "learningGoals": [
-        "Describe status, headers, and body for success and failure.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Success and failure responses follow their contracts",
+        "Secrets and internal traces are excluded"
       ],
       "concepts": [
-        "HTTP response",
-        "Valid state",
-        "Failure behavior"
+        "Status",
+        "Metadata",
+        "Representation"
       ],
       "examples": [
-        "Apply http response to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A session creation succeeds."
       ],
       "tasks": [
         {
@@ -71,23 +103,55 @@
       ],
       "dependencies": [
         "http-auth-http-request"
+      ],
+      "material": {
+        "explanation": "A response reports the outcome of the request using a status, headers, and an optional representation. Define stable success and failure shapes without exposing stack traces or secrets. Transport success should accurately reflect the promised operation.",
+        "workedExample": {
+          "scenario": "A session creation succeeds.",
+          "steps": [
+            "Return the chosen success status and response data.",
+            "Set cookies in headers rather than embedding them as ordinary JSON metadata."
+          ]
+        },
+        "commonMistakes": [
+          "Returning status 200 for every failure makes clients guess the result."
+        ],
+        "guidedExercise": [
+          "Describe one success and rejection response",
+          "Identify sensitive fields"
+        ],
+        "independentExercise": "Create a consistent response contract for coupon creation and redemption.",
+        "recallQuestions": [
+          "What does the status communicate?",
+          "What information must never appear?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Success and failure responses follow their contracts",
+        "Secrets and internal traces are excluded"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
       ]
     },
     {
       "id": "http-auth-headers",
       "title": "Headers",
-      "description": "Distinguish request metadata from payload and avoid leaking credentials.",
+      "description": "Headers describe message metadata and request context.",
       "learningGoals": [
-        "Distinguish request metadata from payload and avoid leaking credentials.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Header trust assumptions are documented",
+        "Sensitive values are not logged"
       ],
       "concepts": [
-        "Headers",
-        "Valid state",
-        "Failure behavior"
+        "Metadata",
+        "Case-insensitive names",
+        "Trust boundaries"
       ],
       "examples": [
-        "Apply headers to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A request supplies a correlation ID and Authorization."
       ],
       "tasks": [
         {
@@ -105,23 +169,55 @@
       ],
       "dependencies": [
         "http-auth-http-response"
+      ],
+      "material": {
+        "explanation": "Headers describe message metadata and request context. Names are case-insensitive; values follow their specific field rules. Client-supplied IDs, forwarding headers, and content types are untrusted unless a controlled boundary validates them.",
+        "workedExample": {
+          "scenario": "A request supplies a correlation ID and Authorization.",
+          "steps": [
+            "Validate or replace the correlation value.",
+            "Never copy credentials into logs."
+          ]
+        },
+        "commonMistakes": [
+          "Every incoming header is not trustworthy just because a proxy usually sends it."
+        ],
+        "guidedExercise": [
+          "Classify headers by purpose",
+          "Identify values that should be redacted"
+        ],
+        "independentExercise": "Describe trusted-proxy handling for forwarded client metadata.",
+        "recallQuestions": [
+          "Which headers can a client forge?",
+          "Which values require a size or format limit?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Header trust assumptions are documented",
+        "Sensitive values are not logged"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
       ]
     },
     {
       "id": "http-auth-cookies",
       "title": "Cookies",
-      "description": "Explain browser storage, automatic sending, and cookie scope.",
+      "description": "Cookies are stored and automatically attached by the browser according to scope and attributes.",
       "learningGoals": [
-        "Explain browser storage, automatic sending, and cookie scope.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Attributes match the deployment and threat model",
+        "Logout clears the intended cookie"
       ],
       "concepts": [
-        "Cookies",
-        "Valid state",
-        "Failure behavior"
+        "Browser sending",
+        "Scope",
+        "Security attributes"
       ],
       "examples": [
-        "Apply cookies to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A refresh cookie is HttpOnly and Secure."
       ],
       "tasks": [
         {
@@ -139,23 +235,55 @@
       ],
       "dependencies": [
         "http-auth-headers"
+      ],
+      "material": {
+        "explanation": "Cookies are stored and automatically attached by the browser according to scope and attributes. HttpOnly limits script access, Secure restricts transport, and SameSite affects cross-site sending. Each addresses a different risk and does not replace server-side validation.",
+        "workedExample": {
+          "scenario": "A refresh cookie is HttpOnly and Secure.",
+          "steps": [
+            "The browser can still send it automatically.",
+            "The server must validate token and CSRF policy."
+          ]
+        },
+        "commonMistakes": [
+          "HttpOnly does not make an application immune to XSS or CSRF."
+        ],
+        "guidedExercise": [
+          "Specify cookie path and lifetime",
+          "Explain each security attribute"
+        ],
+        "independentExercise": "Design creation and clearing of a refresh cookie using matching scope.",
+        "recallQuestions": [
+          "What does HttpOnly prevent?",
+          "Why must logout clearing match cookie scope?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Attributes match the deployment and threat model",
+        "Logout clears the intended cookie"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-authorization-header",
       "title": "Authorization header",
-      "description": "Describe how a client supplies credentials explicitly.",
+      "description": "Authorization carries credentials under a defined scheme.",
       "learningGoals": [
-        "Describe how a client supplies credentials explicitly.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Malformed credentials cannot bypass validation",
+        "Credentials are never included in diagnostics"
       ],
       "concepts": [
-        "Authorization header",
-        "Valid state",
-        "Failure behavior"
+        "Credential transport",
+        "Bearer scheme",
+        "Redaction"
       ],
       "examples": [
-        "Apply authorization header to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Authorization contains Bearer plus an access token."
       ],
       "tasks": [
         {
@@ -173,23 +301,55 @@
       ],
       "dependencies": [
         "http-auth-cookies"
+      ],
+      "material": {
+        "explanation": "Authorization carries credentials under a defined scheme. Parse missing, malformed, and unsupported forms explicitly. Sending a credential is only the start: the server must validate it and check whether the authenticated principal may perform the operation.",
+        "workedExample": {
+          "scenario": "Authorization contains Bearer plus an access token.",
+          "steps": [
+            "Validate the token.",
+            "Check ownership of the requested session."
+          ]
+        },
+        "commonMistakes": [
+          "A bearer header does not prove the token is valid or the action authorized."
+        ],
+        "guidedExercise": [
+          "Define malformed-header behavior",
+          "Trace credential validation"
+        ],
+        "independentExercise": "Compare cookie-based refresh with explicit access-token headers.",
+        "recallQuestions": [
+          "What if the header is missing?",
+          "What checks remain after parsing?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Malformed credentials cannot bypass validation",
+        "Credentials are never included in diagnostics"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-status-codes",
       "title": "Status codes",
-      "description": "Choose meaningful success, client error, and server error responses.",
+      "description": "Choose status codes by the outcome and HTTP semantics.",
       "learningGoals": [
-        "Choose meaningful success, client error, and server error responses.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Status and error body agree",
+        "Different failure categories are distinguishable"
       ],
       "concepts": [
-        "Status codes",
-        "Valid state",
-        "Failure behavior"
+        "Outcome categories",
+        "Client action",
+        "Stable semantics"
       ],
       "examples": [
-        "Apply status codes to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A stale version prevents an update."
       ],
       "tasks": [
         {
@@ -207,23 +367,253 @@
       ],
       "dependencies": [
         "http-auth-authorization-header"
+      ],
+      "material": {
+        "explanation": "Choose status codes by the outcome and HTTP semantics. Separate malformed input, missing authentication, forbidden actions, conflicts, and server failures. A code alone is insufficient when the client needs a stable machine-readable failure reason.",
+        "workedExample": {
+          "scenario": "A stale version prevents an update.",
+          "steps": [
+            "Return the documented conflict outcome.",
+            "Let the client distinguish it from invalid JSON."
+          ]
+        },
+        "commonMistakes": [
+          "Status codes are not arbitrary domain error labels."
+        ],
+        "guidedExercise": [
+          "Map five API outcomes to responses",
+          "Explain authentication versus permission failures"
+        ],
+        "independentExercise": "Create a failure table for coupon endpoints.",
+        "recallQuestions": [
+          "Which failures can a client fix?",
+          "How does a client identify a business conflict?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Status and error body agree",
+        "Different failure categories are distinguishable"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
+      ]
+    },
+    {
+      "id": "http-auth-http-methods-and-idempotency",
+      "title": "HTTP methods and idempotency",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "HTTP methods carry defined semantics.",
+      "concepts": [
+        "Safe methods",
+        "Idempotent effects",
+        "Retry semantics"
+      ],
+      "learningGoals": [
+        "Methods match their intended effects",
+        "Duplicate and retry behavior is stated"
+      ],
+      "examples": [
+        "Repeat DELETE for a revoked session."
+      ],
+      "material": {
+        "explanation": "HTTP methods carry defined semantics. Safe methods should not intentionally change server state; idempotent methods have the same intended effect after repetition, even if responses differ. A POST may support application-level idempotency through an explicit contract.",
+        "workedExample": {
+          "scenario": "Repeat DELETE for a revoked session.",
+          "steps": [
+            "The session remains revoked.",
+            "The second response may differ without adding another effect."
+          ]
+        },
+        "commonMistakes": [
+          "Idempotency means stable intended effect, not identical response bytes."
+        ],
+        "guidedExercise": [
+          "Compare GET, PUT, POST, and DELETE",
+          "Identify safe and retryable operations"
+        ],
+        "independentExercise": "Design a refund POST with an idempotency-key contract.",
+        "recallQuestions": [
+          "Can a response differ for an idempotent operation?",
+          "Why should GET not perform logout?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Methods match their intended effects",
+        "Duplicate and retry behavior is stated"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-status-codes"
+      ]
+    },
+    {
+      "id": "http-auth-json-contracts-and-validation",
+      "title": "JSON contracts and validation",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A JSON contract specifies field names, types, required values, and handling of unknown fields.",
+      "concepts": [
+        "Schema shape",
+        "Boundary checks",
+        "Compatibility"
+      ],
+      "learningGoals": [
+        "Invalid shapes are rejected at the boundary",
+        "Response fields do not leak internal models"
+      ],
+      "examples": [
+        "Register expects email and password strings."
+      ],
+      "material": {
+        "explanation": "A JSON contract specifies field names, types, required values, and handling of unknown fields. Validate structure before invoking domain behavior, then enforce domain rules at their owner. Avoid exposing persistence entities as an accidental public contract.",
+        "workedExample": {
+          "scenario": "Register expects email and password strings.",
+          "steps": [
+            "Reject an array or missing password.",
+            "Apply domain and credential policy after shape validation."
+          ]
+        },
+        "commonMistakes": [
+          "Valid JSON syntax does not imply valid request data."
+        ],
+        "guidedExercise": [
+          "List required fields and types",
+          "Test malformed and extra fields"
+        ],
+        "independentExercise": "Design a stable coupon request DTO without internal storage fields.",
+        "recallQuestions": [
+          "What differs between structural and domain validation?",
+          "What can a contract change break?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Invalid shapes are rejected at the boundary",
+        "Response fields do not leak internal models"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-http-methods-and-idempotency"
+      ]
+    },
+    {
+      "id": "http-auth-api-pagination-and-error-contracts",
+      "title": "API pagination and error contracts",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "API pagination needs bounded page sizes and a stable traversal contract.",
+      "concepts": [
+        "Stable cursors",
+        "Machine-readable errors",
+        "Input limits"
+      ],
+      "learningGoals": [
+        "Pagination limits and ordering are explicit",
+        "Clients can distinguish errors without parsing prose"
+      ],
+      "examples": [
+        "List a user's sessions with a cursor."
+      ],
+      "material": {
+        "explanation": "API pagination needs bounded page sizes and a stable traversal contract. Errors should provide a stable code and useful safe detail. Clients should not parse human prose to decide whether to retry or correct input.",
+        "workedExample": {
+          "scenario": "List a user's sessions with a cursor.",
+          "steps": [
+            "Bound the requested limit.",
+            "Return a next cursor only when another page exists."
+          ]
+        },
+        "commonMistakes": [
+          "Allowing arbitrary page sizes can make a simple endpoint expensive."
+        ],
+        "guidedExercise": [
+          "Define session-list parameters",
+          "Design an error object"
+        ],
+        "independentExercise": "Test invalid cursor, maximum limit, and an empty page.",
+        "recallQuestions": [
+          "What information makes a cursor stable?",
+          "Which error fields should clients depend on?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Pagination limits and ordering are explicit",
+        "Clients can distinguish errors without parsing prose"
+      ],
+      "resources": [
+        {
+          "title": "HTTP semantics: RFC 9110",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-json-contracts-and-validation"
       ]
     },
     {
       "id": "http-auth-bearer-token",
       "title": "Bearer token",
-      "description": "Explain why possession grants access and how to protect the token.",
+      "description": "A bearer token grants the holder its associated authority when valid.",
       "learningGoals": [
-        "Explain why possession grants access and how to protect the token.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Exposure paths are identified",
+        "Authority and lifetime are deliberately limited"
       ],
       "concepts": [
-        "Bearer token",
-        "Valid state",
-        "Failure behavior"
+        "Possession",
+        "Credential validation",
+        "Transport secrecy"
       ],
       "examples": [
-        "Apply bearer token to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A stolen valid access token is presented."
       ],
       "tasks": [
         {
@@ -240,24 +630,56 @@
         }
       ],
       "dependencies": [
-        "http-auth-status-codes"
+        "http-auth-api-pagination-and-error-contracts"
+      ],
+      "material": {
+        "explanation": "A bearer token grants the holder its associated authority when valid. Protect it in transit, storage, and logs; possession does not establish whether the rightful user supplied it. Keep scope, expiration, and resource access checks explicit.",
+        "workedExample": {
+          "scenario": "A stolen valid access token is presented.",
+          "steps": [
+            "The server verifies its validity.",
+            "The token's limited lifetime and authority constrain exposure."
+          ]
+        },
+        "commonMistakes": [
+          "A valid bearer token does not prove the caller is its original owner."
+        ],
+        "guidedExercise": [
+          "Trace token theft risks",
+          "Separate validation from permission checks"
+        ],
+        "independentExercise": "Document the lifecycle and redaction policy for an access token.",
+        "recallQuestions": [
+          "What does possession prove?",
+          "What limits damage after disclosure?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Exposure paths are identified",
+        "Authority and lifetime are deliberately limited"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
       ]
     },
     {
       "id": "http-auth-session-authentication",
       "title": "Session authentication",
-      "description": "Trace a session identifier to server-side authentication state.",
+      "description": "Session authentication associates an unpredictable identifier with server-side state.",
       "learningGoals": [
-        "Trace a session identifier to server-side authentication state.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Session state is checked before protected work",
+        "One-session and all-session revocation differ"
       ],
       "concepts": [
-        "Session authentication",
-        "Valid state",
-        "Failure behavior"
+        "Server-side state",
+        "Session identifier",
+        "Revocation"
       ],
       "examples": [
-        "Apply session authentication to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Session S1 belongs to U1."
       ],
       "tasks": [
         {
@@ -275,24 +697,121 @@
       ],
       "dependencies": [
         "http-auth-bearer-token"
+      ],
+      "material": {
+        "explanation": "Session authentication associates an unpredictable identifier with server-side state. Validate that state on use and define expiration and revocation. Session storage introduces lifecycle and lookup decisions that differ from purely self-contained token checks.",
+        "workedExample": {
+          "scenario": "Session S1 belongs to U1.",
+          "steps": [
+            "An authenticated request resolves S1.",
+            "Revoking S1 makes later session checks fail."
+          ]
+        },
+        "commonMistakes": [
+          "A session identifier should not encode predictable user identity alone."
+        ],
+        "guidedExercise": [
+          "Draw session creation and validation",
+          "Define expired and revoked outcomes"
+        ],
+        "independentExercise": "Design session revocation across two browser sessions.",
+        "recallQuestions": [
+          "Where is authority stored?",
+          "What happens after revocation?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Session state is checked before protected work",
+        "One-session and all-session revocation differ"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ]
+    },
+    {
+      "id": "http-auth-authentication-and-authorization",
+      "title": "Authentication and authorization",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Authentication establishes a principal; authorization decides what that principal may do.",
+      "concepts": [
+        "Identity",
+        "Permission",
+        "Ownership"
+      ],
+      "learningGoals": [
+        "Cross-user resource access is rejected",
+        "Authorization uses trusted principal data"
+      ],
+      "examples": [
+        "U1 requests revocation of U2's session."
+      ],
+      "material": {
+        "explanation": "Authentication establishes a principal; authorization decides what that principal may do. Deny unauthorized access even when credentials are valid, and check resource ownership on each relevant request rather than trusting a supplied user ID.",
+        "workedExample": {
+          "scenario": "U1 requests revocation of U2's session.",
+          "steps": [
+            "Authenticate U1 successfully.",
+            "Reject the action because U1 does not own that session."
+          ]
+        },
+        "commonMistakes": [
+          "A valid login is not permission to access every resource."
+        ],
+        "guidedExercise": [
+          "Build an ownership decision table",
+          "Test a forged resource ID"
+        ],
+        "independentExercise": "Design logout-all so the caller cannot choose another user's identity.",
+        "recallQuestions": [
+          "Which question does authentication answer?",
+          "Where is resource ownership checked?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cross-user resource access is rejected",
+        "Authorization uses trusted principal data"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authorization",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-session-authentication"
       ]
     },
     {
       "id": "http-auth-jwt",
       "title": "JWT",
-      "description": "Explain claims, signature verification, expiration, and revocation limitations.",
+      "description": "A JWT is a structured token; a signed JWT's payload is typically readable.",
       "learningGoals": [
-        "Explain claims, signature verification, expiration, and revocation limitations.",
-        "Explain Claims, Signature verification and Expiry.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Unsigned or invalidly signed tokens are rejected",
+        "Revocation limitations are documented"
       ],
       "concepts": [
         "Claims",
         "Signature verification",
-        "Expiry"
+        "Revocation limits"
       ],
       "examples": [
-        "Describe an access JWT with subject and expiration. Explain why reading its payload is not the same as validating its signature."
+        "An access JWT names U1 and an expiry."
       ],
       "tasks": [
         {
@@ -309,24 +828,56 @@
         }
       ],
       "dependencies": [
-        "http-auth-session-authentication"
+        "http-auth-authentication-and-authorization"
+      ],
+      "material": {
+        "explanation": "A JWT is a structured token; a signed JWT's payload is typically readable. Validate allowed algorithms, signature, issuer, audience, and time claims under your contract. Offline validity checking means server-side revocation is not automatically immediate.",
+        "workedExample": {
+          "scenario": "An access JWT names U1 and an expiry.",
+          "steps": [
+            "Decode only to inspect it.",
+            "Trust claims only after complete validation."
+          ]
+        },
+        "commonMistakes": [
+          "Decoding a token is not verifying it."
+        ],
+        "guidedExercise": [
+          "Distinguish readable claims from trusted claims",
+          "List validation requirements"
+        ],
+        "independentExercise": "Explain logout behavior when an already-issued JWT remains unexpired.",
+        "recallQuestions": [
+          "Which claims must be validated?",
+          "Why can logout leave a JWT temporarily valid?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Unsigned or invalidly signed tokens are rejected",
+        "Revocation limitations are documented"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
       ]
     },
     {
       "id": "http-auth-opaque-token",
       "title": "Opaque token",
-      "description": "Use an unpredictable token whose meaning is stored on the server.",
+      "description": "An opaque token has no client-readable business meaning and should be generated unpredictably.",
       "learningGoals": [
-        "Use an unpredictable token whose meaning is stored on the server.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Raw tokens are not persisted or logged",
+        "Lookup leads to explicit server-side state"
       ],
       "concepts": [
-        "Opaque token",
-        "Valid state",
-        "Failure behavior"
+        "Random identifiers",
+        "Server lookup",
+        "Hash storage"
       ],
       "examples": [
-        "Apply opaque token to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A random refresh value maps to token row X through its hash."
       ],
       "tasks": [
         {
@@ -344,24 +895,121 @@
       ],
       "dependencies": [
         "http-auth-jwt"
+      ],
+      "material": {
+        "explanation": "An opaque token has no client-readable business meaning and should be generated unpredictably. The server resolves it to state, preferably through a stored hash for high-entropy tokens. This allows explicit rotation, expiry, and revocation decisions.",
+        "workedExample": {
+          "scenario": "A random refresh value maps to token row X through its hash.",
+          "steps": [
+            "The row identifies session and expiration.",
+            "Raw token storage is unnecessary for lookup."
+          ]
+        },
+        "commonMistakes": [
+          "Base64 encoding a user ID does not make a secure opaque token."
+        ],
+        "guidedExercise": [
+          "Draw issuance and hashed lookup",
+          "Separate raw secret from token identifier"
+        ],
+        "independentExercise": "Design token-table fields without raw secret persistence.",
+        "recallQuestions": [
+          "Where does the token's meaning live?",
+          "Why should the value be unpredictable?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Raw tokens are not persisted or logged",
+        "Lookup leads to explicit server-side state"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
+      ]
+    },
+    {
+      "id": "http-auth-secure-randomness",
+      "title": "Secure randomness",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Security tokens require an unpredictable random source and enough entropy for their threat model.",
+      "concepts": [
+        "Entropy",
+        "SecureRandom",
+        "Unpredictable credentials"
+      ],
+      "learningGoals": [
+        "A cryptographically suitable source is used",
+        "Tests check format and secret-handling behavior"
+      ],
+      "examples": [
+        "Generate random bytes with SecureRandom."
+      ],
+      "material": {
+        "explanation": "Security tokens require an unpredictable random source and enough entropy for their threat model. Encode random bytes for transport without reducing their randomness. Do not substitute timestamps, counters, or ordinary pseudo-random generators.",
+        "workedExample": {
+          "scenario": "Generate random bytes with SecureRandom.",
+          "steps": [
+            "Encode them using a transport-safe encoding.",
+            "Persist only the verification representation."
+          ]
+        },
+        "commonMistakes": [
+          "An encoded predictable value is still predictable."
+        ],
+        "guidedExercise": [
+          "Compare random sources and encodings",
+          "State your token-length rationale"
+        ],
+        "independentExercise": "Design a token generator contract and test format without trying to prove security statistically.",
+        "recallQuestions": [
+          "Does encoding add entropy?",
+          "What can a unit test prove about a generator?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A cryptographically suitable source is used",
+        "Tests check format and secret-handling behavior"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-opaque-token"
       ]
     },
     {
       "id": "http-auth-hashing",
       "title": "Hashing",
-      "description": "Explain one-way verification and why raw refresh tokens should not be stored.",
+      "description": "A hash maps input to a digest and does not provide reversible encryption.",
       "learningGoals": [
-        "Explain one-way verification and why raw refresh tokens should not be stored.",
-        "Explain One-way verification, Token hash storage and Secret comparison.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Password and token policies are distinct",
+        "Raw values remain outside storage and logs"
       ],
       "concepts": [
-        "One-way verification",
-        "Token hash storage",
-        "Secret comparison"
+        "One-way digest",
+        "High-entropy verification",
+        "Collision considerations"
       ],
       "examples": [
-        "Store a hash of a high-entropy opaque refresh token. On refresh, hash the supplied token and look up the matching record."
+        "Hash a random refresh token for lookup."
       ],
       "tasks": [
         {
@@ -378,25 +1026,122 @@
         }
       ],
       "dependencies": [
-        "http-auth-opaque-token"
+        "http-auth-secure-randomness"
+      ],
+      "material": {
+        "explanation": "A hash maps input to a digest and does not provide reversible encryption. High-entropy random token lookup differs from password storage: passwords need a deliberately expensive password-hashing scheme. Choose algorithms by the secret's threat model.",
+        "workedExample": {
+          "scenario": "Hash a random refresh token for lookup.",
+          "steps": [
+            "A matching presented token yields the same digest.",
+            "Do not reuse that simple digest policy for human passwords."
+          ]
+        },
+        "commonMistakes": [
+          "One hashing policy does not suit every kind of secret."
+        ],
+        "guidedExercise": [
+          "Compare random-token and password threats",
+          "Trace lookup without raw persistence"
+        ],
+        "independentExercise": "Document algorithm and encoding boundaries for token hashing.",
+        "recallQuestions": [
+          "Why are password guesses different from random-token guesses?",
+          "What does a digest not protect against?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Password and token policies are distinct",
+        "Raw values remain outside storage and logs"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ]
+    },
+    {
+      "id": "http-auth-password-hashing",
+      "title": "Password hashing",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Passwords are low-entropy human secrets, so use a vetted password-hashing implementation with salt and suitable cost.",
+      "concepts": [
+        "Work factor",
+        "Salt",
+        "Credential verification"
+      ],
+      "learningGoals": [
+        "Raw passwords are never persisted or logged",
+        "A vetted password-hashing scheme performs verification"
+      ],
+      "examples": [
+        "Two users choose the same password."
+      ],
+      "material": {
+        "explanation": "Passwords are low-entropy human secrets, so use a vetted password-hashing implementation with salt and suitable cost. OWASP favors modern password-hashing schemes such as Argon2id. Store the encoded verifier and support policy upgrades without inventing cryptography.",
+        "workedExample": {
+          "scenario": "Two users choose the same password.",
+          "steps": [
+            "Unique salts produce different stored verifiers.",
+            "Verification uses the library's matching operation."
+          ]
+        },
+        "commonMistakes": [
+          "A fast general-purpose digest is not adequate password storage."
+        ],
+        "guidedExercise": [
+          "Explain salt and work factor",
+          "Use a supported verifier API in a small test"
+        ],
+        "independentExercise": "Design login verification and a safe rehash-on-success policy.",
+        "recallQuestions": [
+          "What does a salt prevent?",
+          "Why must password hashing be intentionally costly?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Raw passwords are never persisted or logged",
+        "A vetted password-hashing scheme performs verification"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: password storage",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-hashing"
       ]
     },
     {
       "id": "http-auth-encryption",
       "title": "Encryption",
-      "description": "Explain reversible confidentiality and key management.",
+      "description": "Encryption protects confidentiality by making data recoverable only with appropriate keys.",
       "learningGoals": [
-        "Explain reversible confidentiality and key management.",
-        "Explain Reversibility, Confidentiality and Key management.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Encryption is chosen only for a reversible need",
+        "Key ownership and lifecycle are specified"
       ],
       "concepts": [
         "Reversibility",
         "Confidentiality",
-        "Key management"
+        "Key lifecycle"
       ],
       "examples": [
-        "Encrypting a value allows recovery with a key. Contrast that with a hash used only for verification."
+        "An encrypted backup requires a key to recover data."
       ],
       "tasks": [
         {
@@ -413,25 +1158,56 @@
         }
       ],
       "dependencies": [
-        "http-auth-hashing"
+        "http-auth-password-hashing"
+      ],
+      "material": {
+        "explanation": "Encryption protects confidentiality by making data recoverable only with appropriate keys. Its mode, nonce rules, and key management matter; encoding provides no confidentiality. Use vetted libraries and avoid designing an encryption protocol as a beginner exercise.",
+        "workedExample": {
+          "scenario": "An encrypted backup requires a key to recover data.",
+          "steps": [
+            "A digest cannot restore that data.",
+            "A signature answers a different question."
+          ]
+        },
+        "commonMistakes": [
+          "Encryption does not automatically provide authenticity in every construction."
+        ],
+        "guidedExercise": [
+          "Classify digest, ciphertext, and encoding",
+          "Identify who needs the decryption key"
+        ],
+        "independentExercise": "Write a threat model for storing a recoverable third-party credential.",
+        "recallQuestions": [
+          "When must a secret be recoverable?",
+          "What happens if the key is exposed?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Encryption is chosen only for a reversible need",
+        "Key ownership and lifecycle are specified"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-signing",
       "title": "Signing",
-      "description": "Verify authenticity and integrity without promising secrecy.",
+      "description": "A digital signature verifies that content was authorized by the holder of a signing key and has not been changed.",
       "learningGoals": [
-        "Verify authenticity and integrity without promising secrecy.",
-        "Explain Integrity, Authenticity and Public payload.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Content secrecy is not assumed",
+        "Key trust and algorithm policies are explicit"
       ],
       "concepts": [
-        "Integrity",
         "Authenticity",
-        "Public payload"
+        "Integrity",
+        "Public content"
       ],
       "examples": [
-        "A signed JWT can still be read. Changing a claim must cause signature verification to fail."
+        "A JWT payload contains a public subject claim."
       ],
       "tasks": [
         {
@@ -449,23 +1225,55 @@
       ],
       "dependencies": [
         "http-auth-encryption"
+      ],
+      "material": {
+        "explanation": "A digital signature verifies that content was authorized by the holder of a signing key and has not been changed. It does not hide the content. Verification depends on trusted key distribution and an explicit algorithm policy.",
+        "workedExample": {
+          "scenario": "A JWT payload contains a public subject claim.",
+          "steps": [
+            "Changing the claim invalidates a valid signature.",
+            "Reading the unchanged claim requires no decryption."
+          ]
+        },
+        "commonMistakes": [
+          "Signed does not mean encrypted or confidential."
+        ],
+        "guidedExercise": [
+          "Compare readable payload and verified payload",
+          "Identify the trusted verification key"
+        ],
+        "independentExercise": "Explain access-token key rotation and accepted-key overlap.",
+        "recallQuestions": [
+          "What does verification establish?",
+          "How does the verifier trust a key?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Content secrecy is not assumed",
+        "Key trust and algorithm policies are explicit"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-csrf",
       "title": "CSRF",
-      "description": "Explain unwanted authenticated actions caused by automatically sent cookies.",
+      "description": "CSRF exploits automatically attached credentials to trigger actions from another site.",
       "learningGoals": [
-        "Explain unwanted authenticated actions caused by automatically sent cookies.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Cross-site unauthorized actions are rejected",
+        "The defense matches the credential transport"
       ],
       "concepts": [
-        "CSRF",
-        "Valid state",
-        "Failure behavior"
+        "Automatic credentials",
+        "Cross-site actions",
+        "Server defenses"
       ],
       "examples": [
-        "Apply csrf to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A hostile page tries a cookie-authenticated POST."
       ],
       "tasks": [
         {
@@ -483,23 +1291,55 @@
       ],
       "dependencies": [
         "http-auth-signing"
+      ],
+      "material": {
+        "explanation": "CSRF exploits automatically attached credentials to trigger actions from another site. Apply defenses appropriate to your browser and credential flow, such as CSRF tokens and origin checks. SameSite helps but should be evaluated alongside the entire request contract.",
+        "workedExample": {
+          "scenario": "A hostile page tries a cookie-authenticated POST.",
+          "steps": [
+            "The browser may attach cookies under applicable rules.",
+            "The server rejects a missing or invalid CSRF proof."
+          ]
+        },
+        "commonMistakes": [
+          "CORS alone is not a universal CSRF defense."
+        ],
+        "guidedExercise": [
+          "Trace a cross-site action",
+          "Choose a defense for refresh and logout"
+        ],
+        "independentExercise": "Design and test a cookie-authenticated state-changing request policy.",
+        "recallQuestions": [
+          "Which credentials are attached automatically?",
+          "Where is CSRF proof validated?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cross-site unauthorized actions are rejected",
+        "The defense matches the credential transport"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-xss",
       "title": "XSS",
-      "description": "Explain injected scripts and the risks of exposing tokens to browser code.",
+      "description": "XSS lets attacker-controlled script execute in a trusted origin.",
       "learningGoals": [
-        "Explain injected scripts and the risks of exposing tokens to browser code.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Untrusted content is not executed as markup",
+        "Credential-exposure risks are explained"
       ],
       "concepts": [
-        "XSS",
-        "Valid state",
-        "Failure behavior"
+        "Injected scripts",
+        "Output contexts",
+        "Credential exposure"
       ],
       "examples": [
-        "Apply xss to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A note contains HTML with a script payload."
       ],
       "tasks": [
         {
@@ -517,24 +1357,55 @@
       ],
       "dependencies": [
         "http-auth-csrf"
+      ],
+      "material": {
+        "explanation": "XSS lets attacker-controlled script execute in a trusted origin. Escape output for its context, avoid unsafe HTML insertion, and use defense in depth. HttpOnly reduces direct cookie reads but malicious script may still perform actions as the user.",
+        "workedExample": {
+          "scenario": "A note contains HTML with a script payload.",
+          "steps": [
+            "Render it as text.",
+            "Do not interpret it as trusted markup."
+          ]
+        },
+        "commonMistakes": [
+          "HttpOnly alone does not eliminate the impact of injected script."
+        ],
+        "guidedExercise": [
+          "Identify unsafe rendering sinks",
+          "Compare text rendering with HTML insertion"
+        ],
+        "independentExercise": "Threat-model storing credentials where JavaScript can read them.",
+        "recallQuestions": [
+          "What can a same-origin malicious script do?",
+          "Why does output context matter?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Untrusted content is not executed as markup",
+        "Credential-exposure risks are explained"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-samesite-cookies",
       "title": "SameSite cookies",
-      "description": "Compare Strict, Lax, and None in cross-site request behavior.",
+      "description": "SameSite controls cookie sending across site boundaries, which differ from origin boundaries.",
       "learningGoals": [
-        "Compare Strict, Lax, and None in cross-site request behavior.",
-        "Explain Strict, Lax and None.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Cookie policy supports the intended flow",
+        "Cross-site behavior is tested explicitly"
       ],
       "concepts": [
         "Strict",
         "Lax",
-        "None"
+        "None and Secure"
       ],
       "examples": [
-        "Compare cookies sent on cross-site navigation versus a cross-site POST. SameSite=None requires Secure; plan CSRF defenses separately."
+        "A user arrives through an external link."
       ],
       "tasks": [
         {
@@ -552,23 +1423,55 @@
       ],
       "dependencies": [
         "http-auth-xss"
+      ],
+      "material": {
+        "explanation": "SameSite controls cookie sending across site boundaries, which differ from origin boundaries. Strict, Lax, and None allow different navigation and request behavior; None requires Secure. Validate the actual login and refresh flow instead of selecting a value mechanically.",
+        "workedExample": {
+          "scenario": "A user arrives through an external link.",
+          "steps": [
+            "Strict may withhold a cookie.",
+            "Lax can behave differently for top-level safe navigation."
+          ]
+        },
+        "commonMistakes": [
+          "Same-site and same-origin are not interchangeable concepts."
+        ],
+        "guidedExercise": [
+          "Compare navigation with cross-site POST",
+          "Explain None plus Secure"
+        ],
+        "independentExercise": "Choose attributes for a same-site app and document a cross-site alternative.",
+        "recallQuestions": [
+          "What is the relevant site boundary?",
+          "Which user flow changes with Strict?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cookie policy supports the intended flow",
+        "Cross-site behavior is tested explicitly"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-expiration",
       "title": "Expiration",
-      "description": "Define access and refresh lifetimes and boundary behavior.",
+      "description": "Expiration limits credential usefulness over time.",
       "learningGoals": [
-        "Define access and refresh lifetimes and boundary behavior.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Each credential has an explicit lifetime",
+        "Rotation respects the absolute session limit"
       ],
       "concepts": [
-        "Expiration",
-        "Valid state",
-        "Failure behavior"
+        "Absolute lifetime",
+        "Idle lifetime",
+        "Token roles"
       ],
       "examples": [
-        "Apply expiration to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A session has an absolute expiry tomorrow."
       ],
       "tasks": [
         {
@@ -586,6 +1489,104 @@
       ],
       "dependencies": [
         "http-auth-samesite-cookies"
+      ],
+      "material": {
+        "explanation": "Expiration limits credential usefulness over time. Distinguish access-token lifetime, refresh lifetime, and session idle or absolute limits. Rotation should not silently remove an absolute expiry policy by extending it forever.",
+        "workedExample": {
+          "scenario": "A session has an absolute expiry tomorrow.",
+          "steps": [
+            "Refresh rotation creates a new token.",
+            "The replacement still respects the session deadline."
+          ]
+        },
+        "commonMistakes": [
+          "New token issuance does not imply unlimited session lifetime."
+        ],
+        "guidedExercise": [
+          "Draw access, refresh, and session timelines",
+          "Choose exact boundary behavior"
+        ],
+        "independentExercise": "Define expiration behavior after clock skew and prolonged inactivity.",
+        "recallQuestions": [
+          "Which deadline survives rotation?",
+          "What happens exactly at expiry?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each credential has an explicit lifetime",
+        "Rotation respects the absolute session limit"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
+      ]
+    },
+    {
+      "id": "http-auth-account-enumeration-and-login-throttling",
+      "title": "Account enumeration and login throttling",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Authentication responses should avoid unnecessarily revealing whether an account exists.",
+      "concepts": [
+        "Generic failures",
+        "Rate limits",
+        "Abuse resistance"
+      ],
+      "learningGoals": [
+        "Public responses minimize account disclosure",
+        "Abuse limits and recovery behavior are explicit"
+      ],
+      "examples": [
+        "Login fails for a missing user and a wrong password."
+      ],
+      "material": {
+        "explanation": "Authentication responses should avoid unnecessarily revealing whether an account exists. Use safe generic failure behavior and bounded throttling appropriate to the risk. Avoid turning account-based limits into an easy permanent denial of service.",
+        "workedExample": {
+          "scenario": "Login fails for a missing user and a wrong password.",
+          "steps": [
+            "Return the same public failure category.",
+            "Record safe internal diagnostics and enforce bounded throttling."
+          ]
+        },
+        "commonMistakes": [
+          "Different status or timing paths can reveal account existence."
+        ],
+        "guidedExercise": [
+          "Compare public failure responses",
+          "Define throttle identity and recovery"
+        ],
+        "independentExercise": "Design password-reset request responses without confirming account existence.",
+        "recallQuestions": [
+          "What information can reveal an account?",
+          "How can throttling be abused?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Public responses minimize account disclosure",
+        "Abuse limits and recovery behavior are explicit"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-expiration"
       ]
     }
   ],
@@ -593,18 +1594,18 @@
     {
       "id": "http-auth-login-request",
       "title": "Login Request",
-      "description": "Practice the module by designing and testing login request.",
+      "description": "Describe login from request validation to safe credential issuance.",
       "learningGoals": [
-        "Practice the module by designing and testing login request.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Describe login from request validation to safe credential issuance.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Login Request",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply login request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A valid login authenticates U1."
       ],
       "tasks": [
         {
@@ -614,38 +1615,98 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Password verification uses a vetted policy"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Failure responses minimize account disclosure"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Credential transport and persistence are explicit"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: No password or raw token appears in logs"
         }
       ],
       "dependencies": [
-        "http-auth-expiration"
+        "http-auth-account-enumeration-and-login-throttling"
       ],
       "requirements": [
-        "Describe POST /login"
+        "Specify POST /login request and response shapes",
+        "Validate input before credential verification",
+        "Use a vetted password verifier and generic public failure behavior",
+        "Create a session and issue credentials only after successful authentication",
+        "Define secure cookie or bearer transport explicitly",
+        "Apply bounded abuse protection and redact all credential values"
       ],
-      "constraints": [],
+      "constraints": [
+        "Design first; no framework implementation required"
+      ],
       "deliverables": [
-        "Request",
-        "Authentication state",
-        "Server actions",
-        "Database actions",
-        "Response"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Request → authentication state → server actions → database actions → response"
+      ],
+      "material": {
+        "explanation": "Trace the entire login operation rather than only its controller. Identify what state is created, what authority is returned, and where failures must remain generic. Password verification and token issuance have different secret-handling rules.",
+        "workedExample": {
+          "scenario": "A valid login authenticates U1.",
+          "steps": [
+            "The server records session S1 and token verification state.",
+            "The client receives only the necessary credentials through the selected transport."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Draw success and wrong-password flows.",
+          "Compare wrong-password and missing-user public responses.",
+          "Label raw-secret locations and log exclusions."
+        ],
+        "independentExercise": "Add a login-throttle policy and reason about deliberate lockout abuse.",
+        "recallQuestions": [
+          "What persists after login?",
+          "What should an unauthenticated observer learn from failure?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Password verification uses a vetted policy",
+        "Failure responses minimize account disclosure",
+        "Credential transport and persistence are explicit",
+        "No password or raw token appears in logs"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     },
     {
       "id": "http-auth-refresh-request",
       "title": "Refresh Request",
-      "description": "Practice the module by designing and testing refresh request.",
+      "description": "Design refresh including replay and a response lost after commit.",
       "learningGoals": [
-        "Practice the module by designing and testing refresh request.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Design refresh including replay and a response lost after commit.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Refresh Request",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply refresh request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "X rotates to Y and the transaction commits."
       ],
       "tasks": [
         {
@@ -655,38 +1716,99 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Only one child is created per parent"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Reuse handling includes the active lineage policy"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Lost responses have explicit client recovery"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Refresh never bypasses absolute expiry or CSRF policy"
         }
       ],
       "dependencies": [
-        "http-auth-expiration"
+        "http-auth-account-enumeration-and-login-throttling"
       ],
       "requirements": [
-        "Describe POST /refresh"
+        "Specify POST /refresh credential transport and response",
+        "Validate token, session, expiry, and revocation",
+        "Atomically consume the parent and persist its replacement",
+        "Define reuse detection and family or session revocation behavior",
+        "Document client recovery when rotation commits but the response is lost",
+        "Respect absolute session expiry and never persist raw tokens"
       ],
-      "constraints": [],
+      "constraints": [
+        "Design first; do not claim a generic retry is safe",
+        "Evaluate browser CSRF defenses when cookies authenticate refresh"
+      ],
       "deliverables": [
-        "Request",
-        "Authentication state",
-        "Server actions",
-        "Database actions",
-        "Response"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "State timeline for success, replay, and lost response"
+      ],
+      "material": {
+        "explanation": "Refresh is a state transition with both security and reliability implications. A previously consumed token can represent theft or a legitimate retry; the server cannot simply know which. Choose a documented policy and explain its tradeoff.",
+        "workedExample": {
+          "scenario": "X rotates to Y and the transaction commits.",
+          "steps": [
+            "The response carrying Y is lost.",
+            "A retry with X follows the declared reuse policy rather than issuing an accidental second child."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Draw parent and replacement rows.",
+          "Trace concurrent uses of X.",
+          "Specify the lost-response recovery outcome."
+        ],
+        "independentExercise": "Compare strict reuse rejection with a bounded retry protocol; explain any extra secret storage and attack exposure before selecting one.",
+        "recallQuestions": [
+          "What evidence identifies a reuse attempt?",
+          "What does the client do after losing the replacement?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Only one child is created per parent",
+        "Reuse handling includes the active lineage policy",
+        "Lost responses have explicit client recovery",
+        "Refresh never bypasses absolute expiry or CSRF policy"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
       ]
     },
     {
       "id": "http-auth-logout-request",
       "title": "Logout Request",
-      "description": "Practice the module by designing and testing logout request.",
+      "description": "Specify the exact guarantees of logout and logout-all.",
       "learningGoals": [
-        "Practice the module by designing and testing logout request.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Specify the exact guarantees of logout and logout-all.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Logout Request",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply logout request to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "U1 owns S1 and S2."
       ],
       "tasks": [
         {
@@ -696,21 +1818,168 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Single-session and all-session effects are distinct"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Cross-user revocation is forbidden"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Server revocation accompanies local cleanup"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Access-token revocation limitations are documented"
         }
       ],
       "dependencies": [
-        "http-auth-expiration"
+        "http-auth-account-enumeration-and-login-throttling"
       ],
       "requirements": [
-        "Describe POST /logout"
+        "Define POST /logout and logout-all contracts",
+        "Use the trusted principal to identify allowed sessions",
+        "Revoke the intended server-side session and refresh family",
+        "Clear the relevant cookie under matching scope when applicable",
+        "Choose repeated-logout behavior",
+        "State whether previously issued access JWTs remain valid until expiration"
       ],
-      "constraints": [],
+      "constraints": [
+        "Design first; do not promise immediate JWT revocation without a mechanism"
+      ],
       "deliverables": [
-        "Request",
-        "Authentication state",
-        "Server actions",
-        "Database actions",
-        "Response"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Single-session versus all-session comparison"
+      ],
+      "material": {
+        "explanation": "Logout affects server state and client-held credentials differently. Clearing a cookie alone does not revoke a stolen refresh value. Conversely, server revocation does not necessarily invalidate an offline-validated access JWT immediately.",
+        "workedExample": {
+          "scenario": "U1 owns S1 and S2.",
+          "steps": [
+            "Logging out S1 revokes S1 but leaves S2 active.",
+            "Logout-all revokes both while respecting the access-token policy."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Trace cookie clearing and server revocation separately.",
+          "Test a cross-user session ID.",
+          "Specify repeated and already-expired logout behavior."
+        ],
+        "independentExercise": "Write a user-facing guarantee that accurately describes remaining access-token validity.",
+        "recallQuestions": [
+          "What remains after only clearing a cookie?",
+          "Which credential may survive server-side logout?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Single-session and all-session effects are distinct",
+        "Cross-user revocation is forbidden",
+        "Server revocation accompanies local cleanup",
+        "Access-token revocation limitations are documented"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authorization",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        }
+      ]
+    },
+    {
+      "id": "http-auth-session-ownership-api",
+      "title": "Session Ownership API",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Foreign sessions cannot be listed or revoked"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Client identity fields cannot bypass principal checks"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Pagination and missing-resource responses are deliberate"
+        }
+      ],
+      "description": "Practice authorization independently from credential validity.",
+      "learningGoals": [
+        "Practice authorization independently from credential validity.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "U1 asks to revoke U2 session S2."
+      ],
+      "requirements": [
+        "Describe GET /sessions and POST /sessions/{id}/revoke",
+        "Authenticate first, then verify ownership using the trusted principal",
+        "Do not trust a userId supplied in the body as identity",
+        "Bound list pagination and use a stable order",
+        "Choose a response policy that avoids unnecessary resource-existence disclosure"
+      ],
+      "constraints": [
+        "Design first; no social or administrative roles required"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Ownership decision table"
+      ],
+      "material": {
+        "explanation": "A small session-management API exposes the distinction between valid authentication and allowed action. Write cases for own, other-user, and missing sessions. Permission decisions need trusted identity and resource facts, not just a valid token.",
+        "workedExample": {
+          "scenario": "U1 asks to revoke U2 session S2.",
+          "steps": [
+            "U1 authentication succeeds.",
+            "Ownership authorization denies the operation and S2 stays active."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "List owned, foreign, and missing resource cases.",
+          "Define the public error policy.",
+          "Add pagination contract cases."
+        ],
+        "independentExercise": "Attempt to forge userId and sessionId in the contract and explain why neither changes the authenticated principal.",
+        "recallQuestions": [
+          "Which identity is trusted?",
+          "When might 404 conceal resource existence?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Foreign sessions cannot be listed or revoked",
+        "Client identity fields cannot bypass principal checks",
+        "Pagination and missing-resource responses are deliberate"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authorization",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        }
+      ],
+      "dependencies": [
+        "http-auth-account-enumeration-and-login-throttling"
       ]
     }
   ],
@@ -718,18 +1987,18 @@
     {
       "id": "http-auth-authentication-flow",
       "title": "Authentication Flow",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Design the complete credential and session lifecycle with explicit security boundaries.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Design the complete credential and session lifecycle with explicit security boundaries.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "U1 logs in and creates S1."
       ],
       "tasks": [
         {
@@ -755,32 +2024,104 @@
         {
           "id": "deliverable-6",
           "title": "Threat and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: All six flows have contracts and state timelines"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Passwords and random tokens use appropriate distinct policies"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Cross-user operations are denied"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Raw credentials are excluded from persistence and logs"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: Replay, expiry, browser attacks, and lost responses have explicit policies"
         }
       ],
       "dependencies": [
-        "http-auth-expiration"
+        "http-auth-account-enumeration-and-login-throttling"
       ],
       "requirements": [
-        "Register",
-        "Login",
-        "Access API",
-        "Refresh",
-        "Logout",
-        "Logout All Sessions"
+        "Describe Register, Login, Access API, Refresh, Logout, and Logout All Sessions",
+        "Separate authentication from per-resource authorization",
+        "Use vetted password hashing and secure random opaque refresh tokens",
+        "Hash stored refresh tokens and validate signed short-lived access JWTs",
+        "Specify browser credential transport, CSRF, and XSS considerations",
+        "Define generic credential failures and abuse controls",
+        "Include session absolute expiry, token reuse, and response-loss behavior"
       ],
       "constraints": [
-        "No implementation first",
-        "Hashing ≠ Encryption ≠ Signing",
-        "Access Token ≠ Refresh Token"
+        "Design first; do not implement cryptographic primitives",
+        "This is not a full OAuth authorization-server implementation",
+        "No Redis, social login, or extra roles required"
       ],
       "deliverables": [
-        "Request",
-        "Authentication state",
-        "Server actions",
-        "Database actions",
-        "Response",
-        "Threat and failure cases"
+        "Request/response contracts for all six flows",
+        "Secret and trust-boundary diagram",
+        "Session and token data model",
+        "Authorization decision table",
+        "Failure and attack cases",
+        "Expiration, logout, and recovery policies"
+      ],
+      "material": {
+        "explanation": "Design the credential lifecycle as a connected system. Explain which authority is trusted at each step and which data is secret. Distinguish OAuth security guidance relevant to token rotation from a claim that this personal service implements the full OAuth protocol.",
+        "workedExample": {
+          "scenario": "U1 logs in and creates S1.",
+          "steps": [
+            "U1 accesses its own session list and rotates a refresh token.",
+            "After logout, refresh fails and any remaining access-JWT lifetime follows the declared policy."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Draw raw-secret locations and stored verifiers.",
+          "Describe each request and state transition.",
+          "Add forged-resource, replay, expired, and lost-response cases."
+        ],
+        "independentExercise": "Attempt to access another user session and describe the authorization denial independently of successful authentication.",
+        "recallQuestions": [
+          "Which data does a successful login establish?",
+          "Which credentials remain usable after logout?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All six flows have contracts and state timelines",
+        "Passwords and random tokens use appropriate distinct policies",
+        "Cross-user operations are denied",
+        "Raw credentials are excluded from persistence and logs",
+        "Replay, expiry, browser attacks, and lost responses have explicit policies"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Separate request shape, identity, permission, and domain rules",
+    "Explain credential transport and browser threats",
+    "Specify secure authentication, refresh, and logout contracts"
+  ],
+  "completionCriteria": [
+    "All six auth flows have success and failure timelines",
+    "Cross-user operations are denied by the ownership design",
+    "Password policy, expiry, replay, and response-loss behavior are explained"
+  ],
+  "studyGuidance": [
+    "Do not implement cryptography; use vetted primitives and libraries.",
+    "Choose strict or bounded refresh-retry behavior explicitly.",
+    "Authentication success does not imply authorization."
   ]
 }

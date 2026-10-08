@@ -8,20 +8,84 @@
   ],
   "topics": [
     {
-      "id": "spring-boot-ioc",
-      "title": "IoC",
-      "description": "Explain how container-managed construction changes control flow.",
-      "learningGoals": [
-        "Explain how container-managed construction changes control flow.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+      "id": "spring-boot-build-dependencies-and-auto-configuration",
+      "title": "Build dependencies and auto-configuration",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
       ],
+      "description": "Spring Boot supplies dependency management and conditional configuration for common application needs.",
       "concepts": [
-        "IoC",
-        "Valid state",
-        "Failure behavior"
+        "Dependency versions",
+        "Boot conditions",
+        "Framework defaults"
+      ],
+      "learningGoals": [
+        "The application builds outside the IDE",
+        "Dependencies and automatic defaults can be explained"
       ],
       "examples": [
-        "Apply ioc to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A web dependency brings MVC infrastructure."
+      ],
+      "material": {
+        "explanation": "Spring Boot supplies dependency management and conditional configuration for common application needs. Inspect what is actually configured instead of assuming an annotation performs every required action. Choose one supported stack and let its dependency management keep related libraries aligned.",
+        "workedExample": {
+          "scenario": "A web dependency brings MVC infrastructure.",
+          "steps": [
+            "Inspect configured beans and conditions.",
+            "Remove a dependency and explain the behavior change."
+          ]
+        },
+        "commonMistakes": [
+          "A starter does not implement your business rules or make every configuration correct."
+        ],
+        "guidedExercise": [
+          "Build a minimal Boot app",
+          "Inspect its managed dependencies"
+        ],
+        "independentExercise": "Explain which parts differ from the plain-Java project's startup.",
+        "recallQuestions": [
+          "What triggers auto-configuration?",
+          "What remains your application's responsibility?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The application builds outside the IDE",
+        "Dependencies and automatic defaults can be explained"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot reference",
+          "url": "https://docs.spring.io/spring-boot/reference/index.html"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "spring-boot-ioc",
+      "title": "IoC",
+      "description": "Inversion of control moves selected decisions, such as construction or invocation, to a framework.",
+      "learningGoals": [
+        "Manual and managed construction are understood",
+        "Domain code does not require the container"
+      ],
+      "concepts": [
+        "Control flow",
+        "Object creation",
+        "Lifecycle ownership"
+      ],
+      "examples": [
+        "Manual startup constructs repository then service."
       ],
       "tasks": [
         {
@@ -37,24 +101,57 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
+      "dependencies": [
+        "spring-boot-build-dependencies-and-auto-configuration"
+      ],
+      "material": {
+        "explanation": "Inversion of control moves selected decisions, such as construction or invocation, to a framework. Explain the manual equivalent first so the container's work is visible. Domain behavior can remain ordinary Java regardless of who creates the objects.",
+        "workedExample": {
+          "scenario": "Manual startup constructs repository then service.",
+          "steps": [
+            "A container can perform that wiring.",
+            "The service still enforces the same use-case rules."
+          ]
+        },
+        "commonMistakes": [
+          "IoC does not mean business logic must depend on Spring APIs."
+        ],
+        "guidedExercise": [
+          "Write manual startup wiring",
+          "Compare container-managed startup"
+        ],
+        "independentExercise": "Trace who creates and calls each part of a coupon request.",
+        "recallQuestions": [
+          "Which control moved to the framework?",
+          "What behavior stays unchanged?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Manual and managed construction are understood",
+        "Domain code does not require the container"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
+      ]
     },
     {
       "id": "spring-boot-dependency-injection",
       "title": "Dependency Injection",
-      "description": "Supply collaborators explicitly and compare manual construction with Spring.",
+      "description": "Dependency injection supplies collaborators from outside an object rather than hiding their construction inside it.",
       "learningGoals": [
-        "Supply collaborators explicitly and compare manual construction with Spring.",
-        "Explain Constructor injection, Explicit collaborators and Testability.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Required dependencies are explicit",
+        "Policy tests run without Spring startup"
       ],
       "concepts": [
-        "Constructor injection",
-        "Explicit collaborators",
-        "Testability"
+        "Constructor wiring",
+        "Required collaborators",
+        "Test isolation"
       ],
       "examples": [
-        "Compare new RefreshTokenService(repository, generator, hasher) with a container supplying the same constructor dependencies."
+        "Construct RefreshTokenService with a repository, generator, and hasher."
       ],
       "tasks": [
         {
@@ -72,23 +169,55 @@
       ],
       "dependencies": [
         "spring-boot-ioc"
+      ],
+      "material": {
+        "explanation": "Dependency injection supplies collaborators from outside an object rather than hiding their construction inside it. Constructor injection makes required dependencies visible and supports ordinary unit tests. The container is one wiring mechanism, not the definition of DI itself.",
+        "workedExample": {
+          "scenario": "Construct RefreshTokenService with a repository, generator, and hasher.",
+          "steps": [
+            "Substitute fakes in a test.",
+            "Use real adapters in application configuration."
+          ]
+        },
+        "commonMistakes": [
+          "Dependency injection can exist without any annotations."
+        ],
+        "guidedExercise": [
+          "Wire a service manually",
+          "Run its tests without a Spring context"
+        ],
+        "independentExercise": "Move a hard-coded clock out of a service constructor body.",
+        "recallQuestions": [
+          "What makes a dependency required?",
+          "How can DI simplify testing?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Required dependencies are explicit",
+        "Policy tests run without Spring startup"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-bean",
       "title": "Bean",
-      "description": "Explain managed object identity, scope, and lifecycle.",
+      "description": "A bean is an object managed by the Spring container.",
       "learningGoals": [
-        "Explain managed object identity, scope, and lifecycle.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Bean scope is explained accurately",
+        "Request-specific mutable state is not shared"
       ],
       "concepts": [
-        "Bean",
-        "Valid state",
-        "Failure behavior"
+        "Managed instances",
+        "Scopes",
+        "Lifecycle"
       ],
       "examples": [
-        "Apply bean to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Several requests use one singleton service."
       ],
       "tasks": [
         {
@@ -106,23 +235,55 @@
       ],
       "dependencies": [
         "spring-boot-dependency-injection"
+      ],
+      "material": {
+        "explanation": "A bean is an object managed by the Spring container. Know its scope and initialization boundaries. A singleton scope describes one managed instance per relevant container, not universal thread safety or an application-wide distributed singleton.",
+        "workedExample": {
+          "scenario": "Several requests use one singleton service.",
+          "steps": [
+            "Its immutable dependencies are shared safely.",
+            "A mutable request-specific field would mix users."
+          ]
+        },
+        "commonMistakes": [
+          "A singleton bean is not automatically thread-safe."
+        ],
+        "guidedExercise": [
+          "Inspect bean identity across lookups",
+          "Identify unsafe mutable fields"
+        ],
+        "independentExercise": "Design a stateless coupon service with request data kept in method variables.",
+        "recallQuestions": [
+          "What does singleton scope mean?",
+          "Which state should not live in that bean?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Bean scope is explained accurately",
+        "Request-specific mutable state is not shared"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-applicationcontext",
       "title": "ApplicationContext",
-      "description": "Describe the container that creates and resolves beans.",
+      "description": "ApplicationContext manages configured objects and their dependencies.",
       "learningGoals": [
-        "Describe the container that creates and resolves beans.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Startup failures are traced to configuration",
+        "Business dependencies remain explicit"
       ],
       "concepts": [
-        "ApplicationContext",
-        "Valid state",
-        "Failure behavior"
+        "Bean resolution",
+        "Configuration",
+        "Lifecycle hooks"
       ],
       "examples": [
-        "Apply applicationcontext to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A service requires a TokenHasher."
       ],
       "tasks": [
         {
@@ -140,23 +301,55 @@
       ],
       "dependencies": [
         "spring-boot-bean"
+      ],
+      "material": {
+        "explanation": "ApplicationContext manages configured objects and their dependencies. Resolve objects at the application composition boundary rather than passing the context into domain logic as a service locator. Understand startup failures as dependency or configuration failures.",
+        "workedExample": {
+          "scenario": "A service requires a TokenHasher.",
+          "steps": [
+            "The context resolves one matching bean.",
+            "Missing or ambiguous candidates produce a startup problem."
+          ]
+        },
+        "commonMistakes": [
+          "Calling getBean throughout domain code hides dependencies."
+        ],
+        "guidedExercise": [
+          "Explain a missing-bean startup failure",
+          "Inspect configured candidates"
+        ],
+        "independentExercise": "Wire two hasher implementations deliberately without ambiguous resolution.",
+        "recallQuestions": [
+          "How are dependencies resolved?",
+          "Why avoid service-location in domain methods?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Startup failures are traced to configuration",
+        "Business dependencies remain explicit"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-component-scanning",
       "title": "Component Scanning",
-      "description": "Explain how classes are discovered and how package boundaries matter.",
+      "description": "Component scanning discovers eligible classes within configured package boundaries.",
       "learningGoals": [
-        "Explain how classes are discovered and how package boundaries matter.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Scan boundaries are documented",
+        "Component discovery can be explained"
       ],
       "concepts": [
-        "Component Scanning",
-        "Valid state",
-        "Failure behavior"
+        "Discovery boundaries",
+        "Stereotypes",
+        "Package organization"
       ],
       "examples": [
-        "Apply component scanning to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A controller is outside the scanned package tree."
       ],
       "tasks": [
         {
@@ -174,23 +367,55 @@
       ],
       "dependencies": [
         "spring-boot-applicationcontext"
+      ],
+      "material": {
+        "explanation": "Component scanning discovers eligible classes within configured package boundaries. It does not discover every class on the machine. Keep scanning intentional and understand why moving a component can change application startup.",
+        "workedExample": {
+          "scenario": "A controller is outside the scanned package tree.",
+          "steps": [
+            "It is not registered by that scan.",
+            "Adjust package placement or explicit configuration."
+          ]
+        },
+        "commonMistakes": [
+          "Adding a stereotype does not guarantee a bean is discovered."
+        ],
+        "guidedExercise": [
+          "Inspect the scan root",
+          "Move a small component and observe registration"
+        ],
+        "independentExercise": "Organize coupon packages so infrastructure is discoverable without broad accidental scanning.",
+        "recallQuestions": [
+          "Which packages are scanned?",
+          "When is explicit registration clearer?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Scan boundaries are documented",
+        "Component discovery can be explained"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-configuration",
       "title": "@Configuration",
-      "description": "Use configuration classes to declare construction rules.",
+      "description": "Configuration classes describe how collaborators are assembled.",
       "learningGoals": [
-        "Use configuration classes to declare construction rules.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Wiring and business rules remain separate",
+        "Environment-specific collaborators are explicit"
       ],
       "concepts": [
-        "@Configuration",
-        "Valid state",
-        "Failure behavior"
+        "Composition boundary",
+        "Factory declarations",
+        "Wiring policy"
       ],
       "examples": [
-        "Apply @configuration to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Configuration supplies Clock and TokenHasher."
       ],
       "tasks": [
         {
@@ -208,23 +433,55 @@
       ],
       "dependencies": [
         "spring-boot-component-scanning"
+      ],
+      "material": {
+        "explanation": "Configuration classes describe how collaborators are assembled. Keep environment-specific choices there while keeping business decisions in domain behavior. Understand proxied versus non-proxied configuration when directly invoking factory methods.",
+        "workedExample": {
+          "scenario": "Configuration supplies Clock and TokenHasher.",
+          "steps": [
+            "The service receives those beans.",
+            "Tests can supply controlled alternatives."
+          ]
+        },
+        "commonMistakes": [
+          "Configuration methods are not a place for request-level business logic."
+        ],
+        "guidedExercise": [
+          "Register a clock in configuration",
+          "Compare production and test wiring"
+        ],
+        "independentExercise": "Compose a token use case without adding annotations to its domain types.",
+        "recallQuestions": [
+          "Which choices belong at composition?",
+          "What can factory-method invocation change?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Wiring and business rules remain separate",
+        "Environment-specific collaborators are explicit"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-bean-annotation",
       "title": "@Bean",
-      "description": "Describe a factory method that registers a managed object.",
+      "description": "A Bean factory method registers its returned object with the container.",
       "learningGoals": [
-        "Describe a factory method that registers a managed object.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "The intended product is registered",
+        "Manual and managed instances are not confused"
       ],
       "concepts": [
-        "@Bean",
-        "Valid state",
-        "Failure behavior"
+        "Factory methods",
+        "Managed products",
+        "Dependency parameters"
       ],
       "examples": [
-        "Apply @bean to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A factory receives a repository and clock."
       ],
       "tasks": [
         {
@@ -242,24 +499,121 @@
       ],
       "dependencies": [
         "spring-boot-configuration"
+      ],
+      "material": {
+        "explanation": "A Bean factory method registers its returned object with the container. Method parameters can express dependencies resolved by Spring. Use factories for types you do not annotate or for deliberate construction decisions.",
+        "workedExample": {
+          "scenario": "A factory receives a repository and clock.",
+          "steps": [
+            "It constructs a plain Java service.",
+            "The resulting service becomes a managed bean."
+          ]
+        },
+        "commonMistakes": [
+          "Calling an arbitrary new operation does not register the result as a bean."
+        ],
+        "guidedExercise": [
+          "Create a service factory",
+          "Explain its dependency parameters"
+        ],
+        "independentExercise": "Register a third-party component through an explicit factory.",
+        "recallQuestions": [
+          "What exactly becomes managed?",
+          "How are factory parameters supplied?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The intended product is registered",
+        "Manual and managed instances are not confused"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
+      ]
+    },
+    {
+      "id": "spring-boot-external-configuration-and-secrets",
+      "title": "External configuration and secrets",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "External configuration supplies deployment-specific values without hard-coding them into business logic.",
+      "concepts": [
+        "Property binding",
+        "Environment values",
+        "Validation"
+      ],
+      "learningGoals": [
+        "Invalid required settings fail early",
+        "Real secrets remain outside source and diagnostics"
+      ],
+      "examples": [
+        "A token lifetime comes from validated configuration."
+      ],
+      "material": {
+        "explanation": "External configuration supplies deployment-specific values without hard-coding them into business logic. Bind related settings, validate required values early, and distinguish secrets from ordinary settings. Avoid logging resolved credentials or committing real secret files.",
+        "workedExample": {
+          "scenario": "A token lifetime comes from validated configuration.",
+          "steps": [
+            "Reject a nonpositive value at startup.",
+            "Inject the resulting duration into the use case."
+          ]
+        },
+        "commonMistakes": [
+          "Moving a password to a tracked properties file is not secret management."
+        ],
+        "guidedExercise": [
+          "Bind a lifetime setting",
+          "Test missing and invalid values"
+        ],
+        "independentExercise": "Configure database connection details without exposing them in source or logs.",
+        "recallQuestions": [
+          "Which values vary by deployment?",
+          "When should invalid configuration fail?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Invalid required settings fail early",
+        "Real secrets remain outside source and diagnostics"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot: externalized configuration",
+          "url": "https://docs.spring.io/spring-boot/reference/features/external-config.html"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-bean-annotation"
       ]
     },
     {
       "id": "spring-boot-proxy",
       "title": "Proxy",
-      "description": "Explain wrapping a target and why self-invocation can bypass advice.",
+      "description": "A proxy wraps a target to apply behavior such as transactions or advice.",
       "learningGoals": [
-        "Explain wrapping a target and why self-invocation can bypass advice.",
-        "Explain Target wrapper, Interception and Self-invocation.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "The advised call path is traced",
+        "Bypass cases are understood and tested"
       ],
       "concepts": [
-        "Target wrapper",
         "Interception",
+        "Target objects",
         "Self-invocation"
       ],
       "examples": [
-        "An external caller passes through the transactional proxy. A method calling another method on this may bypass the proxy."
+        "An external caller invokes a transactional service."
       ],
       "tasks": [
         {
@@ -276,24 +630,56 @@
         }
       ],
       "dependencies": [
-        "spring-boot-bean-annotation"
+        "spring-boot-external-configuration-and-secrets"
+      ],
+      "material": {
+        "explanation": "A proxy wraps a target to apply behavior such as transactions or advice. A call must pass through the relevant proxy to receive that behavior. Direct self-invocation on the target may bypass the wrapper and change semantics.",
+        "workedExample": {
+          "scenario": "An external caller invokes a transactional service.",
+          "steps": [
+            "The proxy begins the transaction.",
+            "A self-call to another advised method may not create the expected boundary."
+          ]
+        },
+        "commonMistakes": [
+          "An annotation alone does not prove every call passes through a proxy."
+        ],
+        "guidedExercise": [
+          "Draw proxy and target calls",
+          "Compare external invocation with self-invocation"
+        ],
+        "independentExercise": "Explain one transaction bug caused by manual construction or self-calls.",
+        "recallQuestions": [
+          "Which object receives the call first?",
+          "When can advice be bypassed?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The advised call path is traced",
+        "Bypass cases are understood and tested"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-aop",
       "title": "AOP",
-      "description": "Describe cross-cutting advice and where it executes.",
+      "description": "AOP applies selected behavior around defined invocation points.",
       "learningGoals": [
-        "Describe cross-cutting advice and where it executes.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Advice behavior is explainable for failure too",
+        "Domain rules remain visible in ordinary code"
       ],
       "concepts": [
-        "AOP",
-        "Valid state",
-        "Failure behavior"
+        "Cross-cutting behavior",
+        "Advice",
+        "Join points"
       ],
       "examples": [
-        "Apply aop to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Advice measures service execution time."
       ],
       "tasks": [
         {
@@ -311,24 +697,55 @@
       ],
       "dependencies": [
         "spring-boot-proxy"
+      ],
+      "material": {
+        "explanation": "AOP applies selected behavior around defined invocation points. It is useful for genuinely cross-cutting concerns but can hide control flow. Keep business rules explicit and understand ordering when multiple interceptors affect the same call.",
+        "workedExample": {
+          "scenario": "Advice measures service execution time.",
+          "steps": [
+            "It records duration on success and failure.",
+            "It does not decide coupon eligibility."
+          ]
+        },
+        "commonMistakes": [
+          "AOP is not a reason to hide core domain rules in annotations."
+        ],
+        "guidedExercise": [
+          "Identify one cross-cutting concern",
+          "Trace before, target, and after behavior"
+        ],
+        "independentExercise": "Explain the limits of timing a proxied method with an external dependency.",
+        "recallQuestions": [
+          "What control flow does advice add?",
+          "Which logic should remain explicit?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Advice behavior is explainable for failure too",
+        "Domain rules remain visible in ordinary code"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-transactional",
       "title": "@Transactional",
-      "description": "Explain proxy-driven transactions, rollback, and transaction boundaries.",
+      "description": "Transactional advice defines a database unit of work around a managed call.",
       "learningGoals": [
-        "Explain proxy-driven transactions, rollback, and transaction boundaries.",
-        "Explain Proxy advice, Transaction boundary and Rollback behavior.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Partial database changes roll back on specified failures",
+        "The real proxy and database path is tested"
       ],
       "concepts": [
-        "Proxy advice",
-        "Transaction boundary",
-        "Rollback behavior"
+        "Atomic boundaries",
+        "Proxy behavior",
+        "Rollback policy"
       ],
       "examples": [
-        "Wrap token revocation and replacement in one use case. Explain how an exception affects rollback and why a self-call can bypass advice."
+        "A use case revokes X and inserts Y."
       ],
       "tasks": [
         {
@@ -346,23 +763,55 @@
       ],
       "dependencies": [
         "spring-boot-aop"
+      ],
+      "material": {
+        "explanation": "Transactional advice defines a database unit of work around a managed call. Understand which failures cause rollback, which connection participates, and which calls reach the proxy. Keep external calls out of unnecessarily long lock-holding transactions.",
+        "workedExample": {
+          "scenario": "A use case revokes X and inserts Y.",
+          "steps": [
+            "An insertion failure follows the configured rollback policy.",
+            "An integration test verifies X remains unrevoked."
+          ]
+        },
+        "commonMistakes": [
+          "Unit-testing a manually constructed service does not prove transaction advice works."
+        ],
+        "guidedExercise": [
+          "Trace the advised use case",
+          "Test rollback against the database"
+        ],
+        "independentExercise": "Compare a working boundary with a self-invocation mistake.",
+        "recallQuestions": [
+          "Which exceptions trigger rollback under your policy?",
+          "What does this transaction not cover?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Partial database changes roll back on specified failures",
+        "The real proxy and database path is tested"
+      ],
+      "resources": [
+        {
+          "title": "Spring: transaction management",
+          "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction.html"
+        }
       ]
     },
     {
       "id": "spring-boot-spring-mvc",
       "title": "Spring MVC",
-      "description": "Trace a request through routing, binding, and controller invocation.",
+      "description": "Spring MVC routes requests, binds inputs, and invokes handlers.",
       "learningGoals": [
-        "Trace a request through routing, binding, and controller invocation.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Transport concerns stay in the controller",
+        "The service remains independently testable"
       ],
       "concepts": [
-        "Spring MVC",
-        "Valid state",
-        "Failure behavior"
+        "Dispatch",
+        "Binding",
+        "Controller boundaries"
       ],
       "examples": [
-        "Apply spring mvc to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "POST redeems a coupon code from the path."
       ],
       "tasks": [
         {
@@ -380,23 +829,55 @@
       ],
       "dependencies": [
         "spring-boot-transactional"
+      ],
+      "material": {
+        "explanation": "Spring MVC routes requests, binds inputs, and invokes handlers. Keep the controller focused on transport concerns and delegate the use case. Follow a request from routing through validation to response rather than treating annotations as magic.",
+        "workedExample": {
+          "scenario": "POST redeems a coupon code from the path.",
+          "steps": [
+            "Bind the request and identify the caller.",
+            "Invoke the application service and translate its result."
+          ]
+        },
+        "commonMistakes": [
+          "A controller should not own persistence and all domain rules."
+        ],
+        "guidedExercise": [
+          "Trace routing and binding",
+          "Identify controller versus use-case duties"
+        ],
+        "independentExercise": "Implement one coupon endpoint against an already-tested service.",
+        "recallQuestions": [
+          "What happens before handler invocation?",
+          "Which rules belong below the controller?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Transport concerns stay in the controller",
+        "The service remains independently testable"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-validation",
       "title": "Validation",
-      "description": "Reject invalid inputs at the HTTP boundary before domain work.",
+      "description": "Validate input shape and simple transport constraints before domain work.",
       "learningGoals": [
-        "Reject invalid inputs at the HTTP boundary before domain work.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Invalid requests never reach unsafe domain work",
+        "Direct domain calls preserve invariants"
       ],
       "concepts": [
-        "Validation",
-        "Valid state",
-        "Failure behavior"
+        "DTO constraints",
+        "Domain rules",
+        "Boundary errors"
       ],
       "examples": [
-        "Apply validation to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A redemption request contains a negative amount."
       ],
       "tasks": [
         {
@@ -414,23 +895,55 @@
       ],
       "dependencies": [
         "spring-boot-spring-mvc"
+      ],
+      "material": {
+        "explanation": "Validate input shape and simple transport constraints before domain work. Domain invariants still apply to calls from other entry points. Use a consistent error contract for invalid requests without serializing internal exceptions.",
+        "workedExample": {
+          "scenario": "A redemption request contains a negative amount.",
+          "steps": [
+            "Reject invalid transport input.",
+            "The domain also rejects invalid amounts if called directly."
+          ]
+        },
+        "commonMistakes": [
+          "DTO annotations are not the only place a business invariant should exist."
+        ],
+        "guidedExercise": [
+          "Test invalid JSON and invalid fields",
+          "Call the domain without HTTP"
+        ],
+        "independentExercise": "Separate syntactic email checks from registration uniqueness and credential policy.",
+        "recallQuestions": [
+          "What does boundary validation prove?",
+          "What must the domain enforce independently?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Invalid requests never reach unsafe domain work",
+        "Direct domain calls preserve invariants"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-exception-handling",
       "title": "Exception Handling",
-      "description": "Translate failures into stable responses without exposing internals.",
+      "description": "Translate known failures into consistent transport responses at the boundary.",
       "learningGoals": [
-        "Translate failures into stable responses without exposing internals.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Failure categories have stable public codes",
+        "Internal traces and secrets do not reach clients"
       ],
       "concepts": [
-        "Exception Handling",
-        "Valid state",
-        "Failure behavior"
+        "Failure translation",
+        "Stable codes",
+        "Safe diagnostics"
       ],
       "examples": [
-        "Apply exception handling to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Coupon redemption reports exhausted usage."
       ],
       "tasks": [
         {
@@ -448,23 +961,55 @@
       ],
       "dependencies": [
         "spring-boot-validation"
+      ],
+      "material": {
+        "explanation": "Translate known failures into consistent transport responses at the boundary. Keep domain errors independent of HTTP and avoid exposing exception messages that may contain credentials or database details. Preserve full safe diagnostics internally for unexpected failures.",
+        "workedExample": {
+          "scenario": "Coupon redemption reports exhausted usage.",
+          "steps": [
+            "Map it to the documented business error.",
+            "A database outage uses a different safe failure response."
+          ]
+        },
+        "commonMistakes": [
+          "Returning a stack trace to the client is not useful error handling."
+        ],
+        "guidedExercise": [
+          "Build a failure-to-response table",
+          "Test one expected and unexpected failure"
+        ],
+        "independentExercise": "Implement a consistent coupon error representation.",
+        "recallQuestions": [
+          "Which failure is expected business behavior?",
+          "Which details must remain internal?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Failure categories have stable public codes",
+        "Internal traces and secrets do not reach clients"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
       ]
     },
     {
       "id": "spring-boot-spring-data",
       "title": "Spring Data",
-      "description": "Explain repository implementations while keeping domain contracts explicit.",
+      "description": "Spring Data can generate repository behavior from contracts and queries.",
       "learningGoals": [
-        "Explain repository implementations while keeping domain contracts explicit.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Query behavior matches the intended contract",
+        "Concurrency-sensitive updates are verified"
       ],
       "concepts": [
-        "Spring Data",
-        "Valid state",
-        "Failure behavior"
+        "Repository implementation",
+        "Query behavior",
+        "Persistence boundaries"
       ],
       "examples": [
-        "Apply spring data to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A session query returns entities and related users."
       ],
       "tasks": [
         {
@@ -482,23 +1027,121 @@
       ],
       "dependencies": [
         "spring-boot-exception-handling"
+      ],
+      "material": {
+        "explanation": "Spring Data can generate repository behavior from contracts and queries. Understand the actual SQL and transaction semantics rather than assuming generated methods preserve a multi-step invariant. Keep domain behavior independent from persistence implementation choices.",
+        "workedExample": {
+          "scenario": "A session query returns entities and related users.",
+          "steps": [
+            "Inspect generated SQL and access patterns.",
+            "Avoid accidental extra queries while mapping the response."
+          ]
+        },
+        "commonMistakes": [
+          "Generated repositories do not make every compound update atomic."
+        ],
+        "guidedExercise": [
+          "Compare a JDBC query with its repository equivalent",
+          "Inspect emitted SQL"
+        ],
+        "independentExercise": "Implement a conditional token claim and verify affected-row semantics.",
+        "recallQuestions": [
+          "What does the framework generate?",
+          "Which use-case guarantee still needs explicit design?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Query behavior matches the intended contract",
+        "Concurrency-sensitive updates are verified"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
+      ]
+    },
+    {
+      "id": "spring-boot-persistence-mapping-and-query-costs",
+      "title": "Persistence mapping and query costs",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Persistence mapping connects Java values to stored rows.",
+      "concepts": [
+        "Entity mapping",
+        "Lazy loading",
+        "N+1 queries"
+      ],
+      "learningGoals": [
+        "The list endpoint has a measured query budget",
+        "No unplanned lazy access escapes its boundary"
+      ],
+      "examples": [
+        "List ten sessions and their owners."
+      ],
+      "material": {
+        "explanation": "Persistence mapping connects Java values to stored rows. Understand identity, relationships, fetching, and transaction-dependent access. Response DTOs should not accidentally trigger unbounded lazy loads or expose the persistence graph.",
+        "workedExample": {
+          "scenario": "List ten sessions and their owners.",
+          "steps": [
+            "Inspect whether each owner triggers another query.",
+            "Choose a query or projection matching the response."
+          ]
+        },
+        "commonMistakes": [
+          "Object navigation can perform database work that is invisible in the Java expression."
+        ],
+        "guidedExercise": [
+          "Count queries for a list endpoint",
+          "Map results inside a defined boundary"
+        ],
+        "independentExercise": "Eliminate an N+1 response without loading unrelated relationships.",
+        "recallQuestions": [
+          "When can a getter cause I/O?",
+          "What data does the response actually need?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The list endpoint has a measured query budget",
+        "No unplanned lazy access escapes its boundary"
+      ],
+      "resources": [
+        {
+          "title": "Spring Framework: core technologies",
+          "url": "https://docs.spring.io/spring-framework/reference/core.html"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-spring-data"
       ]
     },
     {
       "id": "spring-boot-spring-security",
       "title": "Spring Security",
-      "description": "Trace authentication and authorization through the filter chain.",
+      "description": "Spring Security integrates credential processing and authorization into request handling.",
       "learningGoals": [
-        "Trace authentication and authorization through the filter chain.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Protected endpoints reject missing or invalid identity",
+        "Authenticated cross-user operations are denied"
       ],
       "concepts": [
-        "Spring Security",
-        "Valid state",
-        "Failure behavior"
+        "Filter chain",
+        "Principal",
+        "Authorization rules"
       ],
       "examples": [
-        "Apply spring security to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A protected request reaches authentication filters."
       ],
       "tasks": [
         {
@@ -515,7 +1158,109 @@
         }
       ],
       "dependencies": [
-        "spring-boot-spring-data"
+        "spring-boot-persistence-mapping-and-query-costs"
+      ],
+      "material": {
+        "explanation": "Spring Security integrates credential processing and authorization into request handling. Trace its filter chain and failure paths, then connect them to your session policy. Keep security decisions explicit; framework defaults may not match your API or cookie flow.",
+        "workedExample": {
+          "scenario": "A protected request reaches authentication filters.",
+          "steps": [
+            "A principal is established or the request is rejected.",
+            "Resource ownership is checked before mutation."
+          ]
+        },
+        "commonMistakes": [
+          "A successful authentication filter does not enforce all domain ownership rules."
+        ],
+        "guidedExercise": [
+          "Trace login and a protected request",
+          "Distinguish authentication failure from access denial"
+        ],
+        "independentExercise": "Implement session ownership checks and test a cross-user request.",
+        "recallQuestions": [
+          "Where is the principal established?",
+          "Which permissions need use-case data?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Protected endpoints reject missing or invalid identity",
+        "Authenticated cross-user operations are denied"
+      ],
+      "resources": [
+        {
+          "title": "Spring Security: servlet architecture",
+          "url": "https://docs.spring.io/spring-security/reference/servlet/architecture.html"
+        }
+      ]
+    },
+    {
+      "id": "spring-boot-test-layers-and-integration-checks",
+      "title": "Test layers and integration checks",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Use the smallest test layer that proves the behavior.",
+      "concepts": [
+        "Unit tests",
+        "Web slices",
+        "Full integration"
+      ],
+      "learningGoals": [
+        "Each important boundary has an appropriate check",
+        "Small policy tests avoid framework startup"
+      ],
+      "examples": [
+        "A coupon rule is tested directly."
+      ],
+      "material": {
+        "explanation": "Use the smallest test layer that proves the behavior. Plain unit tests check policy; web tests check binding and response mapping; database and full application tests check integration boundaries. Avoid loading the entire context for every small rule.",
+        "workedExample": {
+          "scenario": "A coupon rule is tested directly.",
+          "steps": [
+            "A handler test checks invalid input mapping.",
+            "A real database test verifies rollback and uniqueness."
+          ]
+        },
+        "commonMistakes": [
+          "A mocked repository cannot prove constraints, locks, or actual SQL."
+        ],
+        "guidedExercise": [
+          "Classify three existing tests by what they prove",
+          "Add one real-boundary test"
+        ],
+        "independentExercise": "Build a test matrix for token rotation with unit, HTTP, and database cases.",
+        "recallQuestions": [
+          "What does this test actually exercise?",
+          "Which infrastructure assumption remains untested?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each important boundary has an appropriate check",
+        "Small policy tests avoid framework startup"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot: testing",
+          "url": "https://docs.spring.io/spring-boot/reference/testing/index.html"
+        },
+        {
+          "title": "Testcontainers for Java",
+          "url": "https://java.testcontainers.org/"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-spring-security"
       ]
     }
   ],
@@ -523,18 +1268,18 @@
     {
       "id": "spring-boot-coupon-api",
       "title": "Coupon API",
-      "description": "Practice the module by designing and testing coupon api.",
+      "description": "Expose a tested coupon domain through thin Spring MVC endpoints.",
       "learningGoals": [
-        "Practice the module by designing and testing coupon api.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Expose a tested coupon domain through thin Spring MVC endpoints.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Coupon API",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply coupon api to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A valid creation request produces a coupon."
       ],
       "tasks": [
         {
@@ -560,27 +1305,170 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Domain rules hold through every endpoint"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Malformed input and domain rejection use stable error contracts"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Controllers do not implement persistence or domain algorithms"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: A database integration check proves the intended atomic boundary"
         }
       ],
       "dependencies": [
-        "spring-boot-spring-security"
+        "spring-boot-test-layers-and-integration-checks"
       ],
       "requirements": [
-        "POST /coupons",
-        "POST /coupons/{code}/redeem",
-        "GET /coupons/{code}",
-        "DELETE /coupons/{code}",
-        "Controller → Application Service → Domain → Repository"
+        "POST /coupons creates a valid coupon",
+        "POST /coupons/{code}/redeem applies domain redemption rules",
+        "GET /coupons/{code} returns a stable DTO",
+        "DELETE /coupons/{code} uses a documented deactivation policy rather than ambiguous deletion",
+        "Separate Controller, Application Service, Domain, and Repository",
+        "Define validation, error mapping, transaction, and duplicate-request behavior"
       ],
-      "constraints": [],
+      "constraints": [
+        "Build the domain and its tests before the controller",
+        "Use the previously learned JDBC adapter or a justified Spring Data equivalent"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Endpoint contract and test-layer matrix"
+      ],
+      "material": {
+        "explanation": "The objective is connecting tested behavior to HTTP without moving rules into controllers. Keep DTOs separate from storage entities. Explain exactly what the deletion endpoint means and how a repeated request affects state.",
+        "workedExample": {
+          "scenario": "A valid creation request produces a coupon.",
+          "steps": [
+            "An invalid discount fails before persistence.",
+            "A redemption rejected by the domain becomes the documented API failure."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Implement domain tests and the repository contract.",
+          "Wire the use case through configuration.",
+          "Add one endpoint and boundary tests at a time."
+        ],
+        "independentExercise": "Run a database rollback case and inspect SQL for the GET path before claiming the API is complete.",
+        "recallQuestions": [
+          "Which behavior is tested without Spring?",
+          "What does DELETE mean for this resource?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Domain rules hold through every endpoint",
+        "Malformed input and domain rejection use stable error contracts",
+        "Controllers do not implement persistence or domain algorithms",
+        "A database integration check proves the intended atomic boundary"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot: testing",
+          "url": "https://docs.spring.io/spring-boot/reference/testing/index.html"
+        }
+      ]
+    },
+    {
+      "id": "spring-boot-framework-boundary-tests",
+      "title": "Framework Boundary Tests",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: The matrix covers transport, policy, and persistence guarantees"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: The real transaction path is exercised"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Every test identifies what it proves and what remains outside scope"
+        }
+      ],
+      "description": "Prove the behavior that annotations and mocks cannot establish alone.",
+      "learningGoals": [
+        "Prove the behavior that annotations and mocks cannot establish alone.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "A failure occurs after the first database write."
+      ],
+      "requirements": [
+        "Test malformed request binding and validation",
+        "Verify exception translation and protected endpoint rules",
+        "Run a real-database rollback test through the managed service",
+        "Demonstrate a self-invocation or manual-construction transaction bypass",
+        "Inspect one generated query path for unwanted database work"
+      ],
+      "constraints": [
+        "Use small unit or slice tests where sufficient",
+        "Use full integration only for the boundary being verified"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Evidence matrix: behavior, test layer, dependency"
+      ],
+      "material": {
+        "explanation": "Choose tests according to the guarantee you need. Mock-based HTTP tests can validate response mapping, but transaction and SQL behavior need a real integration path. Keep the matrix small enough that the purpose of every test is clear.",
+        "workedExample": {
+          "scenario": "A failure occurs after the first database write.",
+          "steps": [
+            "Calling the managed service rolls back both writes under its policy.",
+            "A bypassed proxy path reveals why annotation presence alone is insufficient."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Name one guarantee for each test layer.",
+          "Create a rollback integration test.",
+          "Compare a proxied and bypassed call."
+        ],
+        "independentExercise": "Find a test that loads unnecessary framework infrastructure and reduce it without losing the proven behavior.",
+        "recallQuestions": [
+          "What does this mock exclude?",
+          "Which call actually reaches the transaction proxy?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The matrix covers transport, policy, and persistence guarantees",
+        "The real transaction path is exercised",
+        "Every test identifies what it proves and what remains outside scope"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot: testing",
+          "url": "https://docs.spring.io/spring-boot/reference/testing/index.html"
+        }
+      ],
+      "dependencies": [
+        "spring-boot-test-layers-and-integration-checks"
       ]
     }
   ],
@@ -588,18 +1476,18 @@
     {
       "id": "spring-boot-refresh-token-implementation",
       "title": "Refresh Token Implementation",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Implement the designed use case from domain model to HTTP boundary.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Implement the designed use case from domain model to HTTP boundary.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "A domain unit test validates active X without Spring."
       ],
       "tasks": [
         {
@@ -625,26 +1513,104 @@
         {
           "id": "deliverable-6",
           "title": "Controller"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Domain tests run without a Spring context"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: The real adapter satisfies behavioral contract cases"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Atomic rotation, rollback, and durable reuse handling pass integration checks"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: HTTP validation and authorization cannot bypass domain rules"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: Secret handling and lost-response behavior match the design"
         }
       ],
       "dependencies": [
-        "spring-boot-spring-security"
+        "spring-boot-test-layers-and-integration-checks"
       ],
       "requirements": [
-        "Implement refresh token support",
-        "Compare new RefreshTokenService(repository, generator, hasher) with managed construction"
+        "Build Domain Model → Repository Contract → Application Service → Tests → Infrastructure → Controller",
+        "Keep domain behavior testable with manual construction",
+        "Persist hashed token state and lineage with atomic rotation",
+        "Verify real transaction and rollback behavior",
+        "Authenticate and authorize relevant HTTP requests",
+        "Use stable request DTOs and safe error translation",
+        "Implement and test the declared replay and response-loss policy"
       ],
       "constraints": [
-        "Do not start from the controller"
+        "Do not start from the controller",
+        "No framework imports in plain domain policy",
+        "No raw credential logging or speculative infrastructure"
       ],
       "deliverables": [
-        "Domain Model",
-        "Repository Contract",
-        "Application Service",
-        "Tests",
-        "Infrastructure",
-        "Controller"
+        "Domain and contract unit tests",
+        "Use-case orchestration tests",
+        "Migrations and persistent adapter",
+        "Real-database rotation and rollback tests",
+        "HTTP validation and ownership tests",
+        "Configuration and manual-versus-managed construction explanation"
+      ],
+      "material": {
+        "explanation": "Reuse the domain, SQL, and security contracts from earlier modules. Framework integration should preserve those guarantees rather than replace them. Prove the critical path through managed proxies and real persistence before considering the feature complete.",
+        "workedExample": {
+          "scenario": "A domain unit test validates active X without Spring.",
+          "steps": [
+            "An integration test verifies atomic replacement through the managed service.",
+            "A boundary test rejects malformed or unauthorized HTTP work."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Implement the domain with fakes first.",
+          "Run shared contract cases against the real adapter.",
+          "Add transaction and HTTP boundary checks."
+        ],
+        "independentExercise": "Show how a manually constructed or self-invoked transactional service differs from the correctly managed path.",
+        "recallQuestions": [
+          "Which guarantee comes from the domain?",
+          "Which guarantee needs the framework and database together?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Domain tests run without a Spring context",
+        "The real adapter satisfies behavioral contract cases",
+        "Atomic rotation, rollback, and durable reuse handling pass integration checks",
+        "HTTP validation and authorization cannot bypass domain rules",
+        "Secret handling and lost-response behavior match the design"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot: testing",
+          "url": "https://docs.spring.io/spring-boot/reference/testing/index.html"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Explain manual construction and container-managed wiring",
+    "Expose tested domain behavior through thin transport boundaries",
+    "Verify the real transaction, persistence, and security integration"
+  ],
+  "completionCriteria": [
+    "The coupon API has unit and boundary checks",
+    "Rotation integration tests prove rollback and reuse policy",
+    "Configuration, SQL behavior, and framework call paths can be explained"
+  ],
+  "studyGuidance": [
+    "Follow Domain → Contract → Application Service → Tests → Infrastructure → Controller.",
+    "Use the smallest test layer that proves each guarantee.",
+    "Understand the JDBC implementation before relying on generated persistence."
   ]
 }

@@ -10,18 +10,18 @@
     {
       "id": "production-thinking-observability",
       "title": "Observability",
-      "description": "Use logs, metrics, and traces to explain system behavior.",
+      "description": "Observability provides evidence for explaining system behavior from its outputs.",
       "learningGoals": [
-        "Use logs, metrics, and traces to explain system behavior.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Signals support named operational questions",
+        "Credential values are excluded"
       ],
       "concepts": [
-        "Observability",
-        "Valid state",
-        "Failure behavior"
+        "Logs",
+        "Metrics",
+        "Traces"
       ],
       "examples": [
-        "Apply observability to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "Refresh failures rise while latency increases."
       ],
       "tasks": [
         {
@@ -37,332 +37,55 @@
           "title": "Check a boundary or failure case"
         }
       ],
-      "dependencies": []
-    },
-    {
-      "id": "production-thinking-retries",
-      "title": "Retries",
-      "description": "Retry transient failures with limits and avoid repeating unsafe side effects.",
-      "learningGoals": [
-        "Retry transient failures with limits and avoid repeating unsafe side effects.",
-        "Explain Transient failures, Backoff and Bounded attempts.",
-        "Demonstrate a valid operation and a boundary or failure case."
-      ],
-      "concepts": [
-        "Transient failures",
-        "Backoff",
-        "Bounded attempts"
-      ],
-      "examples": [
-        "A payment request times out after the provider may have charged it. Retry only with an idempotency strategy and a bounded policy."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain Retries in your own words"
+      "dependencies": [],
+      "material": {
+        "explanation": "Observability provides evidence for explaining system behavior from its outputs. Combine structured events, numerical trends, and request traces with meaningful identifiers. Decide which questions you need to answer before emitting large volumes of telemetry.",
+        "workedExample": {
+          "scenario": "Refresh failures rise while latency increases.",
+          "steps": [
+            "Use metrics to locate the trend.",
+            "Use safe logs and traces to investigate affected operations."
+          ]
         },
+        "commonMistakes": [
+          "More logs are not automatically better observability."
+        ],
+        "guidedExercise": [
+          "Choose three questions about refresh behavior",
+          "Map each to useful evidence"
+        ],
+        "independentExercise": "Design telemetry for successful, rejected, and failed rotation without raw tokens.",
+        "recallQuestions": [
+          "What question does this signal answer?",
+          "How do you distinguish rejection from outage?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Signals support named operational questions",
+        "Credential values are excluded"
+      ],
+      "resources": [
         {
-          "id": "apply",
-          "title": "Work through the example and predict the result"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case without AI implementation help"
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
         }
-      ],
-      "dependencies": [
-        "production-thinking-observability"
-      ]
-    },
-    {
-      "id": "production-thinking-idempotency",
-      "title": "Idempotency",
-      "description": "Make duplicate requests produce a stable outcome.",
-      "learningGoals": [
-        "Make duplicate requests produce a stable outcome.",
-        "Explain Request identity, Stable result and Duplicate effects.",
-        "Demonstrate a valid operation and a boundary or failure case."
-      ],
-      "concepts": [
-        "Request identity",
-        "Stable result",
-        "Duplicate effects"
-      ],
-      "examples": [
-        "Two identical refund requests with the same idempotency key should return the same result without issuing two refunds."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain Idempotency in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through the example and predict the result"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case without AI implementation help"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-retries"
-      ]
-    },
-    {
-      "id": "production-thinking-timeout",
-      "title": "Timeout",
-      "description": "Bound waiting time and distinguish a timeout from a proven failure.",
-      "learningGoals": [
-        "Bound waiting time and distinguish a timeout from a proven failure.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Timeout",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply timeout to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-idempotency"
-      ]
-    },
-    {
-      "id": "production-thinking-concurrency",
-      "title": "Concurrency",
-      "description": "Reason about simultaneous operations across threads and instances.",
-      "learningGoals": [
-        "Reason about simultaneous operations across threads and instances.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Concurrency",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply concurrency to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-timeout"
-      ]
-    },
-    {
-      "id": "production-thinking-transaction-boundaries",
-      "title": "Transaction boundaries",
-      "description": "Keep atomic changes together without holding locks during external calls.",
-      "learningGoals": [
-        "Keep atomic changes together without holding locks during external calls.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Transaction boundaries",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply transaction boundaries to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-concurrency"
-      ]
-    },
-    {
-      "id": "production-thinking-failure-recovery",
-      "title": "Failure recovery",
-      "description": "Plan recovery when a process crashes between steps.",
-      "learningGoals": [
-        "Plan recovery when a process crashes between steps.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Failure recovery",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply failure recovery to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-transaction-boundaries"
-      ]
-    },
-    {
-      "id": "production-thinking-audit-trail",
-      "title": "Audit trail",
-      "description": "Record who changed what and when without exposing secrets.",
-      "learningGoals": [
-        "Record who changed what and when without exposing secrets.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Audit trail",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply audit trail to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-failure-recovery"
-      ]
-    },
-    {
-      "id": "production-thinking-scalability",
-      "title": "Scalability",
-      "description": "Find bottlenecks and state assumptions before adding infrastructure.",
-      "learningGoals": [
-        "Find bottlenecks and state assumptions before adding infrastructure.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Scalability",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply scalability to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-audit-trail"
-      ]
-    },
-    {
-      "id": "production-thinking-security",
-      "title": "Security",
-      "description": "Identify trust boundaries and minimize sensitive data exposure.",
-      "learningGoals": [
-        "Identify trust boundaries and minimize sensitive data exposure.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
-      ],
-      "concepts": [
-        "Security",
-        "Valid state",
-        "Failure behavior"
-      ],
-      "examples": [
-        "Apply security to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
-      ],
-      "tasks": [
-        {
-          "id": "explain",
-          "title": "Explain the idea in your own words"
-        },
-        {
-          "id": "apply",
-          "title": "Work through a concrete example"
-        },
-        {
-          "id": "verify",
-          "title": "Check a boundary or failure case"
-        }
-      ],
-      "dependencies": [
-        "production-thinking-scalability"
       ]
     },
     {
       "id": "production-thinking-logging",
       "title": "Logging",
-      "description": "Log useful context and never log passwords or raw tokens.",
+      "description": "Logs record discrete events with context useful for diagnosis.",
       "learningGoals": [
-        "Log useful context and never log passwords or raw tokens.",
-        "Explain Useful context, Correlation IDs and Secret redaction.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Logs contain useful safe context",
+        "Success and failure paths redact credentials"
       ],
       "concepts": [
-        "Useful context",
-        "Correlation IDs",
-        "Secret redaction"
+        "Structured events",
+        "Correlation",
+        "Redaction"
       ],
       "examples": [
-        "Log the session ID, outcome, and request correlation ID. Never log passwords, raw refresh tokens, or authorization headers."
+        "A refresh attempt is rejected for reuse."
       ],
       "tasks": [
         {
@@ -379,26 +102,56 @@
         }
       ],
       "dependencies": [
-        "production-thinking-security"
+        "production-thinking-observability"
+      ],
+      "material": {
+        "explanation": "Logs record discrete events with context useful for diagnosis. Prefer stable fields, safe identifiers, and explicit outcomes. Never log passwords, raw tokens, or unrestricted request bodies; useful diagnostics must respect secret boundaries.",
+        "workedExample": {
+          "scenario": "A refresh attempt is rejected for reuse.",
+          "steps": [
+            "Log session ID, reason, and correlation ID.",
+            "Omit the presented token and Authorization header."
+          ]
+        },
+        "commonMistakes": [
+          "Debug logging can still leak credentials even if normal logs are safe."
+        ],
+        "guidedExercise": [
+          "Define allowed and forbidden fields",
+          "Inspect a sample failure event"
+        ],
+        "independentExercise": "Audit success and failure logs for accidental secret inclusion.",
+        "recallQuestions": [
+          "Which identifier can safely correlate events?",
+          "What must never be logged?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Logs contain useful safe context",
+        "Success and failure paths redact credentials"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
       ]
     },
     {
       "id": "production-thinking-metrics",
       "title": "Metrics",
-      "description": "Measure latency, traffic, errors, and resource saturation.",
+      "description": "Metrics summarize behavior over time.",
       "learningGoals": [
-        "Measure latency, traffic, errors, and resource saturation.",
-        "Explain Traffic, Error rate, Latency and Saturation.",
-        "Demonstrate a valid operation and a boundary or failure case."
+        "Metric dimensions have bounded values",
+        "Latency and failure categories support investigation"
       ],
       "concepts": [
-        "Traffic",
-        "Error rate",
-        "Latency",
-        "Saturation"
+        "Rates",
+        "Latency distributions",
+        "Cardinality"
       ],
       "examples": [
-        "Measure refresh success and rejection counts plus latency. Avoid per-user labels that create unbounded metric cardinality."
+        "Record refresh outcomes by a small reason set."
       ],
       "tasks": [
         {
@@ -416,6 +169,900 @@
       ],
       "dependencies": [
         "production-thinking-logging"
+      ],
+      "material": {
+        "explanation": "Metrics summarize behavior over time. Track traffic, error rates, latency, and saturation with bounded label sets. High-cardinality labels such as arbitrary user or token IDs can make metric storage expensive and difficult to query.",
+        "workedExample": {
+          "scenario": "Record refresh outcomes by a small reason set.",
+          "steps": [
+            "Count success and rejection.",
+            "Track duration without a per-user label."
+          ]
+        },
+        "commonMistakes": [
+          "Every identifier is not a suitable metric dimension."
+        ],
+        "guidedExercise": [
+          "Choose counters and latency measurements",
+          "Review label cardinality"
+        ],
+        "independentExercise": "Define one useful alert and explain what investigation follows it.",
+        "recallQuestions": [
+          "Why can user-ID labels be costly?",
+          "What does an average latency hide?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Metric dimensions have bounded values",
+        "Latency and failure categories support investigation"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-retries",
+      "title": "Retries",
+      "description": "Retry only when failure may be transient and repeating the action is safe under its contract.",
+      "learningGoals": [
+        "Retries cannot create extra effects",
+        "Attempt and time budgets are explicit"
+      ],
+      "concepts": [
+        "Transient failures",
+        "Backoff",
+        "Attempt limits"
+      ],
+      "examples": [
+        "A dependency times out after possibly accepting a request."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Retries in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-metrics"
+      ],
+      "material": {
+        "explanation": "Retry only when failure may be transient and repeating the action is safe under its contract. Use a total deadline, bounded attempts, and backoff. Multiple retrying layers can multiply load and make an outage worse.",
+        "workedExample": {
+          "scenario": "A dependency times out after possibly accepting a request.",
+          "steps": [
+            "Consult the idempotency contract.",
+            "Retry within a bounded budget or reconcile the uncertain outcome."
+          ]
+        },
+        "commonMistakes": [
+          "Timeout does not prove the action was never performed."
+        ],
+        "guidedExercise": [
+          "Classify retryable and nonretryable failures",
+          "Calculate the total attempt budget"
+        ],
+        "independentExercise": "Design a bounded notification retry without duplicate business effects.",
+        "recallQuestions": [
+          "Which failures justify retry?",
+          "What happens when every layer retries?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Retries cannot create extra effects",
+        "Attempt and time budgets are explicit"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-idempotency",
+      "title": "Idempotency",
+      "description": "Production idempotency must work across concurrent callers and relevant instances.",
+      "learningGoals": [
+        "Concurrent duplicates produce one effect",
+        "Crash recovery and retention are specified"
+      ],
+      "concepts": [
+        "Operation keys",
+        "Stored outcomes",
+        "Concurrent duplicates"
+      ],
+      "examples": [
+        "Two callers submit refund key K."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain Idempotency in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through the example and predict the result"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case without AI implementation help"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-retries"
+      ],
+      "material": {
+        "explanation": "Production idempotency must work across concurrent callers and relevant instances. Define key ownership, payload consistency, retention, and atomic coordination with the effect. A duplicate arriving while work is in progress needs a defined outcome.",
+        "workedExample": {
+          "scenario": "Two callers submit refund key K.",
+          "steps": [
+            "One claims K atomically.",
+            "The other waits or receives a documented in-progress result."
+          ]
+        },
+        "commonMistakes": [
+          "Saving the idempotency result after the effect without an atomic plan can leave a crash gap."
+        ],
+        "guidedExercise": [
+          "Trace same-key concurrency",
+          "Define payload mismatch and retention"
+        ],
+        "independentExercise": "Implement durable reservation idempotency and inject a crash around result storage.",
+        "recallQuestions": [
+          "What ties the key to the effect?",
+          "What happens during in-progress work?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Concurrent duplicates produce one effect",
+        "Crash recovery and retention are specified"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-timeout",
+      "title": "Timeout",
+      "description": "A timeout limits how long a caller waits; it does not necessarily cancel remote work.",
+      "learningGoals": [
+        "Total waiting is bounded",
+        "Late completion cannot create an unhandled duplicate effect"
+      ],
+      "concepts": [
+        "Deadline budgets",
+        "Cancellation limits",
+        "Uncertain outcomes"
+      ],
+      "examples": [
+        "A remote charge finishes after the caller times out."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-idempotency"
+      ],
+      "material": {
+        "explanation": "A timeout limits how long a caller waits; it does not necessarily cancel remote work. Allocate a total request budget across dependencies and retries. Distinguish a local timeout from a confirmed remote rejection and plan reconciliation when needed.",
+        "workedExample": {
+          "scenario": "A remote charge finishes after the caller times out.",
+          "steps": [
+            "The caller cannot assume no charge occurred.",
+            "A lookup or idempotent retry resolves the outcome."
+          ]
+        },
+        "commonMistakes": [
+          "Increasing every timeout can hide a bottleneck while exhausting capacity."
+        ],
+        "guidedExercise": [
+          "Divide a total latency budget",
+          "Trace a late response"
+        ],
+        "independentExercise": "Design timeout behavior for a notification dependency without holding database locks.",
+        "recallQuestions": [
+          "What work may continue after timeout?",
+          "How is uncertainty resolved?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Total waiting is bounded",
+        "Late completion cannot create an unhandled duplicate effect"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-concurrency",
+      "title": "Concurrency",
+      "description": "Concurrency includes overlapping work inside one process and across multiple instances.",
+      "learningGoals": [
+        "The invariant holds across instances",
+        "Local-only guarantees are labeled explicitly"
+      ],
+      "concepts": [
+        "Threads",
+        "Processes",
+        "Distributed state"
+      ],
+      "examples": [
+        "Two application instances rotate token X."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-timeout"
+      ],
+      "material": {
+        "explanation": "Concurrency includes overlapping work inside one process and across multiple instances. Identify which authority owns shared state, then choose coordination at that boundary. A Java lock protects only cooperating threads in its process.",
+        "workedExample": {
+          "scenario": "Two application instances rotate token X.",
+          "steps": [
+            "Both can acquire their own local lock.",
+            "The database must arbitrate the shared claim."
+          ]
+        },
+        "commonMistakes": [
+          "A process-local lock is not a distributed guarantee."
+        ],
+        "guidedExercise": [
+          "Draw a two-instance interleaving",
+          "Name the authoritative state"
+        ],
+        "independentExercise": "Run the rotation race against shared persistence using two service instances.",
+        "recallQuestions": [
+          "Who coordinates competing writes?",
+          "What assumptions change with another instance?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The invariant holds across instances",
+        "Local-only guarantees are labeled explicitly"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-transaction-boundaries",
+      "title": "Transaction boundaries",
+      "description": "Choose a transaction boundary around changes that must commit together.",
+      "learningGoals": [
+        "Atomic changes share a boundary",
+        "External effects have a documented recovery plan"
+      ],
+      "concepts": [
+        "Atomic state",
+        "External effects",
+        "Short lock scope"
+      ],
+      "examples": [
+        "Commit a reservation and durable notification intent."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-concurrency"
+      ],
+      "material": {
+        "explanation": "Choose a transaction boundary around changes that must commit together. External network effects need a separate failure strategy because the database cannot undo them. Keep lock duration short while preserving domain atomicity.",
+        "workedExample": {
+          "scenario": "Commit a reservation and durable notification intent.",
+          "steps": [
+            "Send the notification afterward.",
+            "Track and retry delivery separately."
+          ]
+        },
+        "commonMistakes": [
+          "Calling a remote service inside a transaction does not make the remote effect transactional."
+        ],
+        "guidedExercise": [
+          "Separate database and external effects",
+          "Identify the crash gaps"
+        ],
+        "independentExercise": "Specify when durable delivery intent is needed and when a simple retry suffices.",
+        "recallQuestions": [
+          "Which effects can roll back together?",
+          "When is an outbox justified?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Atomic changes share a boundary",
+        "External effects have a documented recovery plan"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-failure-recovery",
+      "title": "Failure recovery",
+      "description": "Recovery starts by asking what durable evidence remains after interruption.",
+      "learningGoals": [
+        "Each crash point has an explicit recovery action",
+        "Recovery preserves the business invariant"
+      ],
+      "concepts": [
+        "Crash points",
+        "Reconciliation",
+        "Durable intent"
+      ],
+      "examples": [
+        "A reservation commits before notification delivery."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-transaction-boundaries"
+      ],
+      "material": {
+        "explanation": "Recovery starts by asking what durable evidence remains after interruption. For each crash point, identify committed state and the next safe action. Add persistent recovery mechanisms only when the feature's delivery or correctness requirements need them.",
+        "workedExample": {
+          "scenario": "A reservation commits before notification delivery.",
+          "steps": [
+            "The reservation remains valid.",
+            "A durable pending record allows later delivery if guaranteed notification is required."
+          ]
+        },
+        "commonMistakes": [
+          "An in-memory retry list disappears with the process."
+        ],
+        "guidedExercise": [
+          "Mark crash points in a sequence",
+          "List durable state at each point"
+        ],
+        "independentExercise": "Restart a worker after injected failure and verify safe recovery.",
+        "recallQuestions": [
+          "What survives the crash?",
+          "Which action is safe to repeat?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each crash point has an explicit recovery action",
+        "Recovery preserves the business invariant"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-audit-trail",
+      "title": "Audit trail",
+      "description": "An audit trail records meaningful state-changing actions for accountability.",
+      "learningGoals": [
+        "Committed actions have traceable safe records",
+        "Retention and integrity requirements are explicit"
+      ],
+      "concepts": [
+        "Actor",
+        "Action",
+        "Durable history"
+      ],
+      "examples": [
+        "U1 revokes session S1."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-failure-recovery"
+      ],
+      "material": {
+        "explanation": "An audit trail records meaningful state-changing actions for accountability. Define who acted, what changed, when, and the outcome with safe identifiers. Operational debug logs and business audit records have different retention and integrity needs.",
+        "workedExample": {
+          "scenario": "U1 revokes session S1.",
+          "steps": [
+            "Record actor, session, timestamp, and result.",
+            "Do not retain the raw credential as evidence."
+          ]
+        },
+        "commonMistakes": [
+          "Logging a message is not automatically a reliable audit trail."
+        ],
+        "guidedExercise": [
+          "Design a revocation audit record",
+          "Define persistence and retention"
+        ],
+        "independentExercise": "Explain how an audit event stays consistent with a committed state change.",
+        "recallQuestions": [
+          "What makes the record useful for accountability?",
+          "Which personal or secret data is unnecessary?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Committed actions have traceable safe records",
+        "Retention and integrity requirements are explicit"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-scalability",
+      "title": "Scalability",
+      "description": "Scalability asks how the system behaves as traffic or data grows.",
+      "learningGoals": [
+        "Scale decisions follow measurements",
+        "State and coordination assumptions are explicit"
+      ],
+      "concepts": [
+        "Bottlenecks",
+        "State ownership",
+        "Measured change"
+      ],
+      "examples": [
+        "One instance stores rate limits in memory."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-audit-trail"
+      ],
+      "material": {
+        "explanation": "Scalability asks how the system behaves as traffic or data grows. Measure the limiting resource before adding infrastructure. Moving from one instance to several changes assumptions about memory, locks, timers, and job ownership.",
+        "workedExample": {
+          "scenario": "One instance stores rate limits in memory.",
+          "steps": [
+            "A second instance doubles independent allowances.",
+            "A shared enforcement design is needed if the original global rule must hold."
+          ]
+        },
+        "commonMistakes": [
+          "Adding replicas can change correctness, not only capacity."
+        ],
+        "guidedExercise": [
+          "List single-instance assumptions",
+          "Identify a measurable bottleneck"
+        ],
+        "independentExercise": "Explain which auth state must be shared before running two instances.",
+        "recallQuestions": [
+          "What resource limits throughput?",
+          "Which invariant changes with replication?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Scale decisions follow measurements",
+        "State and coordination assumptions are explicit"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-security",
+      "title": "Security",
+      "description": "Security begins with identifying untrusted inputs, protected assets, and allowed authority.",
+      "learningGoals": [
+        "Threats map to specific controls and tests",
+        "Privileges and secret exposure are minimized"
+      ],
+      "concepts": [
+        "Trust boundaries",
+        "Least privilege",
+        "Threat modeling"
+      ],
+      "examples": [
+        "A caller supplies another user's session ID."
+      ],
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the idea in your own words"
+        },
+        {
+          "id": "apply",
+          "title": "Work through a concrete example"
+        },
+        {
+          "id": "verify",
+          "title": "Check a boundary or failure case"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-scalability"
+      ],
+      "material": {
+        "explanation": "Security begins with identifying untrusted inputs, protected assets, and allowed authority. Apply least privilege and defense in depth rather than one universal control. Revisit the model after adding a new dependency, deployment boundary, or credential type.",
+        "workedExample": {
+          "scenario": "A caller supplies another user's session ID.",
+          "steps": [
+            "Treat the ID as untrusted input.",
+            "Authorize ownership using the authenticated principal."
+          ]
+        },
+        "commonMistakes": [
+          "A framework dependency does not supply your complete threat model."
+        ],
+        "guidedExercise": [
+          "Draw trust boundaries and secret flows",
+          "Identify one abuse case per boundary"
+        ],
+        "independentExercise": "Review the auth service for enumeration, replay, cross-user access, and credential leakage.",
+        "recallQuestions": [
+          "Which asset is at risk?",
+          "What authority does this component actually need?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Threats map to specific controls and tests",
+        "Privileges and secret exposure are minimized"
+      ],
+      "resources": [
+        {
+          "title": "OWASP: authorization",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        },
+        {
+          "title": "OWASP: authentication",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-deployment-and-configuration",
+      "title": "Deployment and configuration",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Deployment should run a reproducible artifact with validated environment-specific configuration.",
+      "concepts": [
+        "Reproducible artifacts",
+        "Environment settings",
+        "Safe startup"
+      ],
+      "learningGoals": [
+        "The artifact runs outside the development IDE",
+        "Secrets are supplied safely and invalid settings fail early"
+      ],
+      "examples": [
+        "Build an auth-service artifact."
+      ],
+      "material": {
+        "explanation": "Deployment should run a reproducible artifact with validated environment-specific configuration. Keep real secrets out of source and images, and distinguish building from running. A successful local launch does not prove the deployment has correct permissions or dependencies.",
+        "workedExample": {
+          "scenario": "Build an auth-service artifact.",
+          "steps": [
+            "Supply database and signing configuration at runtime.",
+            "Reject missing required values before serving traffic."
+          ]
+        },
+        "commonMistakes": [
+          "Copying your local environment file into an image can expose production credentials."
+        ],
+        "guidedExercise": [
+          "Document build and runtime commands",
+          "List secret and nonsecret settings"
+        ],
+        "independentExercise": "Run the service from a clean environment with a local database and migrations.",
+        "recallQuestions": [
+          "What is fixed in the artifact?",
+          "Which configuration should fail startup?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The artifact runs outside the development IDE",
+        "Secrets are supplied safely and invalid settings fail early"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot reference",
+          "url": "https://docs.spring.io/spring-boot/reference/index.html"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-security"
+      ]
+    },
+    {
+      "id": "production-thinking-health-checks-and-graceful-shutdown",
+      "title": "Health checks and graceful shutdown",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Health checks answer specific operational questions.",
+      "concepts": [
+        "Liveness",
+        "Readiness",
+        "In-flight work"
+      ],
+      "learningGoals": [
+        "Health signals have distinct purposes",
+        "Shutdown and incomplete work have bounded outcomes"
+      ],
+      "examples": [
+        "An instance starts before database readiness."
+      ],
+      "material": {
+        "explanation": "Health checks answer specific operational questions. Liveness concerns whether restart may help; readiness concerns whether an instance should accept traffic. On shutdown, stop accepting work and handle in-flight operations within a bounded policy.",
+        "workedExample": {
+          "scenario": "An instance starts before database readiness.",
+          "steps": [
+            "Keep it out of normal traffic until ready.",
+            "Do not expose sensitive health details publicly."
+          ]
+        },
+        "commonMistakes": [
+          "Treating every dependency outage as liveness failure can cause restart loops."
+        ],
+        "guidedExercise": [
+          "Define liveness and readiness separately",
+          "Specify shutdown behavior"
+        ],
+        "independentExercise": "Observe an in-flight request during service shutdown and record its outcome.",
+        "recallQuestions": [
+          "When should traffic stop?",
+          "When would restart make matters worse?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Health signals have distinct purposes",
+        "Shutdown and incomplete work have bounded outcomes"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot: Actuator endpoints",
+          "url": "https://docs.spring.io/spring-boot/reference/actuator/endpoints.html"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-deployment-and-configuration"
+      ]
+    },
+    {
+      "id": "production-thinking-capacity-limits-and-backpressure",
+      "title": "Capacity limits and backpressure",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "Bound resources such as connection pools, worker queues, and pending requests.",
+      "concepts": [
+        "Bounded queues",
+        "Admission control",
+        "Resource saturation"
+      ],
+      "learningGoals": [
+        "Pending work remains bounded",
+        "Overload produces a deliberate response"
+      ],
+      "examples": [
+        "A worker queue reaches its limit."
+      ],
+      "material": {
+        "explanation": "Bound resources such as connection pools, worker queues, and pending requests. Backpressure slows or rejects admission when capacity is exhausted instead of accumulating unbounded work. Decide which response and retry advice clients receive.",
+        "workedExample": {
+          "scenario": "A worker queue reaches its limit.",
+          "steps": [
+            "Reject or defer admission under policy.",
+            "Keep memory bounded while processing existing jobs."
+          ]
+        },
+        "commonMistakes": [
+          "An unbounded queue turns overload into delayed failure and memory exhaustion."
+        ],
+        "guidedExercise": [
+          "Identify every unbounded collection or queue",
+          "Choose a capacity and rejection policy"
+        ],
+        "independentExercise": "Load a small worker beyond capacity and measure queue size and latency.",
+        "recallQuestions": [
+          "What resource saturates first?",
+          "How should a caller react to rejection?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Pending work remains bounded",
+        "Overload produces a deliberate response"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-health-checks-and-graceful-shutdown"
+      ]
+    },
+    {
+      "id": "production-thinking-operational-failure-drills",
+      "title": "Operational failure drills",
+      "tasks": [
+        {
+          "id": "explain",
+          "title": "Explain the concept without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Complete the guided exercise"
+        },
+        {
+          "id": "verify",
+          "title": "Verify the independent exercise"
+        }
+      ],
+      "description": "A failure drill deliberately injects a known disruption and checks both behavior and recovery.",
+      "concepts": [
+        "Reproduction",
+        "Evidence",
+        "Recovery verification"
+      ],
+      "learningGoals": [
+        "Injected failures preserve stated invariants",
+        "The recovered system completes a new valid operation"
+      ],
+      "examples": [
+        "Stop the database during an operation."
+      ],
+      "material": {
+        "explanation": "A failure drill deliberately injects a known disruption and checks both behavior and recovery. State the expected invariant before the drill, capture safe evidence, and verify the system can resume useful work. Do not rely on a happy-path smoke test alone.",
+        "workedExample": {
+          "scenario": "Stop the database during an operation.",
+          "steps": [
+            "Observe the safe response and incomplete work.",
+            "Restore it and check state plus recovery."
+          ]
+        },
+        "commonMistakes": [
+          "An error log alone does not prove recovery succeeded."
+        ],
+        "guidedExercise": [
+          "Choose duplicate, timeout, and crash drills",
+          "State expected outcomes before execution"
+        ],
+        "independentExercise": "Run three local drills and write a short incident-style report.",
+        "recallQuestions": [
+          "Which invariant must survive?",
+          "What observation proves recovery?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Injected failures preserve stated invariants",
+        "The recovered system completes a new valid operation"
+      ],
+      "resources": [
+        {
+          "title": "OpenTelemetry: observability concepts",
+          "url": "https://opentelemetry.io/docs/concepts/observability-primer/"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-capacity-limits-and-backpressure"
       ]
     }
   ],
@@ -423,18 +1070,18 @@
     {
       "id": "production-thinking-failure-walkthrough",
       "title": "Failure Walkthrough",
-      "description": "Practice the module by designing and testing failure walkthrough.",
+      "description": "Turn operational questions into local, observable failure drills.",
       "learningGoals": [
-        "Practice the module by designing and testing failure walkthrough.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Turn operational questions into local, observable failure drills.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Failure Walkthrough",
-        "Valid state",
-        "Failure behavior"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Apply failure walkthrough to a session, coupon, or token lifecycle. Compare a successful operation with one that must be rejected."
+        "A rotation transaction fails after its first write."
       ],
       "tasks": [
         {
@@ -468,29 +1115,177 @@
         {
           "id": "failure-tests",
           "title": "Check boundary and failure cases"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: Predicted invariants are compared with observed state"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Duplicate and concurrent actions do not add extra effects"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Timeout uncertainty is handled explicitly"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Recovery is followed by a successful new operation"
         }
       ],
       "dependencies": [
-        "production-thinking-metrics"
+        "production-thinking-operational-failure-drills"
       ],
       "requirements": [
-        "What if the request happens twice?",
+        "What if a request happens twice?",
         "What if the database dies halfway?",
         "What if an external API times out?",
         "What if the application crashes?",
-        "What if multiple application instances execute this?",
-        "What should be logged?",
-        "What should never be logged?"
+        "What if two instances execute the operation?",
+        "Specify safe logging and metrics for each outcome",
+        "Identify the durable state and safe recovery action after each interruption"
       ],
-      "constraints": [],
+      "constraints": [
+        "Run locally with disposable data",
+        "No production disruption or extra infrastructure required"
+      ],
       "deliverables": [
-        "Requirements",
-        "Rules",
-        "Data model",
-        "Algorithm",
-        "Responsibilities",
-        "Failure cases",
-        "Tests"
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Failure timeline and observed evidence"
+      ],
+      "material": {
+        "explanation": "Write predicted outcomes before injecting failures. The report should separate business rejection, partial execution prevented by transactions, and external uncertainty. Recovery is complete only when state is consistent and new valid work succeeds.",
+        "workedExample": {
+          "scenario": "A rotation transaction fails after its first write.",
+          "steps": [
+            "The invariant predicts no committed child and an unchanged parent.",
+            "The database check verifies that prediction after rollback."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Choose a feature and mark side-effect boundaries.",
+          "Inject one failure at each important boundary.",
+          "Restore dependencies and submit a new valid request."
+        ],
+        "independentExercise": "Run a lost-response scenario and explain why the retry follows the security policy rather than creating a second child.",
+        "recallQuestions": [
+          "What survives each failure?",
+          "Which observation proves recovery?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Predicted invariants are compared with observed state",
+        "Duplicate and concurrent actions do not add extra effects",
+        "Timeout uncertainty is handled explicitly",
+        "Recovery is followed by a successful new operation"
+      ],
+      "resources": [
+        {
+          "title": "PostgreSQL: transaction isolation",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+        }
+      ]
+    },
+    {
+      "id": "production-thinking-local-deployment-runbook",
+      "title": "Local Deployment Runbook",
+      "tasks": [
+        {
+          "id": "acceptance-1",
+          "title": "Verify: The documented clean-start path works"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: Invalid required settings fail before accepting traffic"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: No real credentials appear in source, artifact, or logs"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Health and shutdown behavior match the runbook"
+        }
+      ],
+      "description": "Run the final service outside the IDE with safe configuration and health behavior.",
+      "learningGoals": [
+        "Run the final service outside the IDE with safe configuration and health behavior.",
+        "Demonstrate the acceptance criteria with observable evidence."
+      ],
+      "concepts": [
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
+      ],
+      "examples": [
+        "Start from a clean checkout and an empty local database."
+      ],
+      "requirements": [
+        "Build a reproducible service artifact",
+        "Run locally with PostgreSQL and migrations",
+        "Supply secrets outside tracked source and the artifact",
+        "Document required configuration and safe startup failures",
+        "Expose controlled health behavior and observe shutdown",
+        "Describe how to back up local test data and start from a clean environment"
+      ],
+      "constraints": [
+        "The roadmap app itself gains no backend",
+        "No cloud account, Kubernetes, Redis, or broker needed"
+      ],
+      "deliverables": [
+        "Requirement and decision table",
+        "Data and invariants",
+        "Algorithm and responsibilities",
+        "Working solution or design, as specified",
+        "Tests or acceptance-case table",
+        "Reflection and AI assistance record",
+        "Build, run, migrate, diagnose, and stop commands"
+      ],
+      "material": {
+        "explanation": "A runbook turns implicit setup knowledge into a repeatable local operation. Treat configuration errors and graceful stop as testable behaviors. The task is a working small deployment, not a collection of speculative platform components.",
+        "workedExample": {
+          "scenario": "Start from a clean checkout and an empty local database.",
+          "steps": [
+            "Build, configure, and migrate before serving requests.",
+            "Remove a required setting and verify a clear safe startup failure."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "List required and optional settings.",
+          "Run the artifact without the IDE.",
+          "Observe readiness and an in-flight request during shutdown."
+        ],
+        "independentExercise": "Have a fresh shell follow the runbook and record every hidden assumption you discover.",
+        "recallQuestions": [
+          "What secrets are outside the artifact?",
+          "What evidence shows the process is ready?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The documented clean-start path works",
+        "Invalid required settings fail before accepting traffic",
+        "No real credentials appear in source, artifact, or logs",
+        "Health and shutdown behavior match the runbook"
+      ],
+      "resources": [
+        {
+          "title": "Spring Boot reference",
+          "url": "https://docs.spring.io/spring-boot/reference/index.html"
+        }
+      ],
+      "dependencies": [
+        "production-thinking-operational-failure-drills"
       ]
     }
   ],
@@ -498,18 +1293,18 @@
     {
       "id": "production-thinking-authentication-service",
       "title": "Authentication Service",
-      "description": "Apply the whole module in a deliberate design-first challenge.",
+      "description": "Ship a locally runnable auth service and prove it survives the important failure cases.",
       "learningGoals": [
-        "Apply the whole module in a deliberate design-first challenge.",
-        "Explain the tradeoffs and demonstrate one failure or boundary case."
+        "Ship a locally runnable auth service and prove it survives the important failure cases.",
+        "Demonstrate the acceptance criteria with observable evidence."
       ],
       "concepts": [
-        "Requirements and rules",
-        "State and responsibilities",
-        "Failure cases and verification"
+        "Requirements and invariants",
+        "State changes and responsibilities",
+        "Verification and failure behavior"
       ],
       "examples": [
-        "Write down one valid scenario and one failure scenario before designing the algorithm. Trace how the state changes in each."
+        "U1 registers, logs in, accesses its own API, and rotates X into Y."
       ],
       "tasks": [
         {
@@ -539,41 +1334,133 @@
         {
           "id": "deliverable-7",
           "title": "Failure recovery and observability plan"
+        },
+        {
+          "id": "acceptance-1",
+          "title": "Verify: A clean checkout builds, migrates, runs, and tests through documented commands"
+        },
+        {
+          "id": "acceptance-2",
+          "title": "Verify: All required flows work with safe failure responses"
+        },
+        {
+          "id": "acceptance-3",
+          "title": "Verify: Passwords use a vetted scheme and raw passwords/tokens never persist or enter logs"
+        },
+        {
+          "id": "acceptance-4",
+          "title": "Verify: Access JWT validation checks the declared algorithm, key, issuer, audience, and time policy"
+        },
+        {
+          "id": "acceptance-5",
+          "title": "Verify: One parent cannot create two committed replacement tokens"
+        },
+        {
+          "id": "acceptance-6",
+          "title": "Verify: Replay revocation remains durable after the public rejection"
+        },
+        {
+          "id": "acceptance-7",
+          "title": "Verify: Cross-user access and revocation are forbidden"
+        },
+        {
+          "id": "acceptance-8",
+          "title": "Verify: Expiry, duplicate, concurrent, rollback, and lost-response cases have evidence"
+        },
+        {
+          "id": "acceptance-9",
+          "title": "Verify: Health, configuration, and shutdown behavior match the runbook"
+        },
+        {
+          "id": "acceptance-10",
+          "title": "Verify: Local drills preserve invariants and demonstrate recovery"
         }
       ],
       "dependencies": [
-        "production-thinking-metrics"
+        "production-thinking-operational-failure-drills"
       ],
       "requirements": [
-        "Register",
-        "Login",
-        "Access Token Issuance",
-        "Refresh Token Issuance",
-        "Refresh Token Rotation",
-        "Refresh Token Family",
-        "Reuse Detection",
-        "Session Revocation",
-        "Logout",
-        "Logout All Sessions"
+        "Register and login using a vetted password verifier",
+        "Issue short-lived signed access JWTs with explicit validation policy",
+        "Issue secure opaque refresh tokens and persist hashes only",
+        "Implement rotation, token family, reuse detection, session revocation, logout, and logout-all",
+        "Enforce session ownership using the authenticated principal",
+        "Implement absolute expiry, abuse limits, and safe generic credential failures",
+        "Document access-JWT revocation limitations and lost-refresh-response recovery",
+        "Produce migrations, safe diagnostics, health behavior, and a local runbook"
       ],
       "constraints": [
         "Java, Spring Boot, PostgreSQL, Flyway, JUnit, Testcontainers",
-        "Opaque refresh tokens",
-        "Hashed refresh token storage",
-        "Short-lived JWT access tokens",
-        "Secure random generation",
-        "Transactional rotation",
-        "Do not add Redis initially"
+        "No Redis, broker, Kubernetes, social login, or full OAuth server initially",
+        "Use established security libraries; do not implement signing or password hashing primitives",
+        "Run drills locally with disposable data"
       ],
       "deliverables": [
-        "Requirements and rules",
+        "Requirements, policies, and threat model",
         "Data model and migrations",
-        "Algorithm and responsibilities",
-        "Implementation",
-        "Unit and integration tests",
-        "Concurrency tests",
-        "Failure recovery and observability plan"
+        "Algorithms, responsibility table, and API contracts",
+        "Working implementation",
+        "Unit, HTTP, database, and concurrent tests",
+        "Local build and deployment runbook",
+        "Failure-drill report and recovery evidence",
+        "Final explain-without-notes review"
+      ],
+      "material": {
+        "explanation": "The final project integrates the existing modules rather than adding a new architecture. Complete one coherent vertical slice at a time: registration, login, protected access, refresh, then revocation and failure recovery. Each slice must demonstrate its stated security and persistence guarantees.",
+        "workedExample": {
+          "scenario": "U1 registers, logs in, accesses its own API, and rotates X into Y.",
+          "steps": [
+            "Replaying X triggers the declared family policy.",
+            "Logout-all revokes U1 sessions while sessions of another user remain untouched."
+          ]
+        },
+        "commonMistakes": [
+          "Do not treat a successful demonstration as proof of all rules. Explain rejection behavior and show state after failure."
+        ],
+        "guidedExercise": [
+          "Start with a minimal register/login slice and tests.",
+          "Add protected ownership checks, rotation, and revocation.",
+          "Run duplicate, competing-use, database-failure, lost-response, and shutdown drills."
+        ],
+        "independentExercise": "Run the project from a clean checkout, explain every significant class and transaction boundary, and review a foreign-session attack without consulting notes.",
+        "recallQuestions": [
+          "Why does each transaction boundary exist?",
+          "What remains uncertain after a timeout or lost response?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A clean checkout builds, migrates, runs, and tests through documented commands",
+        "All required flows work with safe failure responses",
+        "Passwords use a vetted scheme and raw passwords/tokens never persist or enter logs",
+        "Access JWT validation checks the declared algorithm, key, issuer, audience, and time policy",
+        "One parent cannot create two committed replacement tokens",
+        "Replay revocation remains durable after the public rejection",
+        "Cross-user access and revocation are forbidden",
+        "Expiry, duplicate, concurrent, rollback, and lost-response cases have evidence",
+        "Health, configuration, and shutdown behavior match the runbook",
+        "Local drills preserve invariants and demonstrate recovery"
+      ],
+      "resources": [
+        {
+          "title": "OAuth security: refresh-token protection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html"
+        }
       ]
     }
+  ],
+  "outcomes": [
+    "Identify operational risks and durable recovery actions",
+    "Bound resources and protect secrets in diagnostics",
+    "Run and explain the complete authentication service locally"
+  ],
+  "completionCriteria": [
+    "The final project runs from a clean checkout",
+    "Failure drills compare predicted invariants with observed state",
+    "Every major class, algorithm, and transaction is explainable without notes"
+  ],
+  "studyGuidance": [
+    "Run failure drills locally with disposable data.",
+    "Add durable delivery mechanisms only when actual requirements need them.",
+    "Avoid Redis, brokers, Kubernetes, and cloud setup until a measured need exists."
   ]
 }
