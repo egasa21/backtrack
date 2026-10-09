@@ -1,0 +1,2499 @@
+{
+  "id": "jvm-internals",
+  "order": 10,
+  "title": "JVM Internals, Memory & Practical Tuning",
+  "goal": "Understand how Java executes, diagnose memory and concurrency failures, and tune backend workloads using reproducible evidence.",
+  "dependencies": [
+    "java-core",
+    "production-thinking"
+  ],
+  "outcomes": [
+    "Trace source, bytecode, class loading, frames and optimized execution.",
+    "Explain heap versus stack without confusing primitive values, references and object fields.",
+    "Distinguish allocation pressure, retained leaks, native memory, stack exhaustion and OS termination.",
+    "Use GC logs, thread dumps, JFR and native-memory tracking to investigate a bounded workload.",
+    "Defend a memory budget and a single-variable tuning decision with correctness, latency and resource evidence."
+  ],
+  "studyGuidance": [
+    "Suggested pace: four to six weeks; prioritize memory areas, references, reachability and diagnostics before tuning.",
+    "Foundational lessons can be studied after Java Core; the operational investigation is best done after Production Thinking. Module completion prerequisites apply to the recommended sequence, not access to the lessons.",
+    "Use Java 25 documentation as the reference and record your actual JDK vendor, version, architecture and collector. Adjust commands to that version.",
+    "Separate JVM specification guarantees from HotSpot implementation details and measurements on your machine.",
+    "Use plain Java and local disposable processes. Set workload and time bounds; never trigger host-level exhaustion to prove a point.",
+    "Record Prediction, Runtime settings, Observation, Explanation, Uncertainty and Next experiment in existing notes.",
+    "Treat dumps and recordings as potentially sensitive; use synthetic data, limited durations and a cleanup policy.",
+    "Ask AI for one hint or an evidence review, then explain the conclusion without notes."
+  ],
+  "completionCriteria": [
+    "Explain all core runtime and memory areas with a request diagram, including aliases and primitive fields.",
+    "Finish the eight labs with runnable checks, bounded experiments and evidence-backed explanations.",
+    "Diagnose the worker capstone, correct a root cause and evaluate one justified runtime change.",
+    "Explain concurrency guarantees, measurement limitations and rollback thresholds without notes."
+  ],
+  "topics": [
+    {
+      "id": "jvm-execution",
+      "title": "From Java source to a running JVM",
+      "description": "The JDK supplies development and diagnostic tools; the JVM executes class files.",
+      "learningGoals": [
+        "Distinguish source, bytecode and native instructions.",
+        "Identify the exact JDK used in the lab."
+      ],
+      "concepts": [
+        "JDK",
+        "JVM specification",
+        "HotSpot",
+        "bytecode",
+        "interpreter",
+        "machine code"
+      ],
+      "examples": [
+        "A plain Java Main prints a calculated total."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [],
+      "material": {
+        "explanation": "The JDK supplies development and diagnostic tools; the JVM executes class files. HotSpot is one JVM implementation. javac translates source into bytecode, not necessarily the final machine instructions executed by the CPU. A running VM loads classes, manages memory and threads, and can interpret or compile methods. JVM specification concepts describe an abstract machine; actual layouts and optimizations depend on the implementation and version.",
+        "workedExample": {
+          "scenario": "A plain Java Main prints a calculated total.",
+          "steps": [
+            "Compile Main.java into Main.class and identify the entry point.",
+            "The VM loads required classes and executes main",
+            " frequently executed code may later be compiled."
+          ]
+        },
+        "commonMistakes": [
+          "One Java statement is not necessarily one bytecode or one CPU instruction."
+        ],
+        "guidedExercise": [
+          "Run java -version and javac -version",
+          " record vendor, version and architecture.",
+          "Compile and run a small program and sketch the source → class file → VM → CPU path."
+        ],
+        "independentExercise": "Explain how the same class file can run on different operating systems and what native code changes that claim.",
+        "recallQuestions": [
+          "What does javac produce?",
+          "Which responsibilities belong to HotSpot rather than the Java language?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Distinguish source, bytecode and native instructions.",
+        "Identify the exact JDK used in the lab."
+      ],
+      "resources": [
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        },
+        {
+          "title": "Java 25 javap bytecode disassembler",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javap.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-class-loading",
+      "title": "Class loading, linking and initialization",
+      "description": "Loading obtains a class representation.",
+      "learningGoals": [
+        "Explain the observed initializer order.",
+        "Separate loading, linking and initialization."
+      ],
+      "concepts": [
+        "Class loaders",
+        "verification",
+        "preparation",
+        "resolution",
+        "static initialization"
+      ],
+      "examples": [
+        "A service references Config and invokes a static method."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-execution"
+      ],
+      "material": {
+        "explanation": "Loading obtains a class representation. Linking verifies bytecode, prepares class storage, and resolves symbolic references, with resolution allowed to be lazy. Initialization executes static initializers at defined active-use points. A class identity includes its defining loader as well as its name, so two loaders can define distinct classes with the same name. Initialization has synchronization rules and can fail; static initialization is not simply performed whenever source mentions a class.",
+        "workedExample": {
+          "scenario": "A service references Config and invokes a static method.",
+          "steps": [
+            "Predict which operation first initializes Config",
+            " a compile-time constant can behave differently.",
+            "Print from static initializers and compare the actual order with the prediction."
+          ]
+        },
+        "commonMistakes": [
+          "Loading a class and initializing it are different events."
+        ],
+        "guidedExercise": [
+          "Create two classes with static initialization messages.",
+          "Compare accessing a compile-time constant, creating an instance and calling a static method."
+        ],
+        "independentExercise": "Explain a failed static initializer and distinguish ClassNotFoundException from NoClassDefFoundError using a tiny example.",
+        "recallQuestions": [
+          "Why does the defining loader affect identity?",
+          "When can initialization be triggered?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Explain the observed initializer order.",
+        "Separate loading, linking and initialization."
+      ],
+      "resources": [
+        {
+          "title": "JVM specification: loading, linking and initialization",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-bytecode",
+      "title": "Bytecode, local variables and the operand stack",
+      "description": "Each JVM frame has local variables and an operand stack.",
+      "learningGoals": [
+        "Trace one method instruction by instruction.",
+        "Explain a method call and return."
+      ],
+      "concepts": [
+        "javap",
+        "method descriptors",
+        "load/store",
+        "invoke",
+        "operand stack"
+      ],
+      "examples": [
+        "static int add(int a, int b) returns a + b."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-class-loading"
+      ],
+      "material": {
+        "explanation": "Each JVM frame has local variables and an operand stack. Bytecode loads values, performs operations, invokes methods and returns results. This operand stack is an execution model, distinct from the collection type Stack and from a full operating-system thread stack. Disassembly connects source to runtime behavior, but HotSpot can transform execution substantially after compilation, so bytecode alone cannot establish real performance.",
+        "workedExample": {
+          "scenario": "static int add(int a, int b) returns a + b.",
+          "steps": [
+            "Use javap -c -p Main and identify iload, iadd and ireturn.",
+            "Trace the operands pushed and consumed, then compare a method invocation."
+          ]
+        },
+        "commonMistakes": [
+          "Bytecode instruction counts do not directly predict CPU time."
+        ],
+        "guidedExercise": [
+          "Compile an addition method and a method that calls it.",
+          "Annotate local-variable indexes and operand-stack changes."
+        ],
+        "independentExercise": "Disassemble a loop with a null check and explain its branches without guessing its optimized machine code.",
+        "recallQuestions": [
+          "How do locals differ from operands?",
+          "Why can JIT execution differ from the disassembly?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Trace one method instruction by instruction.",
+        "Explain a method call and return."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 javap bytecode disassembler",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javap.html"
+        },
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-memory-areas",
+      "title": "Heap, stack, metaspace and code cache",
+      "description": "The heap conceptually holds objects and arrays and is shared across threads.",
+      "learningGoals": [
+        "Locate reference locals and object fields correctly.",
+        "Name at least three non-heap memory consumers."
+      ],
+      "concepts": [
+        "Runtime data areas",
+        "thread frames",
+        "heap",
+        "class metadata",
+        "compiled code",
+        "native memory"
+      ],
+      "examples": [
+        "A request method has int retries and a reference to an Order with an int amount field."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-bytecode"
+      ],
+      "material": {
+        "explanation": "The heap conceptually holds objects and arrays and is shared across threads. JVM stacks hold per-thread method frames; each frame contains local variables, operands and method bookkeeping. HotSpot also consumes native memory for class metadata, compiled code, thread stacks and other subsystems. A primitive field can be inside a heap object, while a stack local can hold a reference. These categories describe roles, not a portable promise that every source variable occupies a particular physical address.",
+        "workedExample": {
+          "scenario": "A request method has int retries and a reference to an Order with an int amount field.",
+          "steps": [
+            "Draw the frame local values and the referenced object, including amount inside the object.",
+            "Add metadata, compiled code and thread resources outside the heap budget."
+          ]
+        },
+        "commonMistakes": [
+          "Primitives always live on the stack, and -Xmx limits the entire process, are both incorrect."
+        ],
+        "guidedExercise": [
+          "Draw the memory map of a request handler.",
+          "Label which regions are shared and which are associated with a thread."
+        ],
+        "independentExercise": "Explain why a process can exceed its maximum heap while heap usage remains stable.",
+        "recallQuestions": [
+          "Where can a primitive field live?",
+          "Which memory is not included in -Xmx?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Locate reference locals and object fields correctly.",
+        "Name at least three non-heap memory consumers."
+      ],
+      "resources": [
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-frames-references",
+      "title": "Method frames, references and pass-by-value",
+      "description": "A call creates a frame and passes argument values.",
+      "learningGoals": [
+        "Explain mutation and reassignment separately.",
+        "Trace bounded recursion and its frame lifetimes."
+      ],
+      "concepts": [
+        "Call stack",
+        "aliases",
+        "parameters",
+        "recursion",
+        "StackOverflowError"
+      ],
+      "examples": [
+        "change(List items) adds an entry and then assigns items to a new list."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-memory-areas"
+      ],
+      "material": {
+        "explanation": "A call creates a frame and passes argument values. For an object argument, the copied value is a reference; two variables can therefore refer to the same mutable object. Reassigning a parameter does not reassign the caller variable, but mutating the shared object can be visible to the caller. Recursion accumulates frames until it returns or exhausts stack capacity. Object reachability and frame lifetime are related, but an object can outlive the method that created it.",
+        "workedExample": {
+          "scenario": "change(List items) adds an entry and then assigns items to a new list.",
+          "steps": [
+            "Both caller and callee initially reference the same list, so the add changes that list.",
+            "The parameter reassignment changes only the callee local reference."
+          ]
+        },
+        "commonMistakes": [
+          "Java passes references by value; it does not pass object variables by reference."
+        ],
+        "guidedExercise": [
+          "Predict mutation versus reassignment before running the example.",
+          "Draw three recursive calls with parameters and return values."
+        ],
+        "independentExercise": "Return an object created in a method and explain why it remains usable after the method returns.",
+        "recallQuestions": [
+          "Why does parameter reassignment not change the caller?",
+          "What grows during recursion?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Explain mutation and reassignment separately.",
+        "Trace bounded recursion and its frame lifetimes."
+      ],
+      "resources": [
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-object-layout",
+      "title": "Object layout, allocation and indirection",
+      "description": "Objects have fields and implementation bookkeeping; arrays also carry length information.",
+      "learningGoals": [
+        "Account for indirection and array overhead.",
+        "Label measurements as implementation-specific."
+      ],
+      "concepts": [
+        "Headers",
+        "alignment",
+        "reference width",
+        "arrays",
+        "TLAB",
+        "JOL"
+      ],
+      "examples": [
+        "Compare int[1000] with an array of 1000 references to small objects."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-frames-references"
+      ],
+      "material": {
+        "explanation": "Objects have fields and implementation bookkeeping; arrays also carry length information. Alignment and reference representation affect actual footprint, so adding field sizes is not a reliable size calculation. HotSpot commonly uses thread-local allocation buffers for fast allocation, while other allocation paths exist. A reference array stores references, not the referenced objects inline. Inspect layouts with OpenJDK JOL when useful and report the exact VM configuration instead of memorizing one universal header size.",
+        "workedExample": {
+          "scenario": "Compare int[1000] with an array of 1000 references to small objects.",
+          "steps": [
+            "Separate the array storage from each referenced object and its overhead.",
+            "Inspect representative layouts and report assumptions about reference width and alignment."
+          ]
+        },
+        "commonMistakes": [
+          "A collection capacity and its logical element count can have different memory costs."
+        ],
+        "guidedExercise": [
+          "Estimate a primitive array and an object graph separately.",
+          "Compare the estimate with a layout report or heap histogram."
+        ],
+        "independentExercise": "Estimate the retained footprint of a map of request records, including keys, entries and referenced payloads.",
+        "recallQuestions": [
+          "Why is shallow size not retained size?",
+          "What can change an object layout between JVM runs?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Account for indirection and array overhead.",
+        "Label measurements as implementation-specific."
+      ],
+      "resources": [
+        {
+          "title": "OpenJDK JOL object layout tools",
+          "url": "https://github.com/openjdk/jol"
+        },
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-reachability",
+      "title": "Reachability, GC roots and object lifetime",
+      "description": "Garbage collection finds objects no longer strongly reachable from roots such as live thread references and class-associated references.",
+      "learningGoals": [
+        "Identify the retaining root path.",
+        "Explain an unreachable cycle correctly."
+      ],
+      "concepts": [
+        "GC roots",
+        "reachable graph",
+        "collection",
+        "cycles",
+        "weak references"
+      ],
+      "examples": [
+        "Two nodes point to each other after the last external reference is removed."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-object-layout"
+      ],
+      "material": {
+        "explanation": "Garbage collection finds objects no longer strongly reachable from roots such as live thread references and class-associated references. A cycle alone does not keep objects alive if no root reaches the cycle. Allocating many short-lived objects differs from retaining a growing graph. Collection timing is not a contractual immediate response to setting a variable to null. Weak and soft references have specialized semantics and should not replace an explicit cache size policy.",
+        "workedExample": {
+          "scenario": "Two nodes point to each other after the last external reference is removed.",
+          "steps": [
+            "Draw the cycle and show that no root reaches either node.",
+            "Contrast it with a static map that still retains one node and therefore the graph."
+          ]
+        },
+        "commonMistakes": [
+          "Nulling one alias does not remove other strong references; cycles are not automatically leaks."
+        ],
+        "guidedExercise": [
+          "Draw roots for a bounded cache and a removed entry.",
+          "Trace every remaining reference to the removed value."
+        ],
+        "independentExercise": "Explain why a listener registry can keep a service instance alive after a request finishes.",
+        "recallQuestions": [
+          "What makes an object eligible for collection?",
+          "How does allocation rate differ from retained memory?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Identify the retaining root path.",
+        "Explain an unreachable cycle correctly."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        },
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-memory-leaks",
+      "title": "Managed-memory leaks and retention patterns",
+      "description": "A Java leak often means objects remain reachable longer than intended, not that the collector forgot unreachable memory.",
+      "learningGoals": [
+        "State the retaining owner and lifetime violation.",
+        "Compare the post-collection live-set trend under equal load."
+      ],
+      "concepts": [
+        "Unbounded caches",
+        "listeners",
+        "ThreadLocal",
+        "retained size",
+        "dominators"
+      ],
+      "examples": [
+        "A long-lived worker stores each request payload in a static map."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-reachability"
+      ],
+      "material": {
+        "explanation": "A Java leak often means objects remain reachable longer than intended, not that the collector forgot unreachable memory. Common causes include unbounded maps, registries that never unregister listeners, and request data left in ThreadLocal values on reused workers. Rising allocation alone does not establish a leak: compare the live set after comparable collections under a repeatable load. A heap graph can reveal a path to a root; investigate ownership and cleanup before increasing the heap.",
+        "workedExample": {
+          "scenario": "A long-lived worker stores each request payload in a static map.",
+          "steps": [
+            "The map retains completed requests, so the post-collection live set grows.",
+            "Remove expired entries under an explicit bound and repeat the same load."
+          ]
+        },
+        "commonMistakes": [
+          "A larger heap can delay a retention failure without fixing its cause."
+        ],
+        "guidedExercise": [
+          "List the owner and intended lifetime of each cache or registry.",
+          "Use try/finally to remove request-scoped ThreadLocal data on reused workers."
+        ],
+        "independentExercise": "Design a bounded cache and a cleanup test that checks retention policy rather than forcing GC as a correctness assertion.",
+        "recallQuestions": [
+          "What evidence distinguishes churn from retention?",
+          "Why do reused threads change ThreadLocal lifetime?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "State the retaining owner and lifetime violation.",
+        "Compare the post-collection live-set trend under equal load."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        },
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-gc-basics",
+      "title": "Garbage collection and allocation pressure",
+      "description": "Collectors trace reachability and reclaim memory using implementation-specific strategies.",
+      "learningGoals": [
+        "Distinguish allocation rate from live set.",
+        "Use workload metrics alongside collection events."
+      ],
+      "concepts": [
+        "Marking",
+        "evacuation",
+        "generations",
+        "allocation rate",
+        "live set",
+        "throughput"
+      ],
+      "examples": [
+        "A worker creates temporary parsing objects for every job."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-memory-leaks"
+      ],
+      "material": {
+        "explanation": "Collectors trace reachability and reclaim memory using implementation-specific strategies. Some move live objects, some perform substantial work concurrently, and all require coordination with application execution. Generational designs exploit the tendency of many objects to die young, but Eden and survivor diagrams are not a universal description of every collector. Application allocation rate, retained live set and available CPU shape collection cost. GC can reclaim memory; it cannot close a business transaction or guarantee prompt release of a socket.",
+        "workedExample": {
+          "scenario": "A worker creates temporary parsing objects for every job.",
+          "steps": [
+            "Measure jobs per second and bytes allocated over the same interval.",
+            "Compare frequent collections with stable live memory against a growing retained set."
+          ]
+        },
+        "commonMistakes": [
+          "More collections does not alone prove worse performance; compare latency, throughput and CPU."
+        ],
+        "guidedExercise": [
+          "Annotate a GC log with allocation bursts and workload phases.",
+          "Identify what the selected collector actually reports."
+        ],
+        "independentExercise": "Explain why reducing temporary allocations can help a CPU-limited service but might not fix a retained-cache problem.",
+        "recallQuestions": [
+          "Why are young-object diagrams collector-dependent?",
+          "Which workload properties determine collection pressure?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Distinguish allocation rate from live set.",
+        "Use workload metrics alongside collection events."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-collectors",
+      "title": "Collector choices and pause tradeoffs",
+      "description": "Collector choice is a tradeoff among throughput, latency, memory overhead and CPU resources.",
+      "learningGoals": [
+        "Identify the actual collector.",
+        "Compare at least latency, throughput and memory rather than one pause."
+      ],
+      "concepts": [
+        "Serial",
+        "Parallel",
+        "G1",
+        "ZGC",
+        "concurrent work",
+        "pause targets"
+      ],
+      "examples": [
+        "A batch worker and a latency-sensitive API have different objectives."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-gc-basics"
+      ],
+      "material": {
+        "explanation": "Collector choice is a tradeoff among throughput, latency, memory overhead and CPU resources. G1 uses regions and balances pause goals with reclamation; Parallel emphasizes throughput; Serial is simpler for suitable small workloads; ZGC emphasizes low pauses using concurrent work. Availability and ergonomics depend on the JDK and environment. A pause target is a goal rather than a guaranteed deadline. Identify the current collector first, then compare alternatives under the same representative workload rather than adopting a universal flag bundle.",
+        "workedExample": {
+          "scenario": "A batch worker and a latency-sensitive API have different objectives.",
+          "steps": [
+            "Record the active collector from startup or GC diagnostics and establish a baseline.",
+            "Compare measured tail latency, CPU and throughput under the same limit before changing collectors."
+          ]
+        },
+        "commonMistakes": [
+          "A lower GC pause does not automatically mean a faster or cheaper service."
+        ],
+        "guidedExercise": [
+          "Write the service objective and its memory/CPU budget.",
+          "Choose one collector comparison and list the expected benefit and regression risk."
+        ],
+        "independentExercise": "Explain when a throughput-oriented choice might be acceptable despite longer pauses.",
+        "recallQuestions": [
+          "What does a pause target promise?",
+          "Why must collector availability be checked on the actual JDK?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Identify the actual collector.",
+        "Compare at least latency, throughput and memory rather than one pause."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-safepoints",
+      "title": "Safepoints and latency outside GC",
+      "description": "Some VM operations require threads to reach a state where the VM can safely inspect or modify runtime structures.",
+      "learningGoals": [
+        "Separate pause, queue and blocked time.",
+        "Report tail latency and a timeline."
+      ],
+      "concepts": [
+        "Stop-the-world",
+        "safepoint coordination",
+        "blocked time",
+        "tail latency"
+      ],
+      "examples": [
+        "A p99 latency spike occurs with an almost unchanged average."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-collectors"
+      ],
+      "material": {
+        "explanation": "Some VM operations require threads to reach a state where the VM can safely inspect or modify runtime structures. A stop-the-world pause is different from concurrent collector work, and reaching a safepoint can contribute its own delay. Request latency can also come from locks, queueing, CPU throttling, network waits or database contention. Correlate timestamps and thread activity before attributing a slow request to GC; averages can conceal rare pauses and queue amplification.",
+        "workedExample": {
+          "scenario": "A p99 latency spike occurs with an almost unchanged average.",
+          "steps": [
+            "Align request timestamps with GC and safepoint logs.",
+            "If no matching pause exists, inspect blocked threads, queues and external timings."
+          ]
+        },
+        "commonMistakes": [
+          "Every latency spike is not a garbage collection problem."
+        ],
+        "guidedExercise": [
+          "Collect a short local run with -Xlog:gc*,safepoint:file=gc.log:time,uptime,level,tags.",
+          "Compare events against measured workload latency."
+        ],
+        "independentExercise": "Build a timeline showing a lock wait and a collection, then explain which can account for the observed delay.",
+        "recallQuestions": [
+          "How does concurrent GC differ from a global pause?",
+          "Why is timestamp correlation necessary?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Separate pause, queue and blocked time.",
+        "Report tail latency and a timeline."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        },
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-jit",
+      "title": "JIT compilation, warmup and deoptimization",
+      "description": "HotSpot collects execution information and can compile frequently executed code into optimized machine code.",
+      "learningGoals": [
+        "Label measurement phases.",
+        "Explain speculative optimization and deoptimization."
+      ],
+      "concepts": [
+        "Interpreter",
+        "tiered compilation",
+        "profiling",
+        "inlining",
+        "deoptimization"
+      ],
+      "examples": [
+        "A parsing method runs more quickly after repeated calls."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-safepoints"
+      ],
+      "material": {
+        "explanation": "HotSpot collects execution information and can compile frequently executed code into optimized machine code. Inlining and speculative optimizations can remove work, while changed assumptions can trigger deoptimization. Startup, warmup and steady state are different operating phases. A fast warmed loop does not describe cold server startup, and recompilation activity is not automatically a fault. Compare repeated runs and record the phase being measured rather than timing one first invocation.",
+        "workedExample": {
+          "scenario": "A parsing method runs more quickly after repeated calls.",
+          "steps": [
+            "Measure startup and warmed operation separately under equal input.",
+            "Inspect compilation activity or JFR evidence and consider caching effects as another explanation."
+          ]
+        },
+        "commonMistakes": [
+          "Warmup improvement is not proof of one specific optimization without evidence."
+        ],
+        "guidedExercise": [
+          "Record throughput over successive fixed workload windows.",
+          "Explain which windows represent startup, warmup and steady state."
+        ],
+        "independentExercise": "Compare a short-lived command-line task with a long-lived service and explain why optimization priorities differ.",
+        "recallQuestions": [
+          "Why can a method be recompiled?",
+          "How can a benchmark accidentally measure only warmup?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Label measurement phases.",
+        "Explain speculative optimization and deoptimization."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-escape-analysis",
+      "title": "Escape analysis and optimized allocations",
+      "description": "HotSpot may prove that an object does not escape the relevant scope and remove its allocation through scalar replacement or other optimizations.",
+      "learningGoals": [
+        "Separate language guarantees from optimization.",
+        "Use measured allocations to support the conclusion."
+      ],
+      "concepts": [
+        "Scalar replacement",
+        "escape",
+        "inlining",
+        "observable semantics"
+      ],
+      "examples": [
+        "A tiny temporary Point is created solely to calculate a sum."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-jit"
+      ],
+      "material": {
+        "explanation": "HotSpot may prove that an object does not escape the relevant scope and remove its allocation through scalar replacement or other optimizations. This does not mean all non-escaping objects are physically allocated on a stack. Optimizations depend on compilation context and must preserve observable Java behavior. Writing special object-free code without measuring can trade clarity for no gain; first inspect allocation behavior under a representative warmed workload.",
+        "workedExample": {
+          "scenario": "A tiny temporary Point is created solely to calculate a sum.",
+          "steps": [
+            "Predict what must remain observable and what a compiler could eliminate.",
+            "Measure allocation for a warmed local-use case versus storing the Point in a long-lived collection."
+          ]
+        },
+        "commonMistakes": [
+          "Escape analysis is not a language guarantee of stack allocation."
+        ],
+        "guidedExercise": [
+          "Compare a temporary calculation with an escaping object variant.",
+          "Record allocation evidence and the JDK version rather than infer placement from source."
+        ],
+        "independentExercise": "Explain why returning or publishing an object can change optimization opportunities without changing the Java memory model.",
+        "recallQuestions": [
+          "What does scalar replacement remove?",
+          "Why can the same source allocate differently in two contexts?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Separate language guarantees from optimization.",
+        "Use measured allocations to support the conclusion."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        },
+        {
+          "title": "OpenJDK JMH benchmark harness",
+          "url": "https://github.com/openjdk/jmh"
+        }
+      ]
+    },
+    {
+      "id": "jvm-representation",
+      "title": "Strings, boxing and data representation",
+      "description": "Representation affects allocations and access cost.",
+      "learningGoals": [
+        "Identify boxing and indirection.",
+        "Use representative values and implementation-qualified estimates."
+      ],
+      "concepts": [
+        "Primitive arrays",
+        "wrapper objects",
+        "boxing",
+        "encoding",
+        "string retention"
+      ],
+      "examples": [
+        "A worker sums numeric IDs from a primitive array and a boxed collection."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-escape-analysis"
+      ],
+      "material": {
+        "explanation": "Representation affects allocations and access cost. int[] stores primitive elements while collections of Integer hold references to wrapper objects, with reuse possible in some cases. String storage is implementation-specific and its memory footprint is not simply two bytes times length across all runtimes and text. Concatenation strategies and payload retention also matter. Measure representative data including non-ASCII text; choose a representation based on clarity and workload instead of assuming one fixed object size.",
+        "workedExample": {
+          "scenario": "A worker sums numeric IDs from a primitive array and a boxed collection.",
+          "steps": [
+            "Keep equal inputs and arithmetic semantics, including overflow expectations.",
+            "Measure allocation and access patterns separately rather than compare unequal preparation work."
+          ]
+        },
+        "commonMistakes": [
+          "Autoboxing is convenient but its allocation behavior cannot be inferred from syntax alone."
+        ],
+        "guidedExercise": [
+          "Identify boxing points in a small loop.",
+          "Compare ASCII and non-ASCII string data without asserting portable byte layouts."
+        ],
+        "independentExercise": "Choose a representation for one million IDs and document footprint, access and maintainability tradeoffs.",
+        "recallQuestions": [
+          "Why can boxed collections cost more than primitive arrays?",
+          "What makes a string size estimate runtime-dependent?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Identify boxing and indirection.",
+        "Use representative values and implementation-qualified estimates."
+      ],
+      "resources": [
+        {
+          "title": "OpenJDK JOL object layout tools",
+          "url": "https://github.com/openjdk/jol"
+        },
+        {
+          "title": "OpenJDK JMH benchmark harness",
+          "url": "https://github.com/openjdk/jmh"
+        }
+      ]
+    },
+    {
+      "id": "jvm-jmm",
+      "title": "Visibility, happens-before and atomicity",
+      "description": "A shared heap does not ensure one thread observes another thread's writes in the required order.",
+      "learningGoals": [
+        "Show a concrete lost-update interleaving.",
+        "Name the happens-before relationship used by the correction."
+      ],
+      "concepts": [
+        "Java memory model",
+        "data races",
+        "volatile",
+        "locks",
+        "atomics",
+        "publication"
+      ],
+      "examples": [
+        "Two threads increment a volatile int counter."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-representation"
+      ],
+      "material": {
+        "explanation": "A shared heap does not ensure one thread observes another thread's writes in the required order. The Java memory model defines happens-before relationships created by mechanisms such as locks, volatile access and thread lifecycle operations. volatile provides ordering and visibility guarantees but does not make count++ an atomic operation. Correct publication and ownership are correctness concerns before performance tuning. A passing stress run is useful evidence, not proof that a data race is safe.",
+        "workedExample": {
+          "scenario": "Two threads increment a volatile int counter.",
+          "steps": [
+            "Expand increment into read, add and write",
+            " show an interleaving that loses an update.",
+            "Replace it with an appropriate atomic operation or locking and state the synchronization guarantee."
+          ]
+        },
+        "commonMistakes": [
+          "JVM flags and faster hardware cannot repair an incorrectly synchronized algorithm."
+        ],
+        "guidedExercise": [
+          "Write a two-thread interleaving on paper.",
+          "Choose a visibility example and a separate atomicity example."
+        ],
+        "independentExercise": "Explain safe publication of an immutable configuration object and why final fields do not make all referenced mutable data thread-safe.",
+        "recallQuestions": [
+          "Why is volatile increment not atomic?",
+          "Which relationship makes a write visible to a reader?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Show a concrete lost-update interleaving.",
+        "Name the happens-before relationship used by the correction."
+      ],
+      "resources": [
+        {
+          "title": "Java language specification: threads and locks",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-threads",
+      "title": "Threads, locks and stack budgets",
+      "description": "Platform threads consume operating-system resources and native stack space; large counts can exhaust resources even with a healthy heap.",
+      "learningGoals": [
+        "Distinguish task counts from OS thread counts.",
+        "Identify the limiting downstream resource."
+      ],
+      "concepts": [
+        "Platform threads",
+        "virtual threads",
+        "blocking",
+        "monitors",
+        "stack resources"
+      ],
+      "examples": [
+        "Ten thousand request tasks compete for a database pool of twenty connections."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-jmm"
+      ],
+      "material": {
+        "explanation": "Platform threads consume operating-system resources and native stack space; large counts can exhaust resources even with a healthy heap. Virtual threads support many blocking tasks with a different implementation and scheduling model; they do not make CPU-bound work unlimited or enlarge database capacity. Their stack storage is not equivalent to reserving one platform-thread stack per virtual thread. Blocking and pinning behavior is version-sensitive, so verify it on the actual JDK rather than repeat older blanket rules about synchronized.",
+        "workedExample": {
+          "scenario": "Ten thousand request tasks compete for a database pool of twenty connections.",
+          "steps": [
+            "Compare task concurrency with actual downstream concurrency.",
+            "Explain why more threads can increase waiting and retention without increasing database throughput."
+          ]
+        },
+        "commonMistakes": [
+          "Virtual threads are not a substitute for resource bounds, deadlines or cancellation."
+        ],
+        "guidedExercise": [
+          "Draw task, thread, connection and queue limits.",
+          "Inspect a local thread dump and identify runnable, waiting and blocked states."
+        ],
+        "independentExercise": "Budget platform worker stacks and design bounded access to a slow downstream dependency.",
+        "recallQuestions": [
+          "Why does more concurrency sometimes reduce throughput?",
+          "Why is -Xss not a simple per-virtual-thread memory calculation?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Distinguish task counts from OS thread counts.",
+        "Identify the limiting downstream resource."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        },
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-native-memory",
+      "title": "Native memory and process footprint",
+      "description": "Heap usage is one part of process memory.",
+      "learningGoals": [
+        "Report heap and process figures separately.",
+        "Document NMT coverage and tracking overhead."
+      ],
+      "concepts": [
+        "Reserved",
+        "committed",
+        "resident",
+        "direct buffers",
+        "metaspace",
+        "NMT"
+      ],
+      "examples": [
+        "RSS grows while the post-GC heap remains stable."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-threads"
+      ],
+      "material": {
+        "explanation": "Heap usage is one part of process memory. Native stacks, class metadata, code cache, direct buffers and runtime libraries consume additional memory. Reserved address space, committed memory and resident set size describe different quantities and are not interchangeable. HotSpot Native Memory Tracking reports supported VM allocations but does not account for every allocation made by third-party native code. Use trends and multiple views to locate growth rather than subtract a heap figure from RSS and call the remainder a leak.",
+        "workedExample": {
+          "scenario": "RSS grows while the post-GC heap remains stable.",
+          "steps": [
+            "Check threads, loaded classes, direct buffers and NMT categories across the same interval.",
+            "Compare reserved and committed figures with OS residency while accounting for incomplete native coverage."
+          ]
+        },
+        "commonMistakes": [
+          "NMT totals are not a complete substitute for operating-system process measurements."
+        ],
+        "guidedExercise": [
+          "Start a local process with -XX:NativeMemoryTracking=summary.",
+          "Run jcmd PID VM.native_memory baseline then jcmd PID VM.native_memory summary.diff after bounded work."
+        ],
+        "independentExercise": "Explain how dynamically loaded classes or unreleased direct buffers could change non-heap memory.",
+        "recallQuestions": [
+          "What is reserved versus resident memory?",
+          "What does NMT fail to measure completely?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Report heap and process figures separately.",
+        "Document NMT coverage and tracking overhead."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-failures",
+      "title": "Heap OOM, stack overflow and OS termination",
+      "description": "Failure classification determines the investigation.",
+      "learningGoals": [
+        "Distinguish four failure classes.",
+        "State a specific next observation for each."
+      ],
+      "concepts": [
+        "OutOfMemoryError",
+        "StackOverflowError",
+        "native thread failure",
+        "container OOM kill"
+      ],
+      "examples": [
+        "A container exits abruptly with no Java exception while heap usage is below -Xmx."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-native-memory"
+      ],
+      "material": {
+        "explanation": "Failure classification determines the investigation. Java heap exhaustion, metaspace exhaustion and inability to create a native thread can produce different OutOfMemoryError messages. Deep recursion can exhaust stack capacity and produce StackOverflowError. An operating system or container can terminate a process before Java reports any error. Exit code 137 can indicate SIGKILL but is not proof of an OOM kill; correlate events, memory limits and OS evidence. Raising a limit without identifying retention or concurrency can postpone the same failure.",
+        "workedExample": {
+          "scenario": "A container exits abruptly with no Java exception while heap usage is below -Xmx.",
+          "steps": [
+            "Inspect termination reason and host/container memory evidence rather than infer from exit code alone.",
+            "Budget non-heap usage and compare it with the actual limit."
+          ]
+        },
+        "commonMistakes": [
+          "Every memory-related failure is not a Java heap leak."
+        ],
+        "guidedExercise": [
+          "Build a decision table from symptom, evidence, likely region and next diagnostic.",
+          "Use only small bounded child processes if deliberately reproducing errors."
+        ],
+        "independentExercise": "Classify three incidents: recursive overflow, unbounded retained records and too many platform threads.",
+        "recallQuestions": [
+          "Can the OS kill a JVM with free heap remaining?",
+          "What evidence confirms an OOM kill?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Distinguish four failure classes.",
+        "State a specific next observation for each."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-diagnostics",
+      "title": "Thread dumps, JFR and heap evidence",
+      "description": "Use the least intrusive evidence that can answer the question.",
+      "learningGoals": [
+        "Map symptoms to appropriate tools.",
+        "Record collection scope, overhead and artifact handling."
+      ],
+      "concepts": [
+        "jcmd",
+        "flight recording",
+        "heap histogram",
+        "dump",
+        "diagnostic impact"
+      ],
+      "examples": [
+        "A local worker becomes slow while CPU is low."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-failures"
+      ],
+      "material": {
+        "explanation": "Use the least intrusive evidence that can answer the question. Thread dumps show states and stacks; repeated samples help distinguish a persistent wait from a momentary snapshot. JFR records time-based runtime events and can expose CPU, allocation and contention patterns. A histogram shows class counts but not full retaining paths; a heap dump enables graph analysis with potentially substantial pause, disk and data exposure costs. Query available commands on the exact target and treat recordings and dumps as potentially sensitive artifacts.",
+        "workedExample": {
+          "scenario": "A local worker becomes slow while CPU is low.",
+          "steps": [
+            "Capture several thread snapshots and a short bounded flight recording.",
+            "Look for lock or downstream waits before collecting a heap dump."
+          ]
+        },
+        "commonMistakes": [
+          "A single thread dump is a snapshot, not a complete history or CPU profile."
+        ],
+        "guidedExercise": [
+          "Run jcmd PID help and jcmd PID Thread.print on your own lab process.",
+          "Use jcmd PID JFR.start name=study settings=profile duration=60s filename=study.jfr, then inspect events with the JDK jfr tool or JMC."
+        ],
+        "independentExercise": "Select evidence for high CPU, blocked work and suspected retention; explain the impact and cleanup policy for each artifact.",
+        "recallQuestions": [
+          "When is a heap dump justified?",
+          "What can repeated thread dumps reveal that one cannot?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Map symptoms to appropriate tools.",
+        "Record collection scope, overhead and artifact handling."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        },
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-tuning",
+      "title": "Heap sizing, containers and measured tuning",
+      "description": "Tune against an explicit latency or throughput objective after measuring a baseline.",
+      "learningGoals": [
+        "Include non-heap memory in the budget.",
+        "Accept or reject a single-variable experiment using explicit criteria."
+      ],
+      "concepts": [
+        "Xms",
+        "Xmx",
+        "Xss",
+        "MaxRAMPercentage",
+        "CPU quotas",
+        "effective flags",
+        "rollback"
+      ],
+      "examples": [
+        "A service has a 512 MiB process limit and a proposed 512 MiB maximum heap."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-diagnostics"
+      ],
+      "material": {
+        "explanation": "Tune against an explicit latency or throughput objective after measuring a baseline. -Xmx limits Java heap, -Xms sets initial/minimum heap sizing, and -Xss controls thread stack sizing with implementation constraints. None alone limits total process footprint. Percentage-based heap sizing depends on detected memory and ergonomics; inspect effective settings inside the actual container. Leave headroom for native consumers and bursts, and consider CPU quotas and throttling. Change one variable, hold workload constant, report repeatability and keep a rollback criterion.",
+        "workedExample": {
+          "scenario": "A service has a 512 MiB process limit and a proposed 512 MiB maximum heap.",
+          "steps": [
+            "Reject the assumption that the whole budget is available for heap",
+            " estimate measured native needs and safety margin.",
+            "Validate a candidate with steady and burst load, actual resident memory and latency before accepting it."
+          ]
+        },
+        "commonMistakes": [
+          "There is no universally correct heap percentage, collector or stack size for every service."
+        ],
+        "guidedExercise": [
+          "Record java -XshowSettings:vm -version, jcmd PID VM.flags and the deployment limits.",
+          "Write one hypothesis with a metric, expected direction and rollback threshold."
+        ],
+        "independentExercise": "Create a memory budget worksheet with heap, stacks, metadata, code, buffers and headroom; label estimates and measured values.",
+        "recallQuestions": [
+          "Why is -Xmx equal to the container limit risky?",
+          "What must remain constant for a useful tuning comparison?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Include non-heap memory in the budget.",
+        "Accept or reject a single-variable experiment using explicit criteria."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        },
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        },
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        }
+      ]
+    },
+    {
+      "id": "jvm-measurement",
+      "title": "Benchmarks, CPU caches and honest conclusions",
+      "description": "Backend performance combines algorithmic complexity with representation, cache locality, branch behavior, allocation and workload shape.",
+      "learningGoals": [
+        "Control setup, consumption and warmup.",
+        "Separate local benchmark evidence from service conclusions."
+      ],
+      "concepts": [
+        "JMH",
+        "warmup",
+        "forks",
+        "dead-code elimination",
+        "locality",
+        "branch behavior"
+      ],
+      "examples": [
+        "Two implementations sum the same IDs using different representations."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-tuning"
+      ],
+      "material": {
+        "explanation": "Backend performance combines algorithmic complexity with representation, cache locality, branch behavior, allocation and workload shape. A primitive array can improve locality compared with traversing separately allocated objects, but the gain is workload- and hardware-dependent. Naive loops can be optimized away or measure setup, warmup or constant folding instead of useful work. Use JMH for an isolated microbenchmark and a representative service workload for user-visible behavior. Report distributions, environment and uncertainty; a microbenchmark cannot establish whole-service benefit.",
+        "workedExample": {
+          "scenario": "Two implementations sum the same IDs using different representations.",
+          "steps": [
+            "Use equal data, consume results and separate setup",
+            " warm up and run independent forks.",
+            "Compare allocations and throughput, then test whether the actual service bottleneck changes."
+          ]
+        },
+        "commonMistakes": [
+          "Better Big-O or one fast timing does not guarantee a faster real request."
+        ],
+        "guidedExercise": [
+          "Predict effects of indirection and locality before measuring.",
+          "List dead-code elimination, constant inputs and warmup as threats to a simple timing loop."
+        ],
+        "independentExercise": "Write a small JMH comparison only if the service has a measured hotspot; otherwise explain why further optimization is premature.",
+        "recallQuestions": [
+          "Why are independent forks useful?",
+          "Why can a microbenchmark improve while API latency does not?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Control setup, consumption and warmup.",
+        "Separate local benchmark evidence from service conclusions."
+      ],
+      "resources": [
+        {
+          "title": "OpenJDK JMH benchmark harness",
+          "url": "https://github.com/openjdk/jmh"
+        },
+        {
+          "title": "OpenJDK JOL object layout tools",
+          "url": "https://github.com/openjdk/jol"
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "jvm-lab-bytecode-memory",
+      "title": "Trace bytecode and a request memory map",
+      "description": "Understanding a VM begins with a reproducible small program.",
+      "learningGoals": [
+        "Predictions match output and bytecode trace.",
+        "The diagram correctly locates primitive fields and reference locals."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "A request updates an Order and computes a total."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-execution",
+        "jvm-bytecode",
+        "jvm-memory-areas",
+        "jvm-frames-references"
+      ],
+      "material": {
+        "explanation": "Understanding a VM begins with a reproducible small program. Use plain Java to connect a call trace, parameter aliasing and disassembled instructions with a memory diagram. The diagram should distinguish abstract JVM areas from implementation-specific layout; it should not invent a physical address for every local or promise that an optimization occurs.",
+        "workedExample": {
+          "scenario": "A request updates an Order and computes a total.",
+          "steps": [
+            "Predict caller-visible mutation and return values.",
+            "Compile, run and annotate javap output with frame and object references."
+          ]
+        },
+        "commonMistakes": [
+          "Reassigning a parameter and mutating its referenced object are different operations."
+        ],
+        "guidedExercise": [
+          "Create Main with a primitive local, an object field, a mutable parameter and a returned object.",
+          "Run javac Main.java, java Main and javap -c -p Main."
+        ],
+        "independentExercise": "Add bounded recursion and annotate one additional frame without deliberately exhausting your main development process.",
+        "recallQuestions": [
+          "What survives method return?",
+          "Where do the method operands belong?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Predictions match output and bytecode trace.",
+        "The diagram correctly locates primitive fields and reference locals."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 javap bytecode disassembler",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javap.html"
+        },
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-retention",
+      "title": "Compare allocation churn with retained growth",
+      "description": "A fixed workload makes retention diagnosis easier.",
+      "learningGoals": [
+        "Equal workloads expose distinct live-set trends.",
+        "The corrected retention policy has a tested bound."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "A worker processes batches of small payloads in a disposable process."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-reachability",
+        "jvm-memory-leaks",
+        "jvm-gc-basics"
+      ],
+      "material": {
+        "explanation": "A fixed workload makes retention diagnosis easier. Build two local modes with equal payload sizes: one releases temporary objects after processing and one retains them in a deliberately bounded collection. Collect GC logs and heap observations over comparable intervals. Demonstrate a plateau versus rising retained memory without exhausting the machine or interpreting System.gc as a correctness guarantee.",
+        "workedExample": {
+          "scenario": "A worker processes batches of small payloads in a disposable process.",
+          "steps": [
+            "Run the release mode and record the stable post-collection trend.",
+            "Run the retained mode with a strict item cap and identify the root that keeps payloads alive."
+          ]
+        },
+        "commonMistakes": [
+          "High allocation does not by itself establish a leak."
+        ],
+        "guidedExercise": [
+          "Use a disposable java -Xmx64m process, a small fixed item cap and a hard time limit.",
+          "Capture -Xlog:gc*:file=gc.log:time,uptime,level,tags and compare equal workload windows."
+        ],
+        "independentExercise": "Replace retained growth with an explicit bound and expiration policy, then repeat the same experiment.",
+        "recallQuestions": [
+          "Which reference retains the objects?",
+          "How would more heap change the failure timeline?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Equal workloads expose distinct live-set trends.",
+        "The corrected retention policy has a tested bound."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        },
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-thread-dumps",
+      "title": "Diagnose a blocked worker and a deadlock",
+      "description": "Thread evidence should explain an ownership or wait relationship.",
+      "learningGoals": [
+        "The evidence identifies both locks and their owners.",
+        "The revised lock order completes under the same scenario."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "Worker A holds lock one while B holds lock two; each requests the other."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-jmm",
+        "jvm-threads",
+        "jvm-diagnostics"
+      ],
+      "material": {
+        "explanation": "Thread evidence should explain an ownership or wait relationship. Create a local demonstration with a deliberately slow lock holder, then a separate two-lock inversion with daemon workers and a fixed process lifetime. Collect multiple snapshots to show persistent blocking. Resolve the inversion with a consistent acquisition order and repeat. Keep deadlock reproduction disposable so the study app and development shell remain usable.",
+        "workedExample": {
+          "scenario": "Worker A holds lock one while B holds lock two; each requests the other.",
+          "steps": [
+            "Draw both ownership and waiting edges and predict the cycle.",
+            "Run jcmd PID Thread.print, identify the corresponding stacks, then remove the cycle."
+          ]
+        },
+        "commonMistakes": [
+          "WAITING and BLOCKED are not synonyms, and a runnable thread need not consume a full CPU."
+        ],
+        "guidedExercise": [
+          "Use only an isolated local process with an automatic exit deadline.",
+          "Capture three snapshots and relate thread states to application code."
+        ],
+        "independentExercise": "Explain a saturated connection-pool wait without calling it a monitor deadlock.",
+        "recallQuestions": [
+          "What forms the wait cycle?",
+          "Why take several snapshots?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The evidence identifies both locks and their owners.",
+        "The revised lock order completes under the same scenario."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        },
+        {
+          "title": "Java language specification: threads and locks",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-jfr",
+      "title": "Profile CPU, allocation and waiting with JFR",
+      "description": "Profiles answer specific questions rather than provide a tuning score.",
+      "learningGoals": [
+        "All three workloads have evidence and an explanation.",
+        "A proposed improvement targets a measured cost."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "The same worker has CPU-heavy, allocation-heavy and waiting modes."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-jit",
+        "jvm-diagnostics"
+      ],
+      "material": {
+        "explanation": "Profiles answer specific questions rather than provide a tuning score. Run bounded local workloads representing CPU calculation, temporary allocations and blocking waits. Make one recording per case, inspect available event types and compare where time or allocation is concentrated. Sampling and event settings affect what is visible; absence of one event is not proof that an operation never occurred.",
+        "workedExample": {
+          "scenario": "The same worker has CPU-heavy, allocation-heavy and waiting modes.",
+          "steps": [
+            "Record each mode over an equal interval after noting its warmup phase.",
+            "Compare hot methods, allocation samples and wait events with the known implementation."
+          ]
+        },
+        "commonMistakes": [
+          "Allocation samples are estimates and event configuration changes what can be observed."
+        ],
+        "guidedExercise": [
+          "Start a bounded recording with jcmd PID JFR.start name=study settings=profile duration=60s filename=study.jfr.",
+          "Inspect with jfr summary study.jfr and jfr print using event names from the actual recording."
+        ],
+        "independentExercise": "Recommend one code-level investigation supported by the recording, then verify it with the same workload.",
+        "recallQuestions": [
+          "Which evidence supports CPU saturation?",
+          "What does sampling leave uncertain?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All three workloads have evidence and an explanation.",
+        "A proposed improvement targets a measured cost."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        },
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-native-budget",
+      "title": "Track native growth and build a memory budget",
+      "description": "A usable budget combines heap and native consumers with operating-system evidence.",
+      "learningGoals": [
+        "Report heap, NMT and OS measurements with units.",
+        "The budget includes headroom and states assumptions."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "A worker grows from two platform threads to eight."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-native-memory",
+        "jvm-threads",
+        "jvm-tuning"
+      ],
+      "material": {
+        "explanation": "A usable budget combines heap and native consumers with operating-system evidence. Start NMT at process startup, record a baseline, then introduce a bounded change such as a small worker-thread increase or direct-buffer allocation. Compare category changes and process memory, distinguishing reserved, committed and resident measurements. Do not attempt to exhaust native thread or direct-memory capacity on the development machine.",
+        "workedExample": {
+          "scenario": "A worker grows from two platform threads to eight.",
+          "steps": [
+            "Capture a native-memory baseline and note stack categories.",
+            "Compare summary.diff and OS process memory after the bounded increase, then close the workers."
+          ]
+        },
+        "commonMistakes": [
+          "The difference between RSS and heap usage is not automatically a native leak."
+        ],
+        "guidedExercise": [
+          "Launch with -XX:NativeMemoryTracking=summary and record jcmd PID VM.native_memory baseline.",
+          "After bounded work run jcmd PID VM.native_memory summary.diff and list untracked native limitations."
+        ],
+        "independentExercise": "Produce a hypothetical 512 MiB deployment budget with measured values, estimates and a reasoned burst margin.",
+        "recallQuestions": [
+          "Why can reserved memory be much larger than resident memory?",
+          "Which costs rise with platform worker count?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Report heap, NMT and OS measurements with units.",
+        "The budget includes headroom and states assumptions."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-gc-tuning",
+      "title": "Run a single-variable GC or heap experiment",
+      "description": "A tuning experiment starts with an objective and a stable baseline, not a list of flags.",
+      "learningGoals": [
+        "Results contain repeated baseline and candidate runs.",
+        "The decision uses latency, throughput and resource limits."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "A worker must process a fixed stream within a latency and memory budget."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-gc-basics",
+        "jvm-collectors",
+        "jvm-safepoints",
+        "jvm-tuning",
+        "jvm-measurement"
+      ],
+      "material": {
+        "explanation": "A tuning experiment starts with an objective and a stable baseline, not a list of flags. Use a fixed local workload with bounded inputs and run it repeatedly. Select one heap-size or supported-collector change, keep other settings and measurement intervals equal, and compare throughput, p95/p99 latency, CPU and memory. Record whether improved pauses move cost elsewhere and reject a change that violates the declared budget.",
+        "workedExample": {
+          "scenario": "A worker must process a fixed stream within a latency and memory budget.",
+          "steps": [
+            "Record three baseline runs with the active settings and the same warmup policy.",
+            "Change one setting, repeat, and accept or reject using the predetermined thresholds."
+          ]
+        },
+        "commonMistakes": [
+          "Comparing different loads or warmup phases can make an ineffective flag appear beneficial."
+        ],
+        "guidedExercise": [
+          "Record JDK, CPU, memory limit, collector and workload seed.",
+          "Collect GC/safepoint logs and latency distributions with the baseline and candidate."
+        ],
+        "independentExercise": "Write a rollback rule and a follow-up experiment only if the evidence leaves a specific unresolved question.",
+        "recallQuestions": [
+          "What is the controlled variable?",
+          "Which regression would reject a lower pause time?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Results contain repeated baseline and candidate runs.",
+        "The decision uses latency, throughput and resource limits."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        },
+        {
+          "title": "Java 25 launcher and JVM options",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-race",
+      "title": "Prove a lost-update interleaving and fix publication",
+      "description": "Concurrency correctness cannot be established by a favorable timing run.",
+      "learningGoals": [
+        "The incorrect interleaving is explicit.",
+        "The corrected version has a stated guarantee and executable check."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "Two workers perform a fixed number of increments."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-jmm",
+        "jvm-threads"
+      ],
+      "material": {
+        "explanation": "Concurrency correctness cannot be established by a favorable timing run. First write an explicit read-modify-write interleaving that loses an update, then implement a corrected counter with an appropriate atomic operation or lock. Test its known expected total and explain the guarantee from the memory model. For a separate shared configuration example, document its publication mechanism and which data remains mutable.",
+        "workedExample": {
+          "scenario": "Two workers perform a fixed number of increments.",
+          "steps": [
+            "Show the lost update on paper even if a particular execution happens to succeed.",
+            "Use synchronization for the corrected version and verify the exact expected count."
+          ]
+        },
+        "commonMistakes": [
+          "volatile does not make a compound increment atomic; sleeps are not synchronization."
+        ],
+        "guidedExercise": [
+          "Use a barrier or latch to coordinate the bounded experiment.",
+          "Join workers before checking the final result and explain the lifecycle ordering."
+        ],
+        "independentExercise": "Design safe publication for immutable configuration and identify a mutable nested collection that still needs protection.",
+        "recallQuestions": [
+          "Why can a race be present without appearing in one run?",
+          "Which operation establishes visibility to the final reader?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The incorrect interleaving is explicit.",
+        "The corrected version has a stated guarantee and executable check."
+      ],
+      "resources": [
+        {
+          "title": "Java language specification: threads and locks",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    },
+    {
+      "id": "jvm-lab-incident-review",
+      "title": "Classify JVM incidents and choose evidence",
+      "description": "An incident report should connect a symptom to an evidence plan before prescribing a fix.",
+      "learningGoals": [
+        "Every case separates facts, hypotheses and next evidence.",
+        "Each has a containment action and root-cause path."
+      ],
+      "concepts": [
+        "Reproducible experiments",
+        "bounded resources",
+        "evidence",
+        "explanation"
+      ],
+      "examples": [
+        "Four reports have different memory symptoms and incomplete logs."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-failures",
+        "jvm-native-memory",
+        "jvm-diagnostics",
+        "jvm-tuning"
+      ],
+      "material": {
+        "explanation": "An incident report should connect a symptom to an evidence plan before prescribing a fix. Use short synthetic reports for heap growth, recursion overflow, native thread exhaustion and externally killed processes. State what is known, what is only a hypothesis and which observation distinguishes alternatives. Include dump impact and artifact cleanup when proposing diagnostics, and define both immediate containment and a root-cause correction.",
+        "workedExample": {
+          "scenario": "Four reports have different memory symptoms and incomplete logs.",
+          "steps": [
+            "Classify each failure without assuming that every exit or allocation spike means a heap leak.",
+            "Select the smallest next diagnostic and explain what conclusion it could support."
+          ]
+        },
+        "commonMistakes": [
+          "Exit code 137 alone cannot prove a container OOM kill."
+        ],
+        "guidedExercise": [
+          "Write one-page case reports for the four failure classes.",
+          "Add a low-CPU slow-request case requiring thread or dependency evidence."
+        ],
+        "independentExercise": "Present a five-minute oral incident review without notes and defend why heap tuning is or is not relevant.",
+        "recallQuestions": [
+          "What evidence would falsify the hypothesis?",
+          "Which mitigation leaves the root cause unresolved?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every case separates facts, hypotheses and next evidence.",
+        "Each has a containment action and root-cause path."
+      ],
+      "resources": [
+        {
+          "title": "Java 25 troubleshooting: diagnostic tools",
+          "url": "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+        },
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        }
+      ],
+      "requirements": [
+        "Predict the result before running the experiment.",
+        "Record runtime settings, observations, interpretation and unresolved questions.",
+        "Repeat after one controlled change and explain the difference."
+      ],
+      "constraints": [
+        "Plain Java and local disposable processes; no production target or credentials.",
+        "Bound time, input size, worker count and artifact size.",
+        "No application dependencies are added to Backtrack."
+      ],
+      "deliverables": [
+        "Runnable small lab with commands and a deterministic correctness check.",
+        "Sanitized evidence and a short prediction → observation → explanation report.",
+        "Answers to the recall questions without notes."
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "jvm-runtime-investigation",
+      "title": "JVM Investigation: a slow and memory-hungry worker",
+      "description": "Diagnose a bounded plain-Java job worker before tuning it.",
+      "learningGoals": [
+        "The worker has bounded input, threads, queues, retention and execution time.",
+        "Deterministic output and concurrency checks pass for every mode.",
+        "A baseline and repeated equal-load candidate runs are reported.",
+        "GC logs, thread snapshots and a bounded JFR recording support the diagnosis.",
+        "The memory budget separates heap, native consumers and headroom.",
+        "A code-level root cause is corrected before any tuning comparison.",
+        "Exactly one justified runtime setting is compared with explicit acceptance and rollback thresholds.",
+        "The report distinguishes facts, hypotheses, sampling limitations and implementation-specific behavior.",
+        "A short runbook covers heap failure, stack overflow and suspected OS termination.",
+        "Explain the investigation without notes and record AI assistance honestly."
+      ],
+      "concepts": [
+        "Requirements",
+        "hypothesis",
+        "runtime evidence",
+        "controlled experiment",
+        "rollback"
+      ],
+      "examples": [
+        "A worker slows down during bursts while memory usage rises."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Record a prediction and runtime assumptions"
+        },
+        {
+          "id": "experiment",
+          "title": "Run the experiment and keep evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer the recall questions without notes"
+        },
+        {
+          "id": "apply",
+          "title": "Explain a backend failure or design tradeoff"
+        }
+      ],
+      "dependencies": [
+        "jvm-lab-bytecode-memory",
+        "jvm-lab-retention",
+        "jvm-lab-thread-dumps",
+        "jvm-lab-jfr",
+        "jvm-lab-native-budget",
+        "jvm-lab-gc-tuning",
+        "jvm-lab-race",
+        "jvm-lab-incident-review"
+      ],
+      "material": {
+        "explanation": "Diagnose a bounded plain-Java job worker before tuning it. Implement modes for short-lived allocation churn, capped retained payloads, lock contention and CPU work. Keep expected results identical where comparisons require them. Establish a baseline, identify a bottleneck with GC logs, thread evidence and a short flight recording, correct a code or ownership problem first, then test one justified runtime setting. The deliverable is a reproducible investigation and runbook, not the smallest pause number.",
+        "workedExample": {
+          "scenario": "A worker slows down during bursts while memory usage rises.",
+          "steps": [
+            "Separate retention, allocation, blocking and CPU hypotheses using bounded modes and a resource map.",
+            "Correct a proven root cause, repeat equal load and evaluate one runtime setting with a rollback decision."
+          ]
+        },
+        "commonMistakes": [
+          "Improving a microbenchmark is not enough; the whole workload and correctness checks must still pass."
+        ],
+        "guidedExercise": [
+          "Write requirements, rules, data, algorithm, responsibilities and failure cases before implementation.",
+          "Define workload bounds, expected outputs and the latency/memory objective.",
+          "Collect evidence before selecting a change."
+        ],
+        "independentExercise": "Explain the complete path from bytecode and allocation to the observed bottleneck, then handle a changed workload without copying a flag bundle.",
+        "recallQuestions": [
+          "Which evidence ruled out GC as the primary cause?",
+          "What kept the payloads reachable?",
+          "What lies outside the heap budget?",
+          "Why does the chosen synchronization guarantee correctness?",
+          "What would trigger rollback?",
+          "How would a cold-start deployment change the experiment?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The worker has bounded input, threads, queues, retention and execution time.",
+        "Deterministic output and concurrency checks pass for every mode.",
+        "A baseline and repeated equal-load candidate runs are reported.",
+        "GC logs, thread snapshots and a bounded JFR recording support the diagnosis.",
+        "The memory budget separates heap, native consumers and headroom.",
+        "A code-level root cause is corrected before any tuning comparison.",
+        "Exactly one justified runtime setting is compared with explicit acceptance and rollback thresholds.",
+        "The report distinguishes facts, hypotheses, sampling limitations and implementation-specific behavior.",
+        "A short runbook covers heap failure, stack overflow and suspected OS termination.",
+        "Explain the investigation without notes and record AI assistance honestly."
+      ],
+      "resources": [
+        {
+          "title": "JVM specification: runtime data areas and execution",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+        },
+        {
+          "title": "Java 25 garbage collection tuning guide",
+          "url": "https://docs.oracle.com/en/java/javase/25/gctuning/index.html"
+        },
+        {
+          "title": "Java 25 jcmd diagnostic commands",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+        },
+        {
+          "title": "Java language specification: threads and locks",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ],
+      "requirements": [
+        "Build a small plain-Java worker with CPU, allocation, bounded retention and blocking modes.",
+        "Preserve declared domain results and handle cancellation and cleanup.",
+        "Measure steady and burst workloads with fixed inputs and repeatable settings.",
+        "Create a runbook that chooses diagnostics from symptoms."
+      ],
+      "constraints": [
+        "Use local disposable processes with an automatic time limit and small explicit memory budget.",
+        "Do not deliberately exhaust host memory or native threads.",
+        "No Spring or database is needed; JMH/JOL are optional tools for a justified focused experiment.",
+        "Record the exact JDK version; use only supported flags and inspect effective settings."
+      ],
+      "deliverables": [
+        "Requirements → rules → data model → algorithm → responsibilities → failure cases.",
+        "Runnable worker, bounded workload generator and correctness checks.",
+        "Memory/ownership diagram and symptom-to-evidence decision table.",
+        "Baseline evidence, root-cause correction, one tuning comparison and rollback decision.",
+        "Five-minute oral explanation, reflection and AI-help record."
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Backtrack
 
-A personal backend engineering roadmap. Nine modules take you from plain Java to an Authentication Service project and a networking/payment-reconciliation lab. Curriculum is source-controlled JSON; personal progress stays in your browser.
+A personal backend engineering roadmap. Ten modules take you from plain Java to an Authentication Service project, a networking/payment-reconciliation lab, and practical JVM investigation. Curriculum is source-controlled JSON; personal progress stays in your browser.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ Each item has `id`, `title`, `description`, `learningGoals`, `concepts`, `exampl
 
 The full curriculum also includes `material`: a plain-text `explanation`, a `workedExample` with `scenario` and ordered `steps`, `commonMistakes`, `guidedExercise`, `independentExercise`, and `recallQuestions`. `acceptanceCriteria` states observable completion checks; `resources` contains official documentation links as `{ title, url }`. Modules include `outcomes`, `studyGuidance`, and `completionCriteria`. The app renders these fields directly without HTML, Markdown processing, or new dependencies. Existing simpler JSON definitions still render through the original examples fallback.
 
-The updated track has 151 topics, 39 exercises, and 10 challenges across nine modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and finishes with operational failure drills and a local runbook. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
+The updated track has 172 topics, 47 exercises, and 11 challenges across ten modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and finishes with operational failure drills and a local runbook. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
 
 Existing module, item, and task IDs are preserved. Notes, statuses, attempts, AI assistance, and checked tasks remain associated with the same content. Added topics can lower a module's percentage and leave new prerequisites incomplete; no progress is reset or silently marked complete. Previously completed exercises and challenges remain completed, so revisit their expanded criteria manually when useful.
 
@@ -53,7 +53,7 @@ Recommendations first continue an active learning/practicing topic, then choose 
 ```text
 app/          Next.js App Router pages and responsive styles
 components/   Dashboard, roadmap, detail editors, backup controls, context
-data/         Roadmap and nine standalone module JSON files
+data/         Roadmap and ten standalone module JSON files
 lib/          Build-time curriculum loader, progress rules, localStorage
 types/        Curriculum and progress types
 tests/        Native Node tests for import validation, focus, curriculum
@@ -68,3 +68,9 @@ Module 9 adapts the supplied **Backend Networking & Resource Management** self-s
 The module page links to the complete original guide at `public/materials/backend-networking-self-study.md`, including shell commands, the suggested lab layout, reference shelf, and manual 0–4 mastery rubric. Record scores, evidence paths, and revisit dates in existing notes; no new progress schema is needed. The guide suggests eight weeks at four to six hours per week.
 
 Labs use only local or authorized targets and a local fake payment provider. TLS verification remains enabled; packet capture excludes production traffic and credentials. Database and Spring dependencies belong to the learning labs, not to this web app. Per-payment due timestamps, bounded workers, idempotent effects, short claims, and stale-worker protection are explicit capstone requirements.
+
+## JVM internals and tuning extension
+
+Module 10 adds 21 topics, eight practical labs, and a JVM investigation capstone. It covers class loading and bytecode, heap versus stack and reference semantics, object layout and reachability, retained leaks, collectors and safepoints, JIT and escape analysis, the Java memory model, thread budgets, native memory, and JVM failure classification. The final lessons connect CPU locality and benchmark pitfalls to measured tuning.
+
+Labs use plain Java, bytecode inspection, GC logs, thread dumps, JFR, and Native Memory Tracking. Experiments run in bounded local processes with synthetic data. The capstone requires a root-cause correction, a complete process-memory budget, and one controlled runtime-setting comparison with explicit rollback criteria. Java 25 official documentation is linked throughout; implementation-specific claims and command behavior must be checked against the JDK actually used. No runtime dependency or progress-schema change is introduced.
