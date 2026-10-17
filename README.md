@@ -1,6 +1,6 @@
 # Backtrack
 
-A personal backend engineering roadmap. Ten modules take you from plain Java to an Authentication Service project, a networking/payment-reconciliation lab, and practical JVM investigation. Curriculum is source-controlled JSON; personal progress stays in your browser.
+A personal backend engineering roadmap. Eleven modules take you from plain Java to an Authentication Service project, a networking/payment-reconciliation lab, practical JVM investigation, and backend reliability and scale. Curriculum is source-controlled JSON; personal progress stays in your browser.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ Each item has `id`, `title`, `description`, `learningGoals`, `concepts`, `exampl
 
 The full curriculum also includes `material`: a plain-text `explanation`, a `workedExample` with `scenario` and ordered `steps`, `commonMistakes`, `guidedExercise`, `independentExercise`, and `recallQuestions`. `acceptanceCriteria` states observable completion checks; `resources` contains official documentation links as `{ title, url }`. Modules include `outcomes`, `studyGuidance`, and `completionCriteria`. The app renders these fields directly without HTML, Markdown processing, or new dependencies. Existing simpler JSON definitions still render through the original examples fallback.
 
-The updated track has 172 topics, 47 exercises, and 11 challenges across ten modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and finishes with operational failure drills and a local runbook. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
+The updated track has 182 topics, 52 exercises, and 12 challenges across eleven modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and extends operational failure drills into runtime investigation and reliable event processing. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
 
 Existing module, item, and task IDs are preserved. Notes, statuses, attempts, AI assistance, and checked tasks remain associated with the same content. Added topics can lower a module's percentage and leave new prerequisites incomplete; no progress is reset or silently marked complete. Previously completed exercises and challenges remain completed, so revisit their expanded criteria manually when useful.
 
@@ -53,7 +53,7 @@ Recommendations first continue an active learning/practicing topic, then choose 
 ```text
 app/          Next.js App Router pages and responsive styles
 components/   Dashboard, roadmap, detail editors, backup controls, context
-data/         Roadmap and ten standalone module JSON files
+data/         Roadmap and eleven standalone module JSON files
 lib/          Build-time curriculum loader, progress rules, localStorage
 types/        Curriculum and progress types
 tests/        Native Node tests for import validation, focus, curriculum
@@ -74,3 +74,11 @@ Labs use only local or authorized targets and a local fake payment provider. TLS
 Module 10 adds 21 topics, eight practical labs, and a JVM investigation capstone. It covers class loading and bytecode, heap versus stack and reference semantics, object layout and reachability, retained leaks, collectors and safepoints, JIT and escape analysis, the Java memory model, thread budgets, native memory, and JVM failure classification. The final lessons connect CPU locality and benchmark pitfalls to measured tuning.
 
 Labs use plain Java, bytecode inspection, GC logs, thread dumps, JFR, and Native Memory Tracking. Experiments run in bounded local processes with synthetic data. The capstone requires a root-cause correction, a complete process-memory budget, and one controlled runtime-setting comparison with explicit rollback criteria. Java 25 official documentation is linked throughout; implementation-specific claims and command behavior must be checked against the JDK actually used. No runtime dependency or progress-schema change is introduced.
+
+## Backend reliability and scale extension
+
+Module 11 expands all ten concepts from the supplied Puneet Patwari reading-list image: p99 latency, connection pooling, backpressure, idempotency keys, query plans with EXPLAIN ANALYZE, write amplification, consistent hashing, change data capture, the transactional outbox, and tail latency amplification. Each concept includes an explanation, worked example, common mistakes, guided and independent practice, recall questions, acceptance criteria, and primary references.
+
+Five labs cover bounded load and latency, retry/outbox crash recovery, query plans versus write cost, deterministic hash-ring routing, and real local CDC snapshot/replay. The order-pipeline capstone connects all ten concepts. It uses real database transactions and durable replay protection, with simulations for routing and fan-out; the dedicated CDC lab requires actual connector evidence. Existing Database, Production Thinking and Backend Networking lessons are linked as prerequisites.
+
+Open **Backend Reliability & Scale** in the roadmap or download [the complete self-study guide](public/materials/backend-reliability-scale-self-study.md). The guide includes the full lessons, a six-week study sequence, a disposable SQL fixture, measurement notes and a crash-review worksheet. Record predictions, evidence and mastery scores in existing notes. All existing curriculum and task IDs are preserved; no runtime dependency or progress-schema change is needed.

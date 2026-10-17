@@ -1,0 +1,1049 @@
+# Backend Reliability & Scale — Self-Study Guide
+
+The ten concepts in the supplied Puneet Patwari reading-list image, expanded into original lessons, five practical labs and a capstone. The image supplies the checklist; primary references below support the technical material.
+
+**Track:** Java backend engineering. **Prerequisites:** Database, Production Thinking, Backend Networking. **Pace:** six weeks, four to six hours per week.
+
+## How to study
+
+For each lesson: predict → experiment → observe → explain → apply. Record setup versions, raw evidence paths, failures, uncertainty and a revisit date in Backtrack notes. Work independently for 25 minutes before requesting an implementation. Ask for one hint or a review of your reasoning.
+
+Use local disposable databases, fake dependencies and synthetic orders. Bound request count, concurrency, runtime and disk use. Use the official documentation matching installed versions. These labs are separate from Backtrack’s runtime.
+
+## Suggested sequence
+
+| Week | Concepts | Practice |
+|---|---|---|
+| 1 | p99, pooling, backpressure | Establish the bounded-load harness |
+| 2 | Idempotency keys, outbox (preview CDC first) | Retry and outbox crash lab |
+| 3 | Query plans, write amplification | Query and write-cost lab |
+| 4 | Consistent hashing | Hash-ring lab |
+| 5 | CDC and outbox revisited | Real CDC snapshot/replay lab |
+| 6 | Tail amplification, review all ten | Finish latency lab and order-pipeline capstone |
+
+The app shows prerequisite links; all pages remain available for preview. Start a lab once you can explain its dependent topics.
+
+## Mastery rubric
+
+0: unfamiliar. 1: recognize terms. 2: explain with notes. 3: complete the experiment and a variation independently. 4: teach the tradeoffs and diagnose a counterexample. Aim for at least 3 on every topic; revisit after one week.
+
+## Topic checklist
+
+- [ ] p99 latency and why averages hide slow requests
+- [ ] Connection pooling and resource budgets
+- [ ] Backpressure and bounded overload
+- [ ] Idempotency keys and ambiguous retries
+- [ ] Reading query plans with EXPLAIN ANALYZE
+- [ ] Write amplification and index tradeoffs
+- [ ] Consistent hashing and controlled key movement
+- [ ] Change data capture: snapshots, logs and replay
+- [ ] The transactional outbox pattern
+- [ ] Tail latency amplification in fan-out requests
+
+
+## Concept 1 — p99 latency and why averages hide slow requests
+
+Measure the slowest part of a request distribution and make the measurement boundary explicit.
+
+### Learning goals
+
+- Calculate mean, p50, p95 and p99 from raw samples.
+- Explain sampling, queue time and missing failed requests.
+
+### Understand
+
+A mean compresses all requests into one number, so rare long waits can disappear. A percentile is a threshold in a specified population and time window: p99 describes roughly the slowest one percent boundary, not the maximum. Define the estimator; for this lab sort N samples and use the value at one-based rank ceil(0.99 × N). Small samples make high percentiles unstable. Measure from scheduled arrival to completion when studying overload, including queue wait. Report errors, rejections and timeouts separately so a fast failure cannot masquerade as a fast successful response. Do not average instance p99 values to obtain a fleet p99; combine compatible histogram counts or raw samples. A client that waits for each response before sending the next request reduces offered load as the service slows and can conceal waiting that real arrivals would experience.
+
+### Worked example
+
+A synthetic batch contains 9,800 requests at 10 ms and 200 at 1,000 ms.
+
+1. Compute the mean: (9,800 × 10 + 200 × 1,000) / 10,000 = 29.8 ms.
+2. Nearest-rank p50 and p95 are 10 ms; p99 is 1,000 ms, and the maximum is also 1,000 ms in this constructed dataset.
+3. A 200 ms objective fails for 2% of requests even though the mean looks comfortable.
+
+### Common mistakes
+
+- A p99 calculated from 50 requests is not a stable description of a large production population.
+- Discarding timeouts or averaging percentiles across servers biases the report.
+
+### Guided practice
+
+- Create the 10,000 samples and calculate the sorted nearest-rank percentiles yourself.
+- Record the window, sample count, units and boundary; then add explicit timeout outcomes.
+- Compare scheduled arrivals with a caller that waits for the previous response.
+
+### Independent practice
+
+Construct two datasets with the same mean and different p99 values. Explain which user experience each represents.
+
+### Recall without notes
+
+1. Can two fleets have the same mean and different p99?
+2. Why does a closed-loop caller hide overload?
+3. How would you combine measurements from two instances?
+
+### Acceptance criteria
+
+- [ ] Reproduce 29.8 ms mean and 1,000 ms p99 using the stated estimator.
+- [ ] Report sample size, failures and queue-time inclusion alongside the percentiles.
+
+### Primary references
+
+- [Google Research: The Tail at Scale](https://research.google/pubs/the-tail-at-scale/)
+
+
+## Concept 2 — Connection pooling and resource budgets
+
+Reuse connections while bounding pressure on the database and remote services.
+
+### Learning goals
+
+- Distinguish acquisition wait, connection establishment and operation timeouts.
+- Budget connections across replicas and keep transactions short.
+
+### Understand
+
+A pool lends reusable connections and limits simultaneous ownership. With HikariCP, closing a borrowed JDBC handle normally returns it to the pool; failing to close it leaves capacity occupied. maximumPoolSize bounds idle plus in-use connections, and connectionTimeout limits acquisition wait rather than SQL execution. A connection held while waiting on a remote API still consumes database capacity. Separate those calls from short database transactions when correctness allows. Plan a total connection budget across application replicas, background jobs, migrations and operational headroom. More connections can add database contention. HTTP reuse has different limits, especially with multiplexed streams; database pool settings do not configure an HTTP client. Use acquisition wait, occupancy and database utilization to locate the bottleneck before changing a size.
+
+### Worked example
+
+Three replicas each allow ten database connections, and each request holds one for 200 ms.
+
+1. The application can consume 30 database connections before migration and admin headroom.
+2. A ten-connection replica has an idealized ceiling near 10 / 0.2 = 50 operations/second if every request holds one throughout; contention and other bottlenecks can lower it.
+3. Shorten measured hold time and compare equal offered load before raising the pool limit.
+
+### Common mistakes
+
+- A pool is not a rate limiter: ten fast calls can still produce high requests/second.
+- A new pool per request defeats reuse; an unclosed handle defeats availability.
+
+### Guided practice
+
+- Revisit networking-unit-5 and use a shared JDBC pool capped at two connections in a disposable lab.
+- Start six bounded callers; record acquisition wait and active, idle and pending counts.
+- Compare a remote delay inside versus outside the transaction and verify all handles close.
+
+### Independent practice
+
+Budget four replicas, a batch worker and an admin reserve against a database limit of 60; explain how rolling deployment overlap changes the budget.
+
+### Recall without notes
+
+1. What does close mean on a borrowed JDBC connection?
+2. Why can low database CPU coexist with pool timeouts?
+3. Which timeout bounds query execution?
+
+### Acceptance criteria
+
+- [ ] Show acquisition wait separately from query time and transaction duration.
+- [ ] Demonstrate capacity returning after success and failure, and document a replica-wide budget.
+
+### Primary references
+
+- [HikariCP configuration and lifecycle](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)
+
+
+## Concept 3 — Backpressure and bounded overload
+
+Make overload visible and keep accepted work within a finite resource budget.
+
+### Learning goals
+
+- Bound in-flight work and queued work.
+- Distinguish demand control, concurrency limits and rate limits.
+
+### Understand
+
+When producers add work faster than consumers finish it, a queue grows unless input slows, is rejected, or is durably deferred within a managed budget. Backpressure communicates consumer capacity upstream; a bounded queue plus an explicit rejection policy is one practical overload boundary. A concurrency cap limits simultaneous work, while a rate cap limits arrivals over time. Neither alone guarantees the other. Include waiting time in deadlines and cancel work that is no longer useful. Retries consume the same capacity and need capped attempts, backoff and jitter. A durable queue survives restarts but still needs retention, lag monitoring and an overload policy. Never silently discard accepted business work. Reactive demand is useful only if downstream buffering and work also respect the demand.
+
+### Worked example
+
+A worker finishes 20 jobs/second while arrivals sustain 50 jobs/second.
+
+1. The backlog grows by about 30 jobs/second while those rates hold.
+2. An initially empty queue with room for 120 waiting jobs fills in roughly four seconds, ignoring transients.
+3. Bound active workers and queued jobs; record explicit rejection or durable deferral and verify recovery after the burst.
+
+### Common mistakes
+
+- An unbounded executor queue moves failure into memory and latency.
+- Immediate retries can increase the arrival rate exactly when capacity is lowest.
+
+### Guided practice
+
+- Simulate arrivals and completions with a deterministic clock before adding threads.
+- Set worker count, queue capacity and deadline; count submitted, completed, rejected, expired and still outstanding jobs.
+- Slow the consumer, then restore it and measure oldest queued age and recovery time.
+
+### Independent practice
+
+Design overload responses for an interactive read and an accepted order submission; explain when rejection is valid and what durable acceptance promises.
+
+### Recall without notes
+
+1. How do rate and concurrency limits differ?
+2. When does a queue absorb a burst rather than fix sustained overload?
+3. What happens to cancelled queued work?
+
+### Acceptance criteria
+
+- [ ] Show a hard bound on active plus queued work during a sustained overload run.
+- [ ] Account for every offered job and demonstrate recovery without an unlimited retry loop.
+
+### Primary references
+
+- [Reactive Streams: bounded demand and backpressure](https://www.reactive-streams.org/)
+
+
+## Concept 4 — Idempotency keys and ambiguous retries
+
+Make repeated attempts represent one durable business operation.
+
+### Learning goals
+
+- Define key scope, payload validation and retention.
+- Handle concurrent duplicates and a lost response without duplicate effects.
+
+### Understand
+
+An idempotency key names one caller intent across retries. It is not a hash-based excuse to merge two legitimate identical purchases. Scope the key by authenticated caller and operation, bind it to a canonical request fingerprint, and define the retention period. In a local database workflow, a uniqueness constraint arbitrates concurrent attempts; store the business change and replayable outcome atomically so a retry can recover the committed result. Reusing a key with different input must produce a defined conflict. Define how a simultaneous request observes in-progress work and how recovery works after a crash. A lost response does not prove a failed operation. Local atomicity cannot cover a remote provider: propagate a stable provider-supported key or reconcile the uncertain result. Deleting a key record too soon makes a late retry dangerous.
+
+### Worked example
+
+An order commits but the response connection drops. The caller retries with the same scoped key.
+
+1. The first attempt stores the order and key outcome in one database transaction.
+2. The retry finds the same fingerprint and returns the recorded order identity instead of creating another.
+3. Two concurrent attempts use database uniqueness and transaction handling; a check-then-insert without a constraint is insufficient.
+
+### Common mistakes
+
+- Generating a fresh key for every retry creates new intents.
+- Recording success before an external side effect or after an unrelated transaction leaves a crash gap.
+
+### Guided practice
+
+- Write a behavior table for first use, same payload, changed payload, concurrent use, crash before commit and response loss after commit.
+- Model a unique (caller_id, operation, key) record and a deterministic request fingerprint.
+- Run duplicate attempts concurrently and assert one order, then repeat after restarting the process.
+
+### Independent practice
+
+Explain an expiry policy and a remote provider timeout. State which results are known, uncertain or retryable without inventing an exactly-once guarantee.
+
+### Recall without notes
+
+1. Why does a request hash alone fail to express caller intent?
+2. What if the same key has a different payload?
+3. Which transaction owns the replayable outcome?
+
+### Acceptance criteria
+
+- [ ] Concurrent identical attempts produce one durable local business effect and a stable outcome.
+- [ ] Changed payloads conflict and response-loss retries survive restart; external uncertainty is documented.
+
+### Primary references
+
+- [Amazon Builders’ Library: safe retries with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
+
+
+## Concept 5 — Reading query plans with EXPLAIN ANALYZE
+
+Connect a slow query to measured row counts, loops and I/O.
+
+### Learning goals
+
+- Read a plan tree and compare estimated and actual row counts.
+- Validate a query or index change using equal inputs and write tradeoffs.
+
+### Understand
+
+EXPLAIN shows a planner’s predicted strategy; EXPLAIN ANALYZE executes the statement and adds measurements. Read the tree from data-producing children toward their parents. Costs are planner units, not milliseconds. Compare estimated rows with actual rows at the first large divergence. For repeated nodes, actual time and rows are per-loop averages, so inspect loops; parent times include child work and should not simply be summed. BUFFERS adds cache and I/O evidence, but a buffer read does not prove physical disk I/O because the operating system can cache it. A sequential scan may be the best choice for a small table or a broad match. Use representative distributions and refreshed statistics. Instrumentation adds overhead. Use disposable data: ANALYZE on a modifying statement really writes, takes locks and may trigger side effects; ROLLBACK does not undo every possible side effect such as sequence advances or external actions.
+
+### Worked example
+
+A pending-order query is slow for a sparse tenant/status combination.
+
+1. Save EXPLAIN (ANALYZE, BUFFERS) for the exact predicate and ordering on seeded data.
+2. Find estimate/actual divergence, rows removed, repeated loop work and any sort or temporary I/O.
+3. Test one candidate index or query change, refresh statistics, repeat equal inputs and compare read improvement with write cost.
+
+### Common mistakes
+
+- Seeing an index scan does not establish that a query is efficient.
+- Adding nested-node times double-counts included child work.
+
+### Guided practice
+
+- Use the guide’s disposable SQL fixture to create a skewed 100,000-row order table.
+- Save baseline and candidate plans for the same tenant, status and LIMIT.
+- Try a broad filter and explain why the planner may prefer a scan; compare results as well as timings.
+
+### Independent practice
+
+Investigate a join whose inner scan runs 10,000 times. Estimate total rows visited from per-loop values and propose one falsifiable change.
+
+### Recall without notes
+
+1. What does loops change about actual rows?
+2. When is a sequential scan reasonable?
+3. Why is ANALYZE unsafe to try blindly on an UPDATE?
+
+### Acceptance criteria
+
+- [ ] Annotate a real plan with estimates, actual rows, loops and buffer evidence.
+- [ ] Preserve query results and report a repeated comparison rather than one warm-cache timing.
+
+### Primary references
+
+- [PostgreSQL 18: using EXPLAIN](https://www.postgresql.org/docs/18/using-explain.html)
+- [PostgreSQL 18: EXPLAIN command and execution caveats](https://www.postgresql.org/docs/18/sql-explain.html)
+
+
+## Concept 6 — Write amplification and index tradeoffs
+
+Account for the physical work behind a small logical change.
+
+### Learning goals
+
+- Define the numerator and denominator of a write-amplification measurement.
+- Explain index, WAL, maintenance and storage-layer costs.
+
+### Understand
+
+A logical write can create multiple kinds of physical work: transaction log records, changed data pages, index maintenance and later cleanup. Define the layer before calculating amplification. WAL bytes per changed payload byte is a useful lab proxy, but it is not total device bytes written. Checkpoints, full-page images, caching, concurrent work and replicas complicate interpretation. PostgreSQL updates create new row versions; eligible heap-only tuple updates can avoid some index maintenance, subject to indexed-column and page-space conditions. Extra indexes can improve reads while increasing write and storage cost. In LSM-based engines, compaction rewrites data and trades write cost against read and space behavior; do not apply that implementation model indiscriminately to PostgreSQL. Compare equal logical work and preserve indexes required for correctness.
+
+### Worked example
+
+A synthetic batch changes 1 MB of application payload and produces 8 MB of measured WAL delta.
+
+1. The defined WAL-to-payload proxy is 8× for this batch, not a claim about SSD-level write amplification.
+2. Repeat equal batches on clean comparable fixtures with and without an optional status index.
+3. Compare read plans, update throughput and WAL deltas; attribute differences cautiously and record checkpoint conditions.
+
+### Common mistakes
+
+- One SQL UPDATE is not one disk write.
+- Dropping a uniqueness index to win a benchmark can break correctness.
+
+### Guided practice
+
+- Choose a fixed update count, payload width and transaction batch size on disposable data.
+- Measure WAL LSN delta on an otherwise quiet local database and label it as a proxy.
+- Compare indexed-column and non-indexed-column updates, and record table/index sizes and HOT statistics where available.
+
+### Independent practice
+
+Propose the minimum index set for a write-heavy order status table. Defend each index against a concrete read or correctness requirement.
+
+### Recall without notes
+
+1. What exactly does your amplification ratio measure?
+2. Why can a read optimization harm writes?
+3. How do HOT updates differ from LSM compaction?
+
+### Acceptance criteria
+
+- [ ] Report logical work and WAL delta with units, repeat count and environmental limitations.
+- [ ] Explain one observed read/write tradeoff without treating the WAL proxy as device I/O.
+
+### Primary references
+
+- [PostgreSQL 18: write-ahead logging](https://www.postgresql.org/docs/18/wal-intro.html)
+- [PostgreSQL 18: heap-only tuples and index maintenance](https://www.postgresql.org/docs/18/storage-hot.html)
+
+
+## Concept 7 — Consistent hashing and controlled key movement
+
+Map keys to changing owners without remapping the whole keyspace.
+
+### Learning goals
+
+- Implement deterministic ring ownership including wraparound.
+- Measure movement, balance and hotspots during membership changes.
+
+### Understand
+
+Modulo routing hash(key) % N can remap many keys when N changes. A consistent hash ring places keys and node tokens in the same ordered space; a key belongs to the first token clockwise, wrapping to the beginning. Adding a token changes ownership only in the interval it takes from a successor. Virtual nodes give a physical owner multiple token positions to improve distribution. They do not guarantee equal request load: one popular key can still dominate. Use deterministic encoding, hash function and collision tie-breaking across clients. Ownership is a routing decision, not data movement, replication, consensus or failure detection. A real membership change needs versioning, migration and a strategy for reads and writes during transition. A local simulation is enough to learn these boundaries.
+
+### Worked example
+
+A ring has A=20, B=60 and C=90 in a toy 0–99 space. D joins at 40.
+
+1. Before the join, keys 25 and 35 belong to B; key 95 wraps to A.
+2. After the join, keys in (20,40] move from B to D; key 50 remains on B.
+3. Compare this deterministic movement with modulo routing over the same larger fixed key set, then add virtual nodes and measure distribution.
+
+### Common mistakes
+
+- A ring does not automatically copy data to its new owner.
+- Virtual nodes cannot split a single hot key’s traffic by themselves.
+
+### Guided practice
+
+- Check exact-token and wraparound cases using the toy ring.
+- Map 10,000 fixed keys to three nodes, add a fourth, then remove a node; count changed owners.
+- Compare one token versus many tokens per physical node and a skewed request distribution.
+
+### Independent practice
+
+Design a versioned cache membership transition and describe what happens when clients temporarily disagree on the owner.
+
+### Recall without notes
+
+1. Which interval moves when D joins?
+2. Why can balanced key counts hide an overloaded node?
+3. What does hashing not solve about replication?
+
+### Acceptance criteria
+
+- [ ] Deterministic boundary tests pass, including wraparound and token collision policy.
+- [ ] Report movement and load distribution, and distinguish mapping from actual migration.
+
+### Primary references
+
+- [Dynamo paper: partitioning and virtual nodes](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)
+
+
+## Concept 8 — Change data capture: snapshots, logs and replay
+
+Build a recoverable projection from committed database changes.
+
+### Learning goals
+
+- Explain the snapshot-to-stream boundary and durable offsets.
+- Handle duplicate delivery, deletes, lag and schema changes.
+
+### Understand
+
+Change data capture exposes database changes to downstream readers. Log-based CDC can begin with a snapshot and continue from a coordinated log position so the initial data and later stream form a recoverable history. Track source position, commit boundaries and durable consumer checkpoints. A restart can replay changes that were emitted before an offset was saved, so consumers must tolerate duplicates. Apply a projection change and its deduplication/checkpoint state atomically when they share a database. Treat deletions and schema changes as explicit cases, and distinguish per-partition ordering from a global order. A lagging PostgreSQL replication slot can retain WAL and exhaust storage; retention limits can instead force recovery or a new snapshot. CDC transports row-level facts; it does not automatically identify the business intent behind several row updates.
+
+### Worked example
+
+A consumer updates an order projection, then crashes before acknowledging the source position.
+
+1. On restart the source can deliver the same event again.
+2. A stable event identity or suitable source-position strategy lets the consumer detect replay without incrementing totals twice.
+3. Persist the projection effect and deduplication state together; if history is no longer retained, use a documented rebuild path.
+
+### Common mistakes
+
+- A table poll using only updated_at can miss ties or deletes and is not the same as log-based CDC.
+- Acknowledging before the durable effect risks lost processing; acknowledging afterward permits replay.
+
+### Guided practice
+
+- First simulate an event stream with stable IDs, source positions, updates, a delete and a duplicate.
+- Build a projection and restart the consumer at an earlier checkpoint; assert the same final state.
+- For the real local CDC lab, inspect snapshot events, saved offsets, lag and replication-slot retention with the documentation for installed versions.
+
+### Independent practice
+
+Plan a projection rebuild while writes continue. State how snapshot boundaries, ordering and incompatible schema changes are handled.
+
+### Recall without notes
+
+1. Why do durable offsets not remove every duplicate?
+2. What happens when a replication slot falls far behind?
+3. How does a row update differ from a domain event?
+
+### Acceptance criteria
+
+- [ ] A replayed update and delete produce the expected final projection after restart.
+- [ ] Explain snapshot handoff, lag monitoring, retention failure and recovery; distinguish simulation from real CDC.
+
+### Primary references
+
+- [Debezium: PostgreSQL connector](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
+- [PostgreSQL 18: replication slots and retained WAL](https://www.postgresql.org/docs/18/warm-standby.html#STREAMING-REPLICATION-SLOTS)
+
+
+## Concept 9 — The transactional outbox pattern
+
+Commit business state and event intent together, then relay with replay protection.
+
+### Learning goals
+
+- Explain the database/broker dual-write failure.
+- Design atomic intent, at-least-once relay and idempotent consumption.
+
+### Understand
+
+Saving an order and separately publishing an event leaves a crash gap whichever action happens first. An outbox stores the business change and event intent in one database transaction. A polling relay or a CDC connector later publishes committed intent. The publish and local acknowledgement still span systems: a crash after publish but before marking delivery can cause a duplicate. Keep one event ID across attempts and make consumers deduplicate in the same transaction as their local effect. Use an aggregate key and version when per-entity ordering matters; multiple workers can reorder events unless the design prevents it. Define retry, poison-event handling, retention and replay. Outbox atomicity covers local state plus intent, not instantaneous remote effects. Polling is a valid first implementation; CDC is an alternative transport for the same intent.
+
+### Worked example
+
+An order and OrderCreated event commit; the relay publishes but crashes before saving its delivery marker.
+
+1. Both local rows survive together because they share a transaction.
+2. The relay retries the same event ID after recovery, so the consumer can receive two deliveries.
+3. The consumer’s unique inbox entry and projection mutation commit together; the second delivery makes no second business change.
+
+### Common mistakes
+
+- Deleting or marking an event before confirmed publication can lose it.
+- A distributed lock alone does not make consumer effects idempotent.
+
+### Guided practice
+
+- Draw crash points before commit, after commit, before publish, after publish and after acknowledgement.
+- Create business and outbox rows in one transaction; prove rollback removes both.
+- Replay an event into a consumer with a unique inbox key and atomic local effect.
+
+### Independent practice
+
+Compare a polling relay with a CDC relay. Specify per-order ordering, poison-event recovery and the conditions under which old outbox rows can be removed.
+
+### Recall without notes
+
+1. Which dual-write gap does the outbox close?
+2. Why can a correctly implemented relay still deliver twice?
+3. Where must the inbox record and business effect commit?
+
+### Acceptance criteria
+
+- [ ] A failed local transaction leaves neither business state nor event intent.
+- [ ] Crashing after publish causes safe replay, with no missing event or duplicate consumer effect.
+
+### Primary references
+
+- [Debezium: outbox event router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html)
+
+
+## Concept 10 — Tail latency amplification in fan-out requests
+
+Predict how waiting for many dependencies changes end-to-end latency.
+
+### Learning goals
+
+- Calculate the probability that at least one required branch is slow.
+- Evaluate deadlines, partial responses and hedging under load.
+
+### Understand
+
+A parallel request that waits for every branch completes at the slowest branch, plus coordination overhead. In a simple independent model, if each branch meets threshold T with probability p, all n branches meet it with probability p^n. This is a model for one threshold, not a formula that adds branch p99 values. Correlated failures, shared queues and common infrastructure change the distribution, so compare the model with traces. Serial dependencies accumulate time instead. Limit fan-out and pass a remaining end-to-end deadline through queueing and calls. Partial results may help when product semantics allow them. Hedging launches an extra attempt after a delay and can shorten some waits, but it consumes capacity, requires safe duplicate execution and cancellation, and may worsen overload.
+
+### Worked example
+
+Each independent branch has a 99% chance of finishing within 100 ms; a parent needs all 100 branches.
+
+1. The probability all finish within 100 ms is 0.99^100, approximately 36.6%.
+2. The probability at least one misses the threshold is about 63.4%; this is not a claim that the parent p99 is 100 ms.
+3. Repeat with shared slow periods and compare results to expose the independence assumption.
+
+### Common mistakes
+
+- The p99 of a maximum is not the sum or average of branch p99 values.
+- Hedging slow writes without duplicate protection can duplicate side effects.
+
+### Guided practice
+
+- Use a fixed-seed or deterministic simulation for fan-out widths 1, 10 and 100.
+- Compute predicted threshold misses, then compare independent and correlated slow branches.
+- Add a parent deadline, cancellation and a fan-out cap; report completed, partial, failed and cancelled outcomes.
+
+### Independent practice
+
+Design a product-page request with inventory, recommendations and pricing. Decide which branches are required and whether any may return partial results.
+
+### Recall without notes
+
+1. What assumptions justify p^n?
+2. How do serial and parallel dependencies differ?
+3. When could hedging make latency worse?
+
+### Acceptance criteria
+
+- [ ] Reproduce the 63.4% threshold-miss calculation and label its independence assumption.
+- [ ] Measure parent latency separately from branch latency and demonstrate deadline/cancellation behavior.
+
+### Primary references
+
+- [Google Research: The Tail at Scale](https://research.google/pubs/the-tail-at-scale/)
+
+
+## Exercise 1 — Lab: latency, pools and overload
+
+Find where waiting occurs and prove that capacity stays bounded.
+
+### Learning goals
+
+- Submitted = completed + rejected + expired/cancelled + outstanding, using disjoint outcome categories.
+- Active and queued work remain within declared bounds and resources return after the run.
+
+### Understand
+
+Build a small local workload with independently adjustable connection hold time, worker count, queue capacity and dependency delay. Measure scheduled arrival, execution start and completion separately. This makes pool wait and queue wait visible instead of assigning all slow requests to SQL. Compare a stable baseline, a temporary burst and sustained overload using equal inputs. Successful latency alone is insufficient: count rejected, expired and cancelled work too.
+
+### Worked example
+
+A local order read becomes slow when its fake dependency delays one request in fifty.
+
+1. Establish the baseline with fixed arrivals and measured queue and pool wait.
+2. Inject delay and compare mean, percentiles, backlog and fan-out completion.
+3. Restore the dependency and demonstrate bounded recovery with no leaked connections.
+
+### Common mistakes
+
+- Increasing all pool sizes at once prevents causal attribution.
+
+### Guided practice
+
+- Start with a deterministic simulator and verify its event accounting.
+- Use a local Java/JDBC harness after the model works; cap total requests and run duration.
+- Compare one capacity change at a time and save raw samples.
+
+### Independent practice
+
+Repeat with two application instances sharing one database connection budget.
+
+### Recall without notes
+
+1. Which wait increased first?
+2. What proves the overload policy accounts for all offered work?
+
+### Requirements
+
+- Use finite fixed workloads and a shared pool.
+- Include independent and correlated fan-out modes.
+
+### Constraints
+
+- Local fake dependencies only; no third-party load tests.
+- Set a run deadline and always close clients, connections and executors.
+
+### Deliverables
+
+- Runnable harness and configuration.
+- Raw samples, outcome counts and annotated comparison.
+
+### Acceptance criteria
+
+- [ ] Submitted = completed + rejected + expired/cancelled + outstanding, using disjoint outcome categories.
+- [ ] Active and queued work remain within declared bounds and resources return after the run.
+- [ ] The report includes sample counts, errors, queue/pool wait, percentiles and one explained tradeoff.
+
+### Primary references
+
+- [HikariCP configuration and lifecycle](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)
+- [Reactive Streams: bounded demand and backpressure](https://www.reactive-streams.org/)
+- [Google Research: The Tail at Scale](https://research.google/pubs/the-tail-at-scale/)
+
+
+## Exercise 2 — Lab: crash-safe order submission and outbox delivery
+
+Prove local atomicity and safe replay at each crash boundary.
+
+### Learning goals
+
+- One order and one initial event intent remain after concurrent identical submissions and response-loss retries.
+- Changed-payload reuse conflicts; rollback leaves neither order nor outbox intent.
+
+### Understand
+
+Use a local order database, outbox relay and projection consumer. The experiment centers on durable evidence, not a broker’s marketing guarantee. Start with a polling relay and a durable local receiver; introduce crashes after commit and after delivery but before acknowledgement. The same scoped request key and event ID must survive restarts. The inbox marker and projection effect share a transaction.
+
+### Worked example
+
+Ten concurrent submissions represent one order intent, followed by a relay crash after successful delivery.
+
+1. Use a database constraint to arbitrate request-key ownership and persist one order plus one event intent.
+2. Drop the response after commit, restart and replay the request.
+3. Crash the relay after receiver commit, then redeliver the event and verify a single projection effect.
+
+### Common mistakes
+
+- An in-memory set cannot prove deduplication across restart.
+
+### Guided practice
+
+- Write the request behavior table and crash matrix first.
+- Add a test-only crash hook at each boundary and inspect committed rows after restart.
+- Inject a changed-payload retry and a duplicate event.
+
+### Independent practice
+
+Add two events for one order and test a delayed first event against your declared ordering policy.
+
+### Recall without notes
+
+1. What is atomic in this design?
+2. Which crash necessarily permits duplicate delivery?
+
+### Requirements
+
+- Use real database constraints and transactions.
+- Persist outcomes, stable event IDs and consumer inbox records.
+
+### Constraints
+
+- Use synthetic orders and a local receiver.
+- No external payment provider or exactly-once transport claim.
+
+### Deliverables
+
+- Crash matrix, schema and repeatable integration checks.
+- Before/after durable row counts and explanation of remaining external uncertainty.
+
+### Acceptance criteria
+
+- [ ] One order and one initial event intent remain after concurrent identical submissions and response-loss retries.
+- [ ] Changed-payload reuse conflicts; rollback leaves neither order nor outbox intent.
+- [ ] Restart after delivery but before acknowledgement produces no duplicate durable receiver effect.
+
+### Primary references
+
+- [Amazon Builders’ Library: safe retries with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
+- [Debezium: outbox event router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html)
+
+
+## Exercise 3 — Lab: query plans versus write cost
+
+Choose an index using evidence from both reads and writes.
+
+### Learning goals
+
+- Baseline and candidate queries return identical ordered results.
+- The report annotates rows, loops and buffers, plus a repeated write-cost comparison.
+
+### Understand
+
+Seed disposable tables with realistic skew and compare the same read and update workload under two index layouts. Save actual plans and results, then measure a clearly defined WAL-per-logical-work proxy on comparable fixtures. Distinguish a faster lookup from improved total workload performance. Keep key and uniqueness constraints intact in every variant.
+
+### Worked example
+
+A tenant’s pending-order lookup needs an ordered LIMIT, while status changes are frequent.
+
+1. Run the guide fixture and save the baseline plan and selected row IDs.
+2. Add one candidate index, refresh statistics and repeat the exact read.
+3. Repeat equal update batches on separate comparable fixtures and compare throughput, WAL delta and read benefit.
+
+### Common mistakes
+
+- Repeatedly updating already-changed rows creates incomparable trials.
+
+### Guided practice
+
+- Use the SQL appendix and record the PostgreSQL version.
+- Run multiple baseline/candidate comparisons and record warm/cache limitations.
+- Label every ratio with numerator, denominator and measurement layer.
+
+### Independent practice
+
+Test a tenant with a broad match and a sparse one; explain differing access strategies.
+
+### Recall without notes
+
+1. Which plan evidence justifies the index?
+2. Does the measured WAL proxy equal physical SSD writes?
+
+### Requirements
+
+- Use the same row distributions and batch size in comparisons.
+- Show at least one broad and one selective query.
+
+### Constraints
+
+- Disposable local database only.
+- Do not change server-wide settings merely to obtain a desired plan.
+
+### Deliverables
+
+- Seed SQL, plans and results.
+- Read/write measurement table and one justified index decision.
+
+### Acceptance criteria
+
+- [ ] Baseline and candidate queries return identical ordered results.
+- [ ] The report annotates rows, loops and buffers, plus a repeated write-cost comparison.
+- [ ] The chosen index set preserves correctness and names a read/write tradeoff.
+
+### Primary references
+
+- [PostgreSQL 18: using EXPLAIN](https://www.postgresql.org/docs/18/using-explain.html)
+- [PostgreSQL 18: EXPLAIN command and execution caveats](https://www.postgresql.org/docs/18/sql-explain.html)
+- [PostgreSQL 18: write-ahead logging](https://www.postgresql.org/docs/18/wal-intro.html)
+- [PostgreSQL 18: heap-only tuples and index maintenance](https://www.postgresql.org/docs/18/storage-hot.html)
+
+
+## Exercise 4 — Lab: deterministic routing and node churn
+
+Measure key movement and load balance without deploying a cluster.
+
+### Learning goals
+
+- Boundary, wraparound, collision and no-owner cases have explicit outcomes.
+- Join/removal movement and key/request balance are measured on fixed inputs.
+
+### Understand
+
+Implement a local routing simulator using a stable hash and explicit token ordering. Keep key-to-owner mappings before and after each membership change so movement is measurable. This lab validates routing only; a successful map lookup does not prove migrated data exists. Compare uniform key counts with skewed request rates to expose hot-key behavior.
+
+### Worked example
+
+A three-owner cache gains one owner during a traffic spike.
+
+1. Validate the toy ring boundaries and empty-ring behavior.
+2. Route a fixed 10,000-key dataset using modulo and ring mappings, then compare changed owners on join and removal.
+3. Add virtual nodes and replay skewed traffic; report both key count and request count per owner.
+
+### Common mistakes
+
+- Language-specific default hash randomization may make two processes disagree.
+
+### Guided practice
+
+- Specify byte encoding, hash width, unsigned ordering and collision handling.
+- Save mapping snapshots and per-owner counts.
+- Repeat in a new process to verify deterministic results.
+
+### Independent practice
+
+Describe safe migration and reads while clients hold two membership versions.
+
+### Recall without notes
+
+1. What proves deterministic routing?
+2. Why might one popular key overwhelm a balanced ring?
+
+### Requirements
+
+- Use fixed inputs and a deterministic hash.
+- Compare modulo, one token and virtual-node variants.
+
+### Constraints
+
+- No cluster or cloud service required.
+
+### Deliverables
+
+- Runnable simulator, mappings and movement table.
+- Membership transition explanation.
+
+### Acceptance criteria
+
+- [ ] Boundary, wraparound, collision and no-owner cases have explicit outcomes.
+- [ ] Join/removal movement and key/request balance are measured on fixed inputs.
+- [ ] The report explains what actual migration and replication would still require.
+
+### Primary references
+
+- [Dynamo paper: partitioning and virtual nodes](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)
+
+
+## Exercise 5 — Lab: CDC snapshot, restart and projection recovery
+
+Observe real committed changes and compare them with the replay model.
+
+### Learning goals
+
+- Real local snapshot, insert, update and delete events are observed with source positions recorded.
+- Replay after restart does not duplicate the projection effect.
+
+### Understand
+
+First validate projection logic with the synthetic stream from the CDC topic, then use a disposable PostgreSQL database and a version-pinned local Debezium setup from its official documentation. Record the exact connector, broker and database versions rather than copying unversioned configuration. Observe the initial snapshot, subsequent committed changes, offsets and restart. The simulation is a prerequisite, not evidence that a real connector works.
+
+### Worked example
+
+An order exists before connector startup and changes while the consumer is temporarily stopped.
+
+1. Observe the snapshot record for the existing row and stream an insert, update and delete.
+2. Restart the consumer from a saved earlier position and prove replay-safe projection state.
+3. Pause briefly within a storage budget, inspect lag/slot retention and explain recovery if required history is unavailable.
+
+### Common mistakes
+
+- Leaving a forgotten replication slot can retain WAL after the lab ends.
+
+### Guided practice
+
+- Choose compatible pinned versions using official connector documentation and record them.
+- Configure only a disposable local database for logical decoding and capture committed changes.
+- Save redacted event envelopes and offsets, then stop the connector and remove lab-created slots/publications using the installed version’s documentation.
+
+### Independent practice
+
+Change one event field compatibly, then design a migration for an incompatible change and a projection rebuild.
+
+### Recall without notes
+
+1. What distinguishes snapshot events from later changes?
+2. What state survives a connector restart?
+3. What happens if required WAL is gone?
+
+### Requirements
+
+- Use actual log-based CDC after the simulation.
+- Document event identity, delete handling and checkpoint ownership.
+
+### Constraints
+
+- Local disposable services with bounded disk and runtime only.
+- Do not configure replication on a shared or production database.
+
+### Deliverables
+
+- Pinned version list, setup notes and redacted event samples.
+- Restart/replay evidence, recovery plan and cleanup checklist.
+
+### Acceptance criteria
+
+- [ ] Real local snapshot, insert, update and delete events are observed with source positions recorded.
+- [ ] Replay after restart does not duplicate the projection effect.
+- [ ] Lag and WAL-retention risk have explicit monitoring, limits, recovery and cleanup evidence.
+
+### Primary references
+
+- [Debezium: PostgreSQL connector](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
+- [PostgreSQL 18: replication slots and retained WAL](https://www.postgresql.org/docs/18/warm-standby.html#STREAMING-REPLICATION-SLOTS)
+- [Debezium: outbox event router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html)
+
+
+## Challenge 1 — Capstone: an observable, replay-safe order pipeline
+
+Integrate all ten concepts into one local system and defend the failure behavior.
+
+### Learning goals
+
+- A repeated or concurrent scoped request key produces one order; changed input conflicts and restart preserves replay behavior.
+- Order and outbox intent commit or roll back together.
+
+### Understand
+
+Build a small local order intake and read model. Orders use scoped idempotency keys and an atomic outbox; a bounded relay sends events to an inbox-protected projection. Measure pool wait, request distributions and end-to-end projection lag. Use a deterministic hash-ring simulator for cache ownership and a bounded fan-out read simulator, rather than adding a real distributed cache just to demonstrate routing. Complete the separate real CDC exercise and compare it with the polling relay. The goal is a measured correctness argument across crashes, overload and recovery.
+
+### Worked example
+
+An intake burst coincides with a slow dependency, an ambiguous response and a relay restart.
+
+1. Write invariants, request semantics, data model, resource budgets and crash matrix before implementation.
+2. Commit one order and event intent atomically; relay and consume with durable replay protection.
+3. Inject overload and crash points, compare one index decision, and demonstrate hashing/fan-out behavior.
+4. Publish a local runbook and explain which guarantees stop at the database boundary.
+
+### Common mistakes
+
+- Adding a broker or cache without a learning need expands infrastructure without proving correctness.
+- A good p99 report cannot compensate for a missing order event.
+
+### Guided practice
+
+- Reuse the five labs and state which components are real versus simulated.
+- Run correctness and bounded-load checks on fixed datasets before tuning.
+- Save enough redacted evidence for another learner to repeat the experiment.
+
+### Independent practice
+
+Repeat the design review with two application replicas and an outbox consumer paused long enough to create lag.
+
+### Recall without notes
+
+1. Where does each request wait?
+2. How is caller intent retained after a lost response?
+3. Which atomic transaction prevents a missing event intent?
+4. Why are replayed deliveries harmless?
+5. What does the hash ring fail to guarantee?
+6. Which fan-out assumptions did measurements contradict?
+7. How would a CDC outage exhaust storage or force a rebuild?
+8. What read improvement justified the measured write cost?
+
+### Requirements
+
+- Provide local order intake, a persisted outbox, relay and durable projection consumer.
+- Include explicit deadlines, cancellation, bounded retries and observability.
+- Use simulations for routing and fan-out, and real local CDC evidence from the dedicated lab.
+
+### Constraints
+
+- Synthetic data and local services only.
+- Keep the app’s own runtime independent of lab infrastructure.
+- No claim of globally exactly-once delivery or atomic remote payment effects.
+
+### Deliverables
+
+- Requirements, invariants, schema, sequence/crash diagrams and capacity budget.
+- Runnable local project and repeatable failure checks.
+- Measurement report, annotated plans, routing/fan-out results and CDC evidence.
+- Recovery runbook, five-minute explanation, reflection and AI-help record.
+
+### Acceptance criteria
+
+- [ ] A repeated or concurrent scoped request key produces one order; changed input conflicts and restart preserves replay behavior.
+- [ ] Order and outbox intent commit or roll back together.
+- [ ] A crash after publish before acknowledgement replays safely with one durable consumer effect.
+- [ ] Bounded worker, queue, connection and retry budgets hold during overload and recover afterward.
+- [ ] Report mean, p50/p95/p99, sample counts, failures, queue wait, pool wait and projection lag.
+- [ ] One annotated EXPLAIN ANALYZE comparison preserves results and includes measured write-cost evidence.
+- [ ] A fixed-key routing simulation demonstrates join/removal movement, virtual nodes and hot-key limitations.
+- [ ] Real CDC snapshot/stream/restart evidence from the CDC lab accompanies a polling-versus-CDC relay decision.
+- [ ] Independent and correlated fan-out experiments compare parent latency and threshold misses with the probability model.
+- [ ] A runbook covers restart, backlog, poison events, replay, retention limits and cleanup; explain the invariants without notes.
+
+### Primary references
+
+- [Amazon Builders’ Library: safe retries with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
+- [Debezium: outbox event router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html)
+- [HikariCP configuration and lifecycle](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)
+- [PostgreSQL 18: using EXPLAIN](https://www.postgresql.org/docs/18/using-explain.html)
+- [PostgreSQL 18: write-ahead logging](https://www.postgresql.org/docs/18/wal-intro.html)
+- [Dynamo paper: partitioning and virtual nodes](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)
+- [Debezium: PostgreSQL connector](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
+- [Google Research: The Tail at Scale](https://research.google/pubs/the-tail-at-scale/)
+- [Reactive Streams: bounded demand and backpressure](https://www.reactive-streams.org/)
+
+
+## SQL appendix — disposable query-plan fixture
+
+Use a dedicated local learning database. These commands create a lab-only schema; choose another schema name if it already exists. The fixture is intentionally skewed, deterministic and small. Save plans as text in your own lab repository.
+
+```sql
+CREATE SCHEMA reliability_lab;
+CREATE TABLE reliability_lab.orders (
+  id bigint PRIMARY KEY,
+  tenant_id integer NOT NULL,
+  status text NOT NULL,
+  created_at timestamptz NOT NULL,
+  note text NOT NULL
+);
+INSERT INTO reliability_lab.orders
+SELECT g,
+       CASE WHEN g <= 80000 THEN 1 ELSE 2 + (g % 99) END,
+       CASE WHEN g % 10 = 0 THEN 'PENDING' ELSE 'COMPLETE' END,
+       timestamptz '2026-01-01 00:00:00+00' + g * interval '1 second',
+       repeat('x', 100)
+FROM generate_series(1, 100000) AS g;
+ANALYZE reliability_lab.orders;
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id, created_at
+FROM reliability_lab.orders
+WHERE tenant_id = 42 AND status = 'PENDING'
+ORDER BY created_at DESC, id DESC
+LIMIT 50;
+
+-- Save the baseline before adding this candidate.
+CREATE INDEX orders_tenant_status_created_idx
+ON reliability_lab.orders (tenant_id, status, created_at DESC, id DESC);
+ANALYZE reliability_lab.orders;
+-- Repeat the identical EXPLAIN and verify ordered result IDs too.
+```
+
+Repeat for tenant 1 and for a query returning most of the table. An index is a hypothesis, not a required plan result. Use matching session settings and record warm-cache effects, estimated versus actual rows, loops, buffers, sort work and execution time. Do not add parent and child timings.
+
+For the write comparison, use equivalent newly seeded fixtures for each variant. Keep the primary key in both; vary only the candidate secondary index. Count changed rows and application payload bytes. Run a finite batch such as `UPDATE reliability_lab.orders SET status = 'ARCHIVED' WHERE id <= 10000;` only in the disposable fixture. Compare updates to the indexed status with updates to the unindexed note. Record transaction size and checkpoint conditions. Full-page images and other database activity can affect the result.
+
+On an otherwise quiet local server, sample `pg_current_wal_insert_lsn()` immediately before and after the committed batch and use `pg_wal_lsn_diff(after_lsn, before_lsn)` to obtain a cluster-wide WAL-byte delta. Capture the returned positions in your SQL client; do not mistake them for transaction-local counters. Divide by your defined logical work and label the result **WAL proxy**, not physical disk amplification. Repeat trials on comparable fixtures. Consult the installed PostgreSQL version’s [WAL position functions](https://www.postgresql.org/docs/18/functions-admin.html#FUNCTIONS-ADMIN-BACKUP) and [statistics views](https://www.postgresql.org/docs/18/monitoring-stats.html) for exact measurement semantics.
+
+`EXPLAIN ANALYZE` executes its statement. A rollback wrapper can revert ordinary table changes but does not eliminate locks, resource cost, sequence advances or external trigger effects. Never use it blindly against production writes.
+
+## Failure-review worksheet
+
+For each crash point, write: durable state before crash; what is uncertain; next action after restart; expected duplicate delivery; invariant checked; evidence path. Include request before commit, request after commit but before response, relay before publish, relay after publish but before acknowledgement, and consumer after local commit but before acknowledgement.
+
+For each overload run, write: arrival schedule, worker limit, queue limit, pool limit across replicas, per-operation and total deadlines, retry budget, completed/rejected/expired/outstanding counts, oldest queue age, latency distribution and recovery time.
+
+## Final self-assessment
+
+Answer every lesson’s recall questions without notes. Score each topic 0–4 and link an experiment proving your score. Mark completion in the app only after the acceptance criteria pass. An attractive explanation without reproducible failure/recovery evidence earns at most 2.
