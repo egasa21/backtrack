@@ -1,0 +1,1756 @@
+{
+  "id": "concurrency-fundamentals",
+  "order": 12,
+  "title": "Concurrency Fundamentals",
+  "goal": "Learn all twenty concurrency concepts through schedules, correctness arguments and bounded Java experiments.",
+  "dependencies": [
+    "java-core"
+  ],
+  "outcomes": [
+    "Explain concurrency, parallelism, process isolation and Java thread states.",
+    "Protect invariants with locks, conditions, semaphores and atomic transitions.",
+    "Diagnose deadlock, livelock and starvation using evidence.",
+    "Build bounded worker pipelines with explicit backpressure and safe shutdown.",
+    "Handle concurrent duplicates and explain process-local versus durable guarantees."
+  ],
+  "studyGuidance": [
+    "Suggested sequence: foundations (1–5), coordination (6–10), liveness and atomics (11–14), then pipelines and correctness (15–20).",
+    "Use plain Java and the JDK you have installed; references target Java SE 25. Older Oracle tutorials are marked as conceptual JDK 8 references.",
+    "Predict a schedule first. Use barriers or latches to control ordering; sleeps are not synchronization. Give every experiment a deadline and clean up all workers.",
+    "Record Prediction, Invariant, JDK version, Setup, Observation, Evidence and Explanation in existing notes.",
+    "Run intentional hangs only in disposable child processes with external deadlines. Use synthetic local data and no real external effects.",
+    "Related JVM memory-model, Networking executor and Reliability idempotency lessons provide deeper follow-up; they are not required to start this module."
+  ],
+  "completionCriteria": [
+    "Complete all twenty concepts and explain their recall questions without notes.",
+    "Complete the four labs with reproducible schedules, exact assertions and bounded cleanup.",
+    "Verify the capstone under duplicate arrival, overload, worker failure and cancellation.",
+    "State what each guarantee covers and what requires durable storage or cross-process coordination."
+  ],
+  "topics": [
+    {
+      "id": "concurrency-concurrency",
+      "title": "Concurrency",
+      "description": "Understand overlapping tasks and distinguish progress from simultaneous execution.",
+      "learningGoals": [
+        "Understand overlapping tasks and distinguish progress from simultaneous execution.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Concurrency"
+      ],
+      "examples": [
+        "Two requests each need CPU work and a response from a fake remote service."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [],
+      "material": {
+        "explanation": "Concurrency means multiple tasks have overlapping lifetimes and can make progress within the same time window. A scheduler may switch between them on one core, or they may execute in parallel on several cores. Waiting for a network response can leave room for another task. Shared state and unpredictable ordering make correctness harder even when only one instruction stream runs at a time. Start with the work, its dependencies and its waiting points before choosing threads.",
+        "workedExample": {
+          "scenario": "Two requests each need CPU work and a response from a fake remote service.",
+          "steps": [
+            "Draw request A starting and waiting while request B starts.",
+            "Interleave their CPU steps on one core; mark each request finishing after its dependency arrives."
+          ]
+        },
+        "commonMistakes": [
+          "Concurrency requires several cores or always makes a program faster."
+        ],
+        "guidedExercise": [
+          "Draw a timeline for two requests with independent waits.",
+          "Mark which steps may overlap and which depend on an earlier result."
+        ],
+        "independentExercise": "Add a third request that depends on A. Explain why it cannot simply run all its steps immediately.",
+        "recallQuestions": [
+          "Can a single-core program be concurrent?",
+          "Which waiting points create opportunities for overlap?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Timeline shows overlapping lifetimes without requiring simultaneous CPU execution.",
+        "Dependencies are respected in the three-request variation."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: processes and threads (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/procthread.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-concurrency-vs-parallelism",
+      "title": "Concurrency vs Parallelism",
+      "description": "Separate task organization from simultaneous execution and measured speedup.",
+      "learningGoals": [
+        "Separate task organization from simultaneous execution and measured speedup.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Concurrency vs Parallelism"
+      ],
+      "examples": [
+        "Two independent calculations take two CPU-seconds each; ignore overhead for the prediction."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-concurrency"
+      ],
+      "material": {
+        "explanation": "Concurrency is about managing overlapping tasks; interleaving is one way to achieve it. Parallelism means executing work at the same instant using multiple execution resources, such as CPU cores. Concurrent tasks can also run in parallel, so the concepts are not opposites. CPU work benefits only when there is independent work and enough CPU capacity. Coordination, scheduling and serial steps reduce speedup. I/O overlap may improve throughput without accelerating the CPU portion.",
+        "workedExample": {
+          "scenario": "Two independent calculations take two CPU-seconds each; ignore overhead for the prediction.",
+          "steps": [
+            "On one core, interleave the jobs: both still require four total CPU-seconds.",
+            "On two available cores, predict about two wall-clock seconds, then identify real overhead and serial work."
+          ]
+        },
+        "commonMistakes": [
+          "Starting more threads guarantees parallel execution or proportional speedup."
+        ],
+        "guidedExercise": [
+          "Sketch one-core and two-core schedules for the same work.",
+          "Run a bounded CPU experiment and record CPU availability, wall time and total work."
+        ],
+        "independentExercise": "Compare the CPU experiment with two simulated I/O waits and explain the different bottlenecks.",
+        "recallQuestions": [
+          "Can a program be both concurrent and parallel?",
+          "Why can adding workers make a CPU workload slower?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Schedules preserve identical work while distinguishing CPU and wall time.",
+        "Measured conclusions include overhead and available cores."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: processes and threads (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/procthread.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-processes-vs-threads",
+      "title": "Processes vs Threads",
+      "description": "Choose an isolation boundary and identify shared memory.",
+      "learningGoals": [
+        "Choose an isolation boundary and identify shared memory.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Processes vs Threads"
+      ],
+      "examples": [
+        "Two Java threads update one in-memory list; two independent JVM processes each create their own list."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-concurrency"
+      ],
+      "material": {
+        "explanation": "A process normally has its own address space and resource boundary. Threads within a process share its heap and many resources, while each has its own execution stack. Process startup and communication are often costlier than thread coordination, but costs depend on the operating system and runtime. Isolation is not absolute: processes can explicitly share memory or external files and databases. A thread error can damage shared state; separate processes can still race on the same database row.",
+        "workedExample": {
+          "scenario": "Two Java threads update one in-memory list; two independent JVM processes each create their own list.",
+          "steps": [
+            "Draw one heap with two thread stacks for the first case.",
+            "Draw two heaps for the second case, then add a shared file to show an external coordination boundary."
+          ]
+        },
+        "commonMistakes": [
+          "Separate processes cannot race, or every thread has a private copy of heap objects."
+        ],
+        "guidedExercise": [
+          "List the shared and private resources in each diagram.",
+          "Explain how the two processes would exchange a result explicitly."
+        ],
+        "independentExercise": "Choose threads or processes for an untrusted document converter and justify the failure boundary and communication cost.",
+        "recallQuestions": [
+          "What memory do threads share?",
+          "Can process isolation protect a shared file from concurrent writes?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Diagrams correctly identify heaps, stacks and external shared state.",
+        "Design explains both isolation benefits and communication costs."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: processes and threads (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/procthread.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-thread-lifecycle",
+      "title": "Thread Lifecycle",
+      "description": "Map the common lifecycle model onto actual Java thread states.",
+      "learningGoals": [
+        "Map the common lifecycle model onto actual Java thread states.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Thread Lifecycle"
+      ],
+      "examples": [
+        "A worker is constructed, started, waits on a latch, then exits."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-processes-vs-threads"
+      ],
+      "material": {
+        "explanation": "The conceptual lifecycle includes new, runnable, running, blocked, waiting and terminated. Java Thread.State instead has NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING and TERMINATED. RUNNABLE includes executing and ready-to-run threads; Java does not expose a separate RUNNING enum. BLOCKED specifically means waiting to enter a synchronized monitor, not every kind of wait. State snapshots can change immediately, so coordinate experiments and avoid treating sampled state as a synchronization mechanism.",
+        "workedExample": {
+          "scenario": "A worker is constructed, started, waits on a latch, then exits.",
+          "steps": [
+            "Record NEW before start; coordinate the worker reaching its wait with a separate handshake.",
+            "Release the latch and join with a deadline; record TERMINATED after successful completion."
+          ]
+        },
+        "commonMistakes": [
+          "RUNNABLE proves CPU execution now, or Thread.sleep releases held monitor locks."
+        ],
+        "guidedExercise": [
+          "Sketch the conceptual states beside the six Java states.",
+          "Create separate bounded demonstrations for monitor contention and timed waiting."
+        ],
+        "independentExercise": "Explain why a parked lock waiter may appear as WAITING rather than BLOCKED; record observations without promising every transient state is captured.",
+        "recallQuestions": [
+          "Where is running in the Java state model?",
+          "How do BLOCKED and TIMED_WAITING differ?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lists all six Java states and maps conceptual running to RUNNABLE.",
+        "Experiment uses handshakes and deadlines rather than sleeps to assert ordering."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: Thread.State",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Thread.State.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-race-condition",
+      "title": "Race Condition",
+      "description": "Find an unsafe interleaving before fixing shared state.",
+      "learningGoals": [
+        "Find an unsafe interleaving before fixing shared state.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Race Condition"
+      ],
+      "examples": [
+        "A counter starts at 0 and two workers each increment once."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-thread-lifecycle"
+      ],
+      "material": {
+        "explanation": "A race condition occurs when correctness depends on timing or ordering that the design does not enforce. Unsynchronized shared mutation is a common cause, but even thread-safe individual operations can form an unsafe check-then-act sequence. Incrementing a plain counter reads, calculates and writes; two workers can overwrite each other. Coordination must protect the complete invariant and provide visibility. A successful stress run is evidence about that run, not proof that every possible schedule is safe.",
+        "workedExample": {
+          "scenario": "A counter starts at 0 and two workers each increment once.",
+          "steps": [
+            "Force both workers to read 0 using a barrier between read and write.",
+            "Both write 1: expected 2, observed 1. Protect the complete increment and repeat."
+          ]
+        },
+        "commonMistakes": [
+          "A volatile counter makes counter++ atomic, or races need simultaneous execution on two cores."
+        ],
+        "guidedExercise": [
+          "Write the read/read/write/write schedule.",
+          "Use an atomic increment or one shared lock and check the exact final count after joining workers."
+        ],
+        "independentExercise": "Find a contains-then-add duplicate-registration race and state the operation that must become indivisible.",
+        "recallQuestions": [
+          "Why can two thread-safe calls still race?",
+          "What does one passing stress run fail to prove?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Deliberately coordinated broken variant demonstrates a lost update.",
+        "Corrected variant reaches the exact expected count and names its synchronization boundary."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: thread interference (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/interfere.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-mutex",
+      "title": "Mutex",
+      "description": "Protect a complete invariant with one shared lock.",
+      "learningGoals": [
+        "Protect a complete invariant with one shared lock.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Mutex"
+      ],
+      "examples": [
+        "Inventory contains one remaining unit and two buyers arrive."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-race-condition"
+      ],
+      "material": {
+        "explanation": "A mutex admits one owner at a time to a critical section. Every access participating in the protected invariant must follow the same locking protocol, including readers that need a consistent view. In Java, synchronized provides mutual exclusion and visibility through a monitor; ReentrantLock gives explicit acquisition and release. Keep slow external calls outside the lock where correctness permits. Releasing an explicit lock belongs in finally so exceptions cannot strand other workers.",
+        "workedExample": {
+          "scenario": "Inventory contains one remaining unit and two buyers arrive.",
+          "steps": [
+            "Under one shared lock, check stock and decrement it as one critical section.",
+            "Only one buyer succeeds; inspect stock under the same protocol and verify it never goes below zero."
+          ]
+        },
+        "commonMistakes": [
+          "Creating a new lock inside each call coordinates callers, or locking only the write protects a prior check."
+        ],
+        "guidedExercise": [
+          "Identify stock >= 0 as the invariant.",
+          "Inject a failure inside a locked operation and confirm another worker can subsequently acquire the lock."
+        ],
+        "independentExercise": "Protect a balance and its audit sequence together, then explain which reads require the lock.",
+        "recallQuestions": [
+          "Why must callers share the same lock?",
+          "Why must check and update be protected together?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Concurrent buyers produce exactly one success for one unit.",
+        "Failure path releases the lock and all shared accesses follow the documented protocol."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ReentrantLock",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-semaphore",
+      "title": "Semaphore",
+      "description": "Limit concurrent use of a resource without confusing permits with ownership.",
+      "learningGoals": [
+        "Limit concurrent use of a resource without confusing permits with ownership.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Semaphore"
+      ],
+      "examples": [
+        "Six jobs share a fake service limited to two active calls."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-mutex"
+      ],
+      "material": {
+        "explanation": "A semaphore tracks permits: acquiring consumes capacity and releasing restores it. It can limit active users of a downstream resource to N. Unlike an owner-based mutex, Java Semaphore does not require the releasing thread to be the acquiring thread. It also does not identify or protect a particular pooled connection. Pair each successful acquisition with exactly one release, including failures, and do not release if acquisition timed out or was interrupted. A permit limit does not bound the number of waiting callers.",
+        "workedExample": {
+          "scenario": "Six jobs share a fake service limited to two active calls.",
+          "steps": [
+            "Acquire one of two permits before each call and record active calls.",
+            "Release in finally after successful acquisition; verify maximum active calls is at most two and all permits return."
+          ]
+        },
+        "commonMistakes": [
+          "A semaphore automatically bounds the waiting queue or prevents duplicate releases."
+        ],
+        "guidedExercise": [
+          "Add a timed acquisition and count rejected jobs separately.",
+          "Interrupt a waiting job and verify capacity does not increase."
+        ],
+        "independentExercise": "Inject an exception after acquiring a permit and prove that the next job can still enter.",
+        "recallQuestions": [
+          "How does a binary semaphore differ from an owner-based mutex?",
+          "Why is releasing after failed acquisition incorrect?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Observed active calls never exceed two.",
+        "Timeout, interruption and failure cases leave the original permit count intact."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: Semaphore",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-condition-variable",
+      "title": "Condition Variable",
+      "description": "Wait for a state predicate without busy polling or lost coordination.",
+      "learningGoals": [
+        "Wait for a state predicate without busy polling or lost coordination.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Condition Variable"
+      ],
+      "examples": [
+        "A one-slot buffer is empty and a consumer wants an item."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-mutex"
+      ],
+      "material": {
+        "explanation": "A condition variable lets a thread wait until shared state may satisfy a predicate. With Java Condition, await atomically releases the associated lock while waiting and reacquires it before continuing. Check the predicate in a while loop: wakeups can be spurious or another worker may consume the resource first. Change state and signal under the associated lock. A signal is not a stored item or a guarantee that the condition is true; the protected state is the source of truth.",
+        "workedExample": {
+          "scenario": "A one-slot buffer is empty and a consumer wants an item.",
+          "steps": [
+            "Consumer locks and loops while empty, calling await; producer can now acquire that lock.",
+            "Producer stores the item and signals; consumer reacquires, rechecks and removes the item."
+          ]
+        },
+        "commonMistakes": [
+          "Using if around await is enough, or a signal stores permission for an arbitrary future waiter."
+        ],
+        "guidedExercise": [
+          "Trace both producer-first and consumer-first schedules.",
+          "For learning only, implement a one-slot buffer with notEmpty and notFull conditions; use BlockingQueue for application code."
+        ],
+        "independentExercise": "Run two consumers competing for one item and explain why only one can proceed after rechecking.",
+        "recallQuestions": [
+          "Why must await release the lock atomically?",
+          "Why does a signalled thread recheck the predicate?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Both arrival orders complete without missed items.",
+        "Predicate checks use loops, and waits are interruptible with bounded test deadlines."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: Condition",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/Condition.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-coarse-vs-fine-grained-locking",
+      "title": "Coarse vs Fine-grained Locking",
+      "description": "Choose lock scope from invariants, then measure contention.",
+      "learningGoals": [
+        "Choose lock scope from invariants, then measure contention.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Coarse vs Fine-grained Locking"
+      ],
+      "examples": [
+        "Transfers update two account balances; unrelated account pairs could proceed independently."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-mutex"
+      ],
+      "material": {
+        "explanation": "Coarse locking protects a larger region or many objects with one lock. It is easier to reason about and can be fast when contention is low. Fine-grained locking allows independent objects to proceed concurrently but adds bookkeeping and lock-order hazards for operations involving several objects. Smaller locks are not automatically faster. Start with the simplest correct scope, identify the invariant, and split only after measuring contention while preserving atomic multi-object operations.",
+        "workedExample": {
+          "scenario": "Transfers update two account balances; unrelated account pairs could proceed independently.",
+          "steps": [
+            "Use one ledger lock to preserve the total balance.",
+            "Consider per-account locks acquired by stable account ID; compare correctness and contention before accepting the complexity."
+          ]
+        },
+        "commonMistakes": [
+          "Locking each write separately preserves a transfer, or finer locks always improve throughput."
+        ],
+        "guidedExercise": [
+          "Write the total-balance invariant and list all readers.",
+          "Compare a single lock with ordered account locks under the same bounded workload."
+        ],
+        "independentExercise": "Add a consistent balance-snapshot operation and explain how it avoids seeing half a transfer.",
+        "recallQuestions": [
+          "What new deadlock risk appears when splitting a lock?",
+          "When might the coarse lock be the better choice?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Both versions preserve total funds and expose no partial transfer to consistent readers.",
+        "Comparison reports workload, contention and overhead rather than assuming a speedup."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ReentrantLock",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-reentrant-lock",
+      "title": "Reentrant Lock",
+      "description": "Understand nested ownership and balanced release.",
+      "learningGoals": [
+        "Understand nested ownership and balanced release.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Reentrant Lock"
+      ],
+      "examples": [
+        "A locked inventory update calls a helper that locks the same ReentrantLock."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-mutex"
+      ],
+      "material": {
+        "explanation": "A reentrant lock lets its owning thread acquire it again without waiting for itself. Java synchronized monitors and ReentrantLock are reentrant. Each successful explicit acquisition increases the hold count and requires a matching unlock; another thread enters only after the final release. Reentrancy supports helper calls that follow the same locking protocol, but does not prevent cycles involving different locks or make arbitrary callbacks safe inside a critical section.",
+        "workedExample": {
+          "scenario": "A locked inventory update calls a helper that locks the same ReentrantLock.",
+          "steps": [
+            "Trace ownership and hold counts from 0 to 1 to 2.",
+            "The helper releases to 1, the outer finally releases to 0, and another worker can enter."
+          ]
+        },
+        "commonMistakes": [
+          "One unlock releases every nested acquisition, or reentrancy prevents all deadlocks."
+        ],
+        "guidedExercise": [
+          "Record hold counts in a small nested-call example.",
+          "Throw inside the helper and verify both finally blocks restore the unlocked state."
+        ],
+        "independentExercise": "Replace the nested helper with a callback that acquires another lock; explain the new risk.",
+        "recallQuestions": [
+          "Why does the owning thread avoid self-deadlock?",
+          "When can another thread enter after two acquisitions?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Nested normal and exceptional paths balance every acquisition.",
+        "Explanation separates same-lock reentrancy from multi-lock ordering."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ReentrantLock",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-deadlock",
+      "title": "Deadlock",
+      "description": "Recognize circular waiting and remove it through global lock ordering.",
+      "learningGoals": [
+        "Recognize circular waiting and remove it through global lock ordering.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Deadlock"
+      ],
+      "examples": [
+        "A transfer locks account 1 then 2 while another locks account 2 then 1."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-coarse-vs-fine-grained-locking",
+        "concurrency-reentrant-lock"
+      ],
+      "material": {
+        "explanation": "Deadlock means a set of tasks cannot progress because each is waiting for something another member must release or complete. Two locks acquired in opposite order are a classic case. Executor tasks can also deadlock when all workers wait for queued child work in the same exhausted pool. A global lock order removes circular lock acquisition when every path follows it. A timeout can detect or escape some waits but is not by itself proof of a deadlock-free design.",
+        "workedExample": {
+          "scenario": "A transfer locks account 1 then 2 while another locks account 2 then 1.",
+          "steps": [
+            "Use a barrier after each first lock in an isolated, time-limited child process; capture the circular wait.",
+            "Acquire account locks by stable ascending ID on every path, handle same-account transfers, and rerun."
+          ]
+        },
+        "commonMistakes": [
+          "More threads or longer timeouts fix a circular wait."
+        ],
+        "guidedExercise": [
+          "Draw the wait-for graph before running a controlled demonstration.",
+          "Set an external process deadline and ensure the demonstration cannot hang the app or test runner."
+        ],
+        "independentExercise": "Explain how a one-worker pool can deadlock when its task submits a child and waits for its result.",
+        "recallQuestions": [
+          "What cycle appears in the wait-for graph?",
+          "Why must every acquisition path use the same order?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Evidence identifies each held lock and awaited lock.",
+        "Ordered correction completes opposing transfers and preserves the balance invariant."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: deadlock (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/deadlock.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-livelock",
+      "title": "Livelock",
+      "description": "Distinguish activity from useful progress.",
+      "learningGoals": [
+        "Distinguish activity from useful progress.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Livelock"
+      ],
+      "examples": [
+        "Two workers each drop their first lock whenever the second is unavailable and immediately retry together."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-deadlock"
+      ],
+      "material": {
+        "explanation": "Livelock occurs when tasks keep changing state in response to one another but fail to finish useful work. Consider two workers repeatedly releasing a resource to let the other proceed, then retrying in synchrony. Unlike deadlock, there is visible activity; unlike slow work, completed-operation count stays flat. Break symmetry using a deterministic ordering or bounded retry policy with jitter where suitable. Randomization reduces synchronized collisions but does not prove eventual completion.",
+        "workedExample": {
+          "scenario": "Two workers each drop their first lock whenever the second is unavailable and immediately retry together.",
+          "steps": [
+            "Trace several rounds where both yield and neither completes.",
+            "Apply a stable lock order and compare attempt counts with completed operations."
+          ]
+        },
+        "commonMistakes": [
+          "High CPU usage means useful progress, or unlimited retries guarantee completion."
+        ],
+        "guidedExercise": [
+          "Build a bounded state-machine simulation rather than an endless live loop.",
+          "Record attempts, state transitions and completed operations separately."
+        ],
+        "independentExercise": "Compare ordered acquisition with jittered bounded retries; explain which gives the stronger ordering argument.",
+        "recallQuestions": [
+          "How does the evidence differ from deadlock?",
+          "Why can identical retry timing keep the collision alive?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Simulation shows changing states with zero completions before correction.",
+        "Corrected policy finishes or returns an explicit bounded failure."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: starvation and livelock (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/starvelive.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-starvation",
+      "title": "Starvation",
+      "description": "Observe per-worker progress and reason about fairness limits.",
+      "learningGoals": [
+        "Observe per-worker progress and reason about fairness limits.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Starvation"
+      ],
+      "examples": [
+        "One worker repeatedly reacquires a hot lock while another waits."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-livelock"
+      ],
+      "material": {
+        "explanation": "Starvation means a particular task is repeatedly denied a resource or CPU time while others continue. Aggregate throughput can look healthy while one caller waits indefinitely. Long critical sections and unfair acquisition can contribute. Fair locks may improve admission order at a throughput cost, but they do not control operating-system scheduling. Java ReentrantLock untimed tryLock can bypass its fairness policy. Record wait and completion per worker rather than inferring fairness from a total count.",
+        "workedExample": {
+          "scenario": "One worker repeatedly reacquires a hot lock while another waits.",
+          "steps": [
+            "Record each worker’s attempts, lock wait and completions over a bounded interval.",
+            "Shorten critical sections and compare a fair-lock variant without claiming the sample proves starvation impossible."
+          ]
+        },
+        "commonMistakes": [
+          "Good total throughput proves every worker progresses, or a fair lock guarantees fair CPU scheduling."
+        ],
+        "guidedExercise": [
+          "Design a schedule where one worker repeatedly loses admission.",
+          "Measure maximum wait per worker alongside the total number of completions."
+        ],
+        "independentExercise": "Propose a queue-based admission policy and state its assumptions about runnable workers and bounded task duration.",
+        "recallQuestions": [
+          "How is starvation different from deadlock?",
+          "What does lock fairness fail to guarantee?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Evidence distinguishes the disadvantaged worker from system-wide progress.",
+        "Discussion states fairness assumptions and the limits of a finite experiment."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: starvation and livelock (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/starvelive.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-atomic-operations",
+      "title": "Atomic Operations",
+      "description": "Use indivisible state transitions while respecting compound invariants.",
+      "learningGoals": [
+        "Use indivisible state transitions while respecting compound invariants.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Atomic Operations"
+      ],
+      "examples": [
+        "Two workers increment one AtomicInteger; separately, a stock check and decrement must reject the second buyer."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-race-condition",
+        "concurrency-mutex"
+      ],
+      "material": {
+        "explanation": "An atomic operation has one indivisible observable effect on its target; this does not mean the operating system cannot pause its thread. Java atomic variables support operations such as incrementAndGet and compareAndSet on a single value. Two atomic calls do not automatically compose into one atomic workflow. Atomics also have memory-ordering semantics; choose documented operations rather than inventing visibility guarantees. A compare-and-set retry may repeat a calculation, so retryable update functions must not perform external side effects.",
+        "workedExample": {
+          "scenario": "Two workers increment one AtomicInteger; separately, a stock check and decrement must reject the second buyer.",
+          "steps": [
+            "Verify atomic increments reach the exact expected total.",
+            "Show why get() > 0 followed by decrementAndGet() can oversell; use a compare-and-set loop or one lock around the full invariant."
+          ]
+        },
+        "commonMistakes": [
+          "Making every field atomic makes a multi-field transaction atomic."
+        ],
+        "guidedExercise": [
+          "Contrast plain increment, volatile increment and atomic increment.",
+          "Write the stock transition and identify the successful compare-and-set as its decision point."
+        ],
+        "independentExercise": "Explain why sending an email inside a retried atomic update function can send duplicates.",
+        "recallQuestions": [
+          "What does atomicity guarantee about observation?",
+          "Why can two atomic operations still form a race?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Concurrent increments have an exact final count after all workers join.",
+        "Stock transition cannot go negative and retry calculations have no side effects."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: atomic variables",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/package-summary.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-thread-pool",
+      "title": "Thread Pool",
+      "description": "Reuse workers and bound admitted work, failures and shutdown.",
+      "learningGoals": [
+        "Reuse workers and bound admitted work, failures and shutdown.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Thread Pool"
+      ],
+      "examples": [
+        "Two workers are held at a gate while a queue of capacity three receives additional work."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-atomic-operations",
+        "concurrency-deadlock"
+      ],
+      "material": {
+        "explanation": "A thread pool reuses workers to execute submitted tasks and manages their lifecycle. A fixed worker count does not necessarily bound queued work: Java Executors.newFixedThreadPool uses an unbounded queue. For a bounded lab, configure ThreadPoolExecutor with explicit worker and queue limits and a rejection policy. Observe task failures through futures or another explicit outcome path. Shutdown must stop admission, wait to a deadline and handle unfinished work. Do not block every worker waiting for children queued to the same exhausted pool.",
+        "workedExample": {
+          "scenario": "Two workers are held at a gate while a queue of capacity three receives additional work.",
+          "steps": [
+            "Submit five gated tasks so two run and three queue.",
+            "Submit a sixth using AbortPolicy and observe rejection; release the gate, inspect every outcome and shut down."
+          ]
+        },
+        "commonMistakes": [
+          "A fixed-size pool bounds memory regardless of its queue, or submitted task exceptions are always printed automatically."
+        ],
+        "guidedExercise": [
+          "Use a bounded queue and count running, queued, completed, failed and rejected tasks.",
+          "Inject a task failure and verify it is reported; finish with deadline-limited termination."
+        ],
+        "independentExercise": "Describe the same-pool child-wait deadlock and redesign it without increasing an arbitrary thread limit.",
+        "recallQuestions": [
+          "Which bound limits workers and which limits waiting work?",
+          "How do you surface exceptions from submitted tasks?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Two active plus three queued tasks exhaust the configured admission capacity.",
+        "Rejection, failure and shutdown are observable and no worker is left running."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ThreadPoolExecutor",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-producer-consumer",
+      "title": "Producer-Consumer",
+      "description": "Transfer ownership through a bounded queue and define completion.",
+      "learningGoals": [
+        "Transfer ownership through a bounded queue and define completion.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Producer-Consumer"
+      ],
+      "examples": [
+        "One producer sends ten immutable jobs through a capacity-two queue to two consumers."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-thread-pool",
+        "concurrency-condition-variable"
+      ],
+      "material": {
+        "explanation": "Producers create work and consumers process it, with a queue separating their rates. Queue capacity, item ownership, failure policy and shutdown behavior are part of the design. BlockingQueue provides safe handoff of state established before enqueue, but later mutation of the same object is not made safe automatically. An empty queue is not proof that producers are finished. End-of-stream signals must account for every consumer, and failures must not leave a producer blocked forever.",
+        "workedExample": {
+          "scenario": "One producer sends ten immutable jobs through a capacity-two queue to two consumers.",
+          "steps": [
+            "Give each job a unique ID and record one terminal outcome per job.",
+            "After production ends, deliver one termination marker per consumer or use an explicit completion protocol; join all workers to a deadline."
+          ]
+        },
+        "commonMistakes": [
+          "An empty queue means processing is complete, or dequeueing means the business operation succeeded."
+        ],
+        "guidedExercise": [
+          "Track queued, in-flight and finished jobs separately.",
+          "Make one consumer fail and specify how the producer and remaining consumer stop safely."
+        ],
+        "independentExercise": "Add a second producer and decide who can announce end-of-stream after both have finished.",
+        "recallQuestions": [
+          "Why is an empty queue insufficient for shutdown?",
+          "Who may mutate a job after it is enqueued?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every produced ID has exactly one terminal outcome in the no-retry experiment.",
+        "Normal and failure shutdown complete without stranded queue waiters."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: BlockingQueue",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/BlockingQueue.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-blocking-vs-non-blocking",
+      "title": "Blocking vs Non-blocking",
+      "description": "Separate immediate-return APIs, asynchronous completion and progress guarantees.",
+      "learningGoals": [
+        "Separate immediate-return APIs, asynchronous completion and progress guarantees.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Blocking vs Non-blocking"
+      ],
+      "examples": [
+        "A queue is empty: take waits for an item while poll returns no item immediately."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-producer-consumer"
+      ],
+      "material": {
+        "explanation": "A blocking call can suspend its caller until work or capacity becomes available. A non-blocking API returns without waiting for that condition, perhaps reporting that no result is ready. Async describes how completion is delivered; it does not automatically mean every internal operation is non-blocking. In concurrency algorithms, lock-free and wait-free describe stronger progress properties than merely returning quickly. Repeated immediate polling can waste CPU and still starve useful work; use a blocking queue or readiness notification where appropriate.",
+        "workedExample": {
+          "scenario": "A queue is empty: take waits for an item while poll returns no item immediately.",
+          "steps": [
+            "Predict each caller’s behavior before a producer adds work.",
+            "Compare timed waiting with a bounded poll loop; record empty polls and useful completions."
+          ]
+        },
+        "commonMistakes": [
+          "Non-blocking always means faster, or an asynchronous method cannot block internally."
+        ],
+        "guidedExercise": [
+          "Classify take, poll and timed offer by their documented behavior.",
+          "Choose a waiting strategy for an idle consumer without an unbounded busy-spin loop."
+        ],
+        "independentExercise": "Explain why a fast-returning submit method can still hide a growing queue and a blocked worker.",
+        "recallQuestions": [
+          "How does asynchronous completion differ from immediate return?",
+          "Why is repeated polling not automatically a useful progress guarantee?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Classification distinguishes blocking, timed and immediate-result calls.",
+        "Experiment counts wasted polls and terminates within a fixed bound."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: BlockingQueue",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/BlockingQueue.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-backpressure",
+      "title": "Backpressure",
+      "description": "Make slow consumers influence intake instead of accumulating unlimited work.",
+      "learningGoals": [
+        "Make slow consumers influence intake instead of accumulating unlimited work.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Backpressure"
+      ],
+      "examples": [
+        "A producer offers 100 jobs per second while a consumer finishes 40 per second."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-blocking-vs-non-blocking",
+        "concurrency-semaphore"
+      ],
+      "material": {
+        "explanation": "Backpressure is feedback that makes upstream production respect downstream capacity. If arrivals exceed completion capacity for long enough, backlog grows until intake slows, work is rejected or resources fail. A bounded queue makes overload visible but needs a policy: block with a deadline, reject explicitly or reduce upstream demand. Retries must also be bounded or they amplify overload. A semaphore around execution alone does not bound waiting requests. Measure admission delay and rejection as well as successful completions.",
+        "workedExample": {
+          "scenario": "A producer offers 100 jobs per second while a consumer finishes 40 per second.",
+          "steps": [
+            "Ignoring transients, backlog grows by 60 jobs per second; a 120-slot queue fills in about two seconds.",
+            "Apply timed admission, count rejects and slow the producer; confirm outstanding work remains bounded."
+          ]
+        },
+        "commonMistakes": [
+          "An unbounded queue absorbs sustained overload safely, or immediate infinite retries count as backpressure."
+        ],
+        "guidedExercise": [
+          "Predict backlog growth, then run a fixed-duration local workload.",
+          "Record offered, accepted, rejected, completed and outstanding jobs with consistent accounting."
+        ],
+        "independentExercise": "Add a bounded retry budget and explain how it changes total offered load.",
+        "recallQuestions": [
+          "What happens when intake remains above processing capacity?",
+          "How does the producer learn that capacity is unavailable?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Outstanding work never exceeds documented worker and queue capacity.",
+        "Overload has explicit admission outcomes and no unbounded retries."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ThreadPoolExecutor",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-immutability",
+      "title": "Immutability",
+      "description": "Remove shared mutation and distinguish shallow from deep immutability.",
+      "learningGoals": [
+        "Remove shared mutation and distinguish shallow from deep immutability.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Immutability"
+      ],
+      "examples": [
+        "A job record stores a list supplied by its caller."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-producer-consumer",
+        "concurrency-race-condition"
+      ],
+      "material": {
+        "explanation": "An immutable value cannot change after construction, so sharing it removes races caused by later mutation of that value. A final reference or Java record does not make referenced lists or objects deeply immutable. Copy mutable input and protect nested values according to the domain. Immutability does not publish an object by itself or make replacing a shared reference coordinated; use a documented handoff such as a blocking queue or a volatile snapshot reference. Independent immutable snapshots can still be stale.",
+        "workedExample": {
+          "scenario": "A job record stores a list supplied by its caller.",
+          "steps": [
+            "Mutate the caller’s list after constructing the naive record and observe the alias.",
+            "Copy the list and ensure its elements are immutable; hand the completed job through a queue."
+          ]
+        },
+        "commonMistakes": [
+          "Records and final fields make arbitrary object graphs immutable, or immutable data is always current."
+        ],
+        "guidedExercise": [
+          "Identify every reachable mutable object in a job.",
+          "Mutate original input after construction and verify the corrected job is unchanged."
+        ],
+        "independentExercise": "Publish immutable configuration snapshots and explain how readers select a consistent version.",
+        "recallQuestions": [
+          "What is shallow immutability?",
+          "Why does reference replacement still need a publication protocol?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Caller mutations cannot change the job or its nested values.",
+        "Design names the safe-publication boundary and acknowledges stale snapshots."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: immutable objects (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/immutable.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-idempotency-under-concurrency",
+      "title": "Idempotency under concurrency",
+      "description": "Make duplicate requests preserve the intended effect under simultaneous arrival.",
+      "learningGoals": [
+        "Make duplicate requests preserve the intended effect under simultaneous arrival.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Idempotency under concurrency"
+      ],
+      "examples": [
+        "Two workers submit the same order key and quantity to a local inventory service."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-immutability",
+        "concurrency-mutex",
+        "concurrency-atomic-operations"
+      ],
+      "material": {
+        "explanation": "Idempotency means repeating the same logical operation preserves its intended effect. Two duplicates arriving together defeat a naive check-then-run guard. For a single-process in-memory lab, serialize key lookup, payload validation, local mutation and result recording under one lock; completed duplicates return the recorded result. Reject reuse of a key with a different payload. This guarantee ends when the process loses memory. Multi-instance or crash-safe effects need durable uniqueness and a transaction tying the effect to its result; an in-memory map cannot make an external payment exactly once.",
+        "workedExample": {
+          "scenario": "Two workers submit the same order key and quantity to a local inventory service.",
+          "steps": [
+            "Gate both starts, then hold one lock while checking the key, validating stock, decrementing and recording the result.",
+            "The second worker returns the saved result without another decrement; a conflicting payload is rejected."
+          ]
+        },
+        "commonMistakes": [
+          "A thread-safe map makes a separate contains-then-effect-then-put sequence atomic, or a process-local lock covers other service instances."
+        ],
+        "guidedExercise": [
+          "Trace the unsafe duplicate schedule before adding the shared boundary.",
+          "Test identical duplicates, conflicting payloads and a new key separately."
+        ],
+        "independentExercise": "Write a crash timeline for a remote effect followed by result recording and explain why an outbox or downstream idempotency contract is needed.",
+        "recallQuestions": [
+          "Where is the decision boundary for simultaneous duplicates?",
+          "What fails when the service restarts or adds a second instance?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Concurrent identical requests produce one local effect and the same recorded result.",
+        "Conflicting key reuse is rejected, and restart and external-effect limitations are explicit."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ConcurrentHashMap",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "concurrency-lab-races-and-ownership",
+      "title": "Lab: Races, locks and immutable handoff",
+      "description": "Reproduce a lost update deliberately, then fix the shared invariant.",
+      "learningGoals": [
+        "Reproduce a lost update deliberately, then fix the shared invariant.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Lab: Races, locks and immutable handoff"
+      ],
+      "examples": [
+        "Two workers each perform one broken increment, then a bounded batch of corrected increments."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-race-condition",
+        "concurrency-mutex",
+        "concurrency-atomic-operations",
+        "concurrency-immutability"
+      ],
+      "material": {
+        "explanation": "This lab separates reproducibility from stress. Use a two-party barrier between the read and write of a deliberately broken increment so both workers read the same initial value. Do not keep that barrier inside the corrected critical section: the first worker would wait while holding the lock the second needs. Verify corrected variants with exact counts after all workers finish. Also demonstrate the aliasing difference between a naive record and an immutable job.",
+        "workedExample": {
+          "scenario": "Two workers each perform one broken increment, then a bounded batch of corrected increments.",
+          "steps": [
+            "Force the broken total to 1 instead of 2 with a barrier.",
+            "Remove the forced interleaving for the protected operation; test locked and atomic increments, then verify defensive copying."
+          ]
+        },
+        "commonMistakes": [
+          "Using random sleeps as the only evidence or putting a barrier inside a mutually exclusive region."
+        ],
+        "guidedExercise": [
+          "Write the broken interleaving and expected totals.",
+          "Run locked and atomic variants with 4 workers and 1,000 increments each; join with deadlines and check 4,000."
+        ],
+        "independentExercise": "Add a stock check-and-decrement and prove that one unit permits only one successful buyer.",
+        "recallQuestions": [
+          "Why must the broken test barrier move out of the corrected critical section?",
+          "Why does an atomic increment not solve every stock invariant?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Broken schedule deterministically yields 1; both corrected totals are 4,000.",
+        "Stock never becomes negative, and input mutation cannot alter an immutable job."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: atomic variables",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/package-summary.html"
+        }
+      ],
+      "requirements": [
+        "Reproduce a lost update deliberately, then fix the shared invariant.",
+        "a",
+        "t",
+        "o",
+        "m",
+        "i",
+        "c"
+      ],
+      "constraints": [
+        "Use a finite synthetic local workload, explicit synchronization and deadline-limited cleanup.",
+        "Save observations and assertions; do not claim a finite stress test proves all schedules safe."
+      ],
+      "deliverables": [
+        "Runnable Java experiment with assertions and bounded cleanup.",
+        "Predicted schedule, observed outcomes and explanation in your notes."
+      ]
+    },
+    {
+      "id": "concurrency-lab-coordination",
+      "title": "Lab: Conditions and resource permits",
+      "description": "Coordinate a one-slot buffer and limit downstream calls without leaks.",
+      "learningGoals": [
+        "Coordinate a one-slot buffer and limit downstream calls without leaks.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Lab: Conditions and resource permits"
+      ],
+      "examples": [
+        "Two consumers compete for one slot; six jobs compete for two downstream permits."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-condition-variable",
+        "concurrency-semaphore",
+        "concurrency-producer-consumer"
+      ],
+      "material": {
+        "explanation": "Build a tiny one-slot buffer only to learn the lock-and-condition protocol, then compare it with the standard blocking queue. Two consumers must recheck the predicate after every wakeup. Separately wrap a fake downstream call with two semaphore permits. Exercise failed acquisition and exceptions after successful acquisition, because both are common permit-accounting bugs. Keep producer completion and consumer termination explicit.",
+        "workedExample": {
+          "scenario": "Two consumers compete for one slot; six jobs compete for two downstream permits.",
+          "steps": [
+            "Run producer-first and consumer-first schedules, then terminate both consumers explicitly.",
+            "Inject acquisition timeout, interruption and call failure; verify all permits are restored."
+          ]
+        },
+        "commonMistakes": [
+          "A wakeup guarantees an item exists or every acquire attempt deserves a release."
+        ],
+        "guidedExercise": [
+          "Protect predicates with one lock and use while around await.",
+          "Record peak downstream occupancy and use a deadline for every worker termination."
+        ],
+        "independentExercise": "Replace the custom buffer with ArrayBlockingQueue and explain which coordination code disappears.",
+        "recallQuestions": [
+          "What state survives a signal sent before a waiter arrives?",
+          "Which failure paths must release a permit?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every accepted buffer item is consumed once and all consumers terminate.",
+        "Peak occupancy is at most two and the final available-permit count is exactly two."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: Condition",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/Condition.html"
+        }
+      ],
+      "requirements": [
+        "Coordinate a one-slot buffer and limit downstream calls without leaks.",
+        "c",
+        "o",
+        "n",
+        "d",
+        "i",
+        "t",
+        "i",
+        "o",
+        "n"
+      ],
+      "constraints": [
+        "Use a finite synthetic local workload, explicit synchronization and deadline-limited cleanup.",
+        "Save observations and assertions; do not claim a finite stress test proves all schedules safe."
+      ],
+      "deliverables": [
+        "Runnable Java experiment with assertions and bounded cleanup.",
+        "Predicted schedule, observed outcomes and explanation in your notes."
+      ]
+    },
+    {
+      "id": "concurrency-lab-liveness",
+      "title": "Lab: Deadlock, livelock and starvation",
+      "description": "Distinguish three progress failures and verify a correction.",
+      "learningGoals": [
+        "Distinguish three progress failures and verify a correction.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Lab: Deadlock, livelock and starvation"
+      ],
+      "examples": [
+        "Opposing transfers deadlock; polite retries livelock; an admission schedule repeatedly skips one worker."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-deadlock",
+        "concurrency-livelock",
+        "concurrency-starvation",
+        "concurrency-thread-pool"
+      ],
+      "material": {
+        "explanation": "Use different evidence for each failure. A wait-for graph explains circular waiting. A bounded transition simulation demonstrates endless mutual reactions without hanging a real program. Per-worker completions reveal unequal access while total throughput remains positive. The actual deadlock demonstration must run in a child process with an external deadline because a thread blocked entering synchronized cannot simply be interrupted out of that wait.",
+        "workedExample": {
+          "scenario": "Opposing transfers deadlock; polite retries livelock; an admission schedule repeatedly skips one worker.",
+          "steps": [
+            "Save the circular wait and terminate the disposable deadlock process.",
+            "Apply global lock order, break retry symmetry and compare per-worker admission counts."
+          ]
+        },
+        "commonMistakes": [
+          "Every stalled request is a deadlock or total throughput proves fair access."
+        ],
+        "guidedExercise": [
+          "Draw a wait-for graph and a bounded livelock transition trace.",
+          "Use a deterministic admission simulation for starvation; label finite real-lock measurements as observations, not proofs."
+        ],
+        "independentExercise": "Add a same-pool child-wait example to the design review and propose a dependency-free correction.",
+        "recallQuestions": [
+          "Which failure still has state changes?",
+          "Which failure allows other workers to keep completing work?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Evidence distinguishes all three failures and the deadlock child is cleaned up.",
+        "Corrected transfers preserve total funds; retries are bounded and per-worker progress is reported."
+      ],
+      "resources": [
+        {
+          "title": "Oracle: deadlock (JDK 8 conceptual tutorial)",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/deadlock.html"
+        }
+      ],
+      "requirements": [
+        "Distinguish three progress failures and verify a correction.",
+        "d",
+        "e",
+        "a",
+        "d",
+        "l",
+        "o",
+        "c",
+        "k"
+      ],
+      "constraints": [
+        "Use a finite synthetic local workload, explicit synchronization and deadline-limited cleanup.",
+        "Save observations and assertions; do not claim a finite stress test proves all schedules safe."
+      ],
+      "deliverables": [
+        "Runnable Java experiment with assertions and bounded cleanup.",
+        "Predicted schedule, observed outcomes and explanation in your notes."
+      ]
+    },
+    {
+      "id": "concurrency-lab-bounded-pipeline",
+      "title": "Lab: Bounded workers and backpressure",
+      "description": "Measure admission, queueing, failures and cancellation in a small executor.",
+      "learningGoals": [
+        "Measure admission, queueing, failures and cancellation in a small executor.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Lab: Bounded workers and backpressure"
+      ],
+      "examples": [
+        "Five gated jobs occupy two workers and three queue slots; a sixth attempts admission."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-thread-pool",
+        "concurrency-producer-consumer",
+        "concurrency-blocking-vs-non-blocking",
+        "concurrency-backpressure"
+      ],
+      "material": {
+        "explanation": "Construct a ThreadPoolExecutor with two workers, an ArrayBlockingQueue of capacity three and AbortPolicy. Gate active jobs so the saturation schedule is reproducible. Separate submission attempts from admission outcomes, and inspect every accepted future so task exceptions are not silently ignored. Use a finite workload and shutdown deadline; interruption is a cooperative cancellation signal, so tasks must stop or propagate it instead of swallowing it.",
+        "workedExample": {
+          "scenario": "Five gated jobs occupy two workers and three queue slots; a sixth attempts admission.",
+          "steps": [
+            "Verify the sixth is rejected before releasing the gate.",
+            "Release workers, inspect outcomes, inject a failure and then cancel a waiting task with bounded cleanup."
+          ]
+        },
+        "commonMistakes": [
+          "Executor shutdown guarantees every task ran successfully, or cancellation can undo a committed effect."
+        ],
+        "guidedExercise": [
+          "Count accepted and rejected submissions, then succeeded, failed and cancelled accepted tasks.",
+          "Assert accepted equals succeeded plus failed plus cancelled after termination; record queue high-water mark and peak active workers."
+        ],
+        "independentExercise": "Compare immediate rejection with timed queue admission using a separate producer-consumer variant; do not bypass executor admission by inserting directly into its work queue.",
+        "recallQuestions": [
+          "How are active work and waiting work bounded separately?",
+          "Where do failed futures become visible to the caller?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Sixth gated submission is rejected, peak workers <= 2 and queue size <= 3.",
+        "All accepted tasks have recorded terminal outcomes and all workers terminate by the deadline."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ThreadPoolExecutor",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html"
+        }
+      ],
+      "requirements": [
+        "Measure admission, queueing, failures and cancellation in a small executor.",
+        "p",
+        "o",
+        "o",
+        "l"
+      ],
+      "constraints": [
+        "Use a finite synthetic local workload, explicit synchronization and deadline-limited cleanup.",
+        "Save observations and assertions; do not claim a finite stress test proves all schedules safe."
+      ],
+      "deliverables": [
+        "Runnable Java experiment with assertions and bounded cleanup.",
+        "Predicted schedule, observed outcomes and explanation in your notes."
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "concurrency-bounded-order-processor",
+      "title": "Capstone: Concurrent Order Processor",
+      "description": "Build a bounded, single-process order processor with safe local effects and replayed results.",
+      "learningGoals": [
+        "Build a bounded, single-process order processor with safe local effects and replayed results.",
+        "Explain the worked example and verify the acceptance criteria independently."
+      ],
+      "concepts": [
+        "Capstone: Concurrent Order Processor"
+      ],
+      "examples": [
+        "Inventory starts at 10. Two concurrent requests for key A each request 3 units; key B requests 8 and conflicts with remaining stock."
+      ],
+      "tasks": [
+        {
+          "id": "predict",
+          "title": "Write a prediction and identify the invariant"
+        },
+        {
+          "id": "practice",
+          "title": "Complete guided and independent practice; save evidence"
+        },
+        {
+          "id": "explain",
+          "title": "Answer recall questions without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-lab-races-and-ownership",
+        "concurrency-lab-coordination",
+        "concurrency-lab-liveness",
+        "concurrency-lab-bounded-pipeline",
+        "concurrency-idempotency-under-concurrency"
+      ],
+      "material": {
+        "explanation": "Combine the lessons in a small in-memory Java service. Jobs carry immutable request keys and quantities. A bounded executor limits admitted work, a semaphore limits a fake downstream call, and a shared lock protects key validation, inventory mutation and completed-result recording as one local operation. Do the fake call before the local commit and outside the inventory lock; it must have no external side effect. Recheck the key under the lock before committing because duplicate tasks may both have passed an earlier lookup. Validate that quantity is positive and reject key reuse with a different quantity. Retain recorded results for this finite run. This design survives overlapping threads but loses its deduplication state on restart and does not provide exactly-once external effects.",
+        "workedExample": {
+          "scenario": "Inventory starts at 10. Two concurrent requests for key A each request 3 units; key B requests 8 and conflicts with remaining stock.",
+          "steps": [
+            "A commits once and its duplicate replays the same result; stock becomes 7.",
+            "B is rejected without changing stock; reuse of A for 4 units is rejected as a payload conflict.",
+            "Overload, fake-call failure and pre-commit interruption yield explicit outcomes; a completed commit is not undone by later cancellation."
+          ]
+        },
+        "commonMistakes": [
+          "Holding the inventory lock during a slow fake call, evicting deduplication results mid-run or treating an in-memory guard as durable payment protection."
+        ],
+        "guidedExercise": [
+          "Write invariants and a result table before implementation: stock >= 0, one local effect per key and explicit admission outcomes.",
+          "Start with the duplicate schedule, then add bounded workers, a queue and semaphore; report all task outcomes.",
+          "Inject failure and cancellation before commit; distinguish task status from whether a business effect already committed."
+        ],
+        "independentExercise": "Write the restart and multi-instance failure timelines. Propose durable unique-key enforcement and an atomic effect/result transaction without claiming the in-memory capstone already implements them.",
+        "recallQuestions": [
+          "Which exact critical section decides the effect for a key?",
+          "Why can two duplicate fake calls occur while only one local inventory effect commits?",
+          "What happens if cancellation arrives after commit?",
+          "Which guarantees disappear after restart or across two instances?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Concurrent A duplicates return the same recorded result and decrement stock from 10 to 7 exactly once.",
+        "B requesting 8 and A reused for 4 leave stock at 7 and return explicit rejection reasons.",
+        "Invalid quantities are rejected before mutation; independent keys can commit only while stock remains nonnegative.",
+        "At most two executor workers, three queued jobs and two fake downstream calls are active; overflow is reported explicitly.",
+        "Fake-call failure and pre-commit interruption do not mutate stock or leak permits; post-commit cancellation does not silently reverse an effect.",
+        "Every submitted job has an admission and task outcome; all futures are observed and all workers terminate within a deadline.",
+        "Evidence includes invariant assertions, duplicate interleavings, peak capacity, failure paths and a written process-local durability limit."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ThreadPoolExecutor",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html"
+        },
+        {
+          "title": "Java SE 25: ConcurrentHashMap",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+        }
+      ],
+      "requirements": [
+        "Use immutable jobs, stable keys and explicit per-key results.",
+        "Validate quantity, capacity limits and conflicting payloads.",
+        "Keep slow work outside the lock; commit stock and deduplication result together."
+      ],
+      "constraints": [
+        "Plain Java with finite local synthetic data and no real remote effects.",
+        "Two workers, three queue slots and two downstream permits.",
+        "Keep the result ledger for the finite run; no persistence, restart recovery or multi-instance guarantee."
+      ],
+      "deliverables": [
+        "Runnable service and assert-based failure and concurrency checks.",
+        "Schedule diagrams, invariant argument, outcome table and shutdown evidence.",
+        "A review explaining every concurrency mechanism used and which unused mechanisms would add no value."
+      ]
+    }
+  ]
+}

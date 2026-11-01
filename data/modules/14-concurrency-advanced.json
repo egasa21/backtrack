@@ -1,0 +1,1034 @@
+{
+  "id": "concurrency-advanced",
+  "order": 14,
+  "title": "Concurrency Advanced",
+  "goal": "Reason about concurrent algorithms, memory ordering, progress and performance with reproducible evidence.",
+  "dependencies": [
+    "concurrency-intermediate"
+  ],
+  "outcomes": [
+    "Linearizability and concurrent histories: Checker accepts known legal histories and rejects the constructed oversell history.",
+    "VarHandle memory ordering and publication protocols: Written argument identifies the matching release/acquire observation.",
+    "CAS loops, ABA and versioned state: Controlled schedule demonstrates plain CAS accepting stale logical state.",
+    "Lock-free and wait-free progress guarantees: Classification distinguishes aggregate progress from per-operation bounds.",
+    "Contention, false sharing and striped counters: Quiescent totals match the exact expected count.",
+    "Work stealing, task granularity and parallel decomposition: Every variant matches the sequential result.",
+    "Reactive demand and bounded asynchronous pipelines: Delivery never exceeds requested demand in the model and observed experiment.",
+    "Structured concurrency and scoped task lifetime: Parent completion and child termination are observed separately, with no orphan tasks after cleanup.",
+    "jcstress, JMH and adversarial verification: Lab supplies classified outcomes and a written correctness argument.",
+    "Concurrency diagnosis and cross-process boundaries: Diagnosis names evidence and competing explanations rather than guessing from one state snapshot."
+  ],
+  "studyGuidance": [
+    "Complete the previous concurrency level first; this module extends its guarantees rather than repeating its introductory examples.",
+    "Study the ten topics in order, then complete the three labs and capstone. Record prediction, invariant, setup/version, evidence, explanation and remaining uncertainty in existing notes.",
+    "References target Java 25. Check the installed JDK before running API-specific experiments; structured concurrency is explicitly preview in Java 25.",
+    "Use finite synthetic local workloads, deterministic gates for scheduling experiments, deadline-limited waits and cleanup of every owned task and executor.",
+    "Keep JMH and jcstress in separate learning projects; no application dependencies or progress schema changes are required."
+  ],
+  "completionCriteria": [
+    "Explain all ten topics and answer recall questions without notes.",
+    "Complete the three labs with assertions, failure paths and saved evidence.",
+    "Verify every capstone criterion, including cancellation, overload and worker cleanup.",
+    "State the semantic argument and limits of finite measurements; distinguish process-local guarantees from durable coordination."
+  ],
+  "topics": [
+    {
+      "id": "concurrency-advanced-linearizability",
+      "title": "Linearizability and concurrent histories",
+      "description": "A linearizable operation appears to take effect once between invocation and response, while respecting the real-time order of non-overlapping calls.",
+      "learningGoals": [
+        "Checker accepts known legal histories and rejects the constructed oversell history.",
+        "Implementation argument names a decision point for both success and failure."
+      ],
+      "concepts": [
+        "Linearizability and concurrent histories"
+      ],
+      "examples": [
+        "A reserve-one operation races for the final unit of stock."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [],
+      "material": {
+        "explanation": "A linearizable operation appears to take effect once between invocation and response, while respecting the real-time order of non-overlapping calls. This gives a precise contract for a concurrent object, beyond saying that its fields are thread-safe. Record operation intervals and results, then seek a legal sequential history. Overlapping calls can often be ordered either way, but completed-before-started calls cannot be reversed. An implementation needs an argument for its decision points, not merely a large number of successful tests.",
+        "workedExample": {
+          "scenario": "A reserve-one operation races for the final unit of stock.",
+          "steps": [
+            "Record both invocation and response intervals; exactly one reservation succeeds.",
+            "Locate the lock-protected update or successful CAS that decides ownership, and construct a sequential order matching all results."
+          ]
+        },
+        "commonMistakes": [
+          "Any permutation of concurrent results is valid, even when it reverses non-overlapping calls."
+        ],
+        "guidedExercise": [
+          "Write the sequential reserve specification including empty-stock behavior.",
+          "Check small recorded histories by enumerating orders that preserve real-time precedence."
+        ],
+        "independentExercise": "Construct a history for a broken get-then-decrement implementation that no legal sequential ordering can explain.",
+        "recallQuestions": [
+          "Which real-time ordering must be preserved?",
+          "Where is the operation’s linearization point?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Checker accepts known legal histories and rejects the constructed oversell history.",
+        "Implementation argument names a decision point for both success and failure."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: AtomicReference",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicReference.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-memory-ordering",
+      "title": "VarHandle memory ordering and publication protocols",
+      "description": "Lower-level access modes let an implementation specify ordering, but weakening them requires a proof of the communication protocol.",
+      "learningGoals": [
+        "Written argument identifies the matching release/acquire observation.",
+        "Litmus outcomes are classified from semantics and slot reuse is not claimed without a protocol."
+      ],
+      "concepts": [
+        "VarHandle memory ordering and publication protocols"
+      ],
+      "examples": [
+        "One producer publishes a payload once through a release flag; one consumer observes the flag with acquire."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-linearizability"
+      ],
+      "material": {
+        "explanation": "Lower-level access modes let an implementation specify ordering, but weakening them requires a proof of the communication protocol. Plain accesses, opaque accesses, release/acquire pairs and volatile operations have different guarantees. A matching acquire that observes a release publication can order earlier payload writes before subsequent reads. Opaque coherence on one location is not enough to publish a separate payload. Mixed access modes and slot reuse complicate the argument; use volatile or standard queues unless a measured need justifies lower-level machinery.",
+        "workedExample": {
+          "scenario": "One producer publishes a payload once through a release flag; one consumer observes the flag with acquire.",
+          "steps": [
+            "Draw the payload write before release and the payload read after observing acquire.",
+            "Compare this one-shot protocol with opaque flag access; classify the missing publication guarantee rather than demanding a forbidden outcome on every machine."
+          ]
+        },
+        "commonMistakes": [
+          "Opaque and acquire reads are interchangeable, or a passing x86 run proves a weaker protocol portable."
+        ],
+        "guidedExercise": [
+          "Build a one-shot litmus test with explicit accepted and forbidden outcomes.",
+          "Keep setup barriers outside the tested handoff so the harness does not supply the missing publication edge."
+        ],
+        "independentExercise": "Explain what extra ownership and sequence protocol is needed before reusing the slot for another message.",
+        "recallQuestions": [
+          "Which access pair publishes the payload?",
+          "Why can test harness synchronization conceal a broken protocol?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Written argument identifies the matching release/acquire observation.",
+        "Litmus outcomes are classified from semantics and slot reuse is not claimed without a protocol."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: VarHandle",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/invoke/VarHandle.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-cas-and-aba",
+      "title": "CAS loops, ABA and versioned state",
+      "description": "Compare-and-set checks whether a location still equals an expected value, not whether nothing happened since it was read.",
+      "learningGoals": [
+        "Controlled schedule demonstrates plain CAS accepting stale logical state.",
+        "Stamped variant rejects the stale update and documents wraparound and reuse limits."
+      ],
+      "concepts": [
+        "CAS loops, ABA and versioned state"
+      ],
+      "examples": [
+        "A reader saves reference A; another actor replaces A with B and later restores A."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-memory-ordering"
+      ],
+      "material": {
+        "explanation": "Compare-and-set checks whether a location still equals an expected value, not whether nothing happened since it was read. ABA means another actor changes A to B and back to A, making a stale comparison appear current. An AtomicStampedReference can compare a reference and version together when every relevant transition updates the version. Finite stamps can wrap. Garbage collection prevents some memory-reclamation hazards but does not remove logical ABA when objects or values are reused. Retried calculations must remain free of external side effects.",
+        "workedExample": {
+          "scenario": "A reader saves reference A; another actor replaces A with B and later restores A.",
+          "steps": [
+            "Show a stale plain-reference CAS accepting A even though intervening changes occurred.",
+            "Repeat using a reference-plus-stamp transition; the stale expected stamp causes rejection."
+          ]
+        },
+        "commonMistakes": [
+          "Java garbage collection eliminates every ABA issue, or adding a version works if some transitions forget to increment it."
+        ],
+        "guidedExercise": [
+          "Force A → B → A with barriers after the stale read.",
+          "Record all version changes and verify the stale stamped comparison fails."
+        ],
+        "independentExercise": "State the assumptions about stamp wraparound and propose a lock-based alternative when simplicity matters more than lock-free updates.",
+        "recallQuestions": [
+          "What does CAS actually compare?",
+          "Why must every relevant transition change the stamp?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Controlled schedule demonstrates plain CAS accepting stale logical state.",
+        "Stamped variant rejects the stale update and documents wraparound and reuse limits."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: AtomicStampedReference",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicStampedReference.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-progress-guarantees",
+      "title": "Lock-free and wait-free progress guarantees",
+      "description": "Lock-free means system-wide progress continues despite individual operations retrying; it does not promise fairness to each caller.",
+      "learningGoals": [
+        "Classification distinguishes aggregate progress from per-operation bounds.",
+        "Argument accounts for every dependency and does not treat finite timing measurements as a proof."
+      ],
+      "concepts": [
+        "Lock-free and wait-free progress guarantees"
+      ],
+      "examples": [
+        "Two workers contend on a CAS counter while one repeatedly loses."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-cas-and-aba"
+      ],
+      "material": {
+        "explanation": "Lock-free means system-wide progress continues despite individual operations retrying; it does not promise fairness to each caller. Wait-free adds a bound on each operation’s own steps under the model’s assumptions. Obstruction-free progress only applies when an operation eventually runs without interference. A method using CAS is not automatically lock-free if it also waits on a lock, allocator or external service. State which part of an algorithm the proof covers and keep scheduling and garbage-collection pauses separate from abstract operation progress.",
+        "workedExample": {
+          "scenario": "Two workers contend on a CAS counter while one repeatedly loses.",
+          "steps": [
+            "Trace failed CAS attempts caused by another successful update.",
+            "Argue system-wide successful updates without inventing a per-thread completion bound."
+          ]
+        },
+        "commonMistakes": [
+          "Lock-free means every caller finishes quickly, or the presence of a CAS instruction proves the whole method lock-free."
+        ],
+        "guidedExercise": [
+          "Label retry loops, blocking calls and unbounded callbacks in a candidate algorithm.",
+          "Count retries per worker and completions while recording fairness limitations."
+        ],
+        "independentExercise": "Compare a lock-protected counter, a CAS loop and a bounded-step read operation under explicitly stated assumptions.",
+        "recallQuestions": [
+          "How can one caller starve in a lock-free algorithm?",
+          "What stronger claim does wait-free require?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Classification distinguishes aggregate progress from per-operation bounds.",
+        "Argument accounts for every dependency and does not treat finite timing measurements as a proof."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: AtomicReference",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicReference.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-contention-locality",
+      "title": "Contention, false sharing and striped counters",
+      "description": "Contending on one writable location can serialize updates through cache-coherence traffic even without a mutex.",
+      "learningGoals": [
+        "Quiescent totals match the exact expected count.",
+        "Any false-sharing claim includes layout or profiling evidence and strict quotas use an exact boundary."
+      ],
+      "concepts": [
+        "Contention, false sharing and striped counters"
+      ],
+      "examples": [
+        "Many workers increment one AtomicLong versus a LongAdder used only for completed-work metrics."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-progress-guarantees"
+      ],
+      "material": {
+        "explanation": "Contending on one writable location can serialize updates through cache-coherence traffic even without a mutex. False sharing occurs when independent writable data shares a cache line; it is different from true contention on the same value. Exact Java object layout is implementation-dependent, so adjacency in source is not a layout guarantee. Striping spreads hot updates and later aggregates them, trading instantaneous consistency and memory for throughput. LongAdder is useful for statistics; its sum is not an atomic snapshot during concurrent updates and must not decide a strict quota.",
+        "workedExample": {
+          "scenario": "Many workers increment one AtomicLong versus a LongAdder used only for completed-work metrics.",
+          "steps": [
+            "Measure both with identical bounded work and validate exact totals after all updates stop.",
+            "Explain why the LongAdder metric is unsuitable for admitting the last available inventory unit."
+          ]
+        },
+        "commonMistakes": [
+          "Lock-free removes coherence costs, or a striped sum is an exact concurrent admission decision."
+        ],
+        "guidedExercise": [
+          "Vary worker count and report allocation, throughput and correctness separately.",
+          "Separate true shared-counter contention from a false-sharing hypothesis requiring layout evidence."
+        ],
+        "independentExercise": "Propose per-worker aggregation and explain its publication and final-merge costs.",
+        "recallQuestions": [
+          "How does false sharing differ from true sharing?",
+          "Why can an approximate concurrent metric not enforce stock >= 0?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Quiescent totals match the exact expected count.",
+        "Any false-sharing claim includes layout or profiling evidence and strict quotas use an exact boundary."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: LongAdder",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-work-stealing",
+      "title": "Work stealing, task granularity and parallel decomposition",
+      "description": "Fork/join work stealing suits independent CPU subtasks that can be recursively decomposed and joined.",
+      "learningGoals": [
+        "Every variant matches the sequential result.",
+        "Performance conclusion records cutoff, CPU budget and overhead without assuming parallel wins."
+      ],
+      "concepts": [
+        "Work stealing, task granularity and parallel decomposition"
+      ],
+      "examples": [
+        "Compute a sum by splitting a fixed array until chunks reach a chosen cutoff."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-contention-locality"
+      ],
+      "material": {
+        "explanation": "Fork/join work stealing suits independent CPU subtasks that can be recursively decomposed and joined. Too-small tasks spend time coordinating rather than computing; too-large tasks leave cores idle. Use a sequential cutoff and compare equal work. Blocking external I/O in a CPU-oriented pool can consume capacity intended for runnable tasks, and ManagedBlocker is not a universal repair for arbitrary blocking. Avoid nesting parallel frameworks without understanding shared pools and total CPU budgets.",
+        "workedExample": {
+          "scenario": "Compute a sum by splitting a fixed array until chunks reach a chosen cutoff.",
+          "steps": [
+            "Use a dedicated ForkJoinPool and join independent partial sums.",
+            "Compare several cutoffs against the same sequential baseline and verify the exact result, using values that cannot overflow the chosen type."
+          ]
+        },
+        "commonMistakes": [
+          "More tasks always mean more parallelism, or the common pool is an isolated executor owned by one feature."
+        ],
+        "guidedExercise": [
+          "Sweep a small set of cutoffs and parallelism levels.",
+          "Record available CPUs, input size and complete pool cleanup."
+        ],
+        "independentExercise": "Add a skewed workload and explain how work stealing changes load balance without removing the serial portion.",
+        "recallQuestions": [
+          "Why can fine task granularity reduce throughput?",
+          "Which operations make a CPU pool unsuitable?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Every variant matches the sequential result.",
+        "Performance conclusion records cutoff, CPU budget and overhead without assuming parallel wins."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ForkJoinPool",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-reactive-demand",
+      "title": "Reactive demand and bounded asynchronous pipelines",
+      "description": "Reactive demand is an explicit protocol: a subscriber requests a positive number of items and the publisher must not emit beyond the outstanding demand.",
+      "learningGoals": [
+        "Delivery never exceeds requested demand in the model and observed experiment.",
+        "Cancellation and invalid demand have explicit outcomes and all buffering stages have stated bounds."
+      ],
+      "concepts": [
+        "Reactive demand and bounded asynchronous pipelines"
+      ],
+      "examples": [
+        "A subscriber requests two items from a publisher holding five."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-work-stealing"
+      ],
+      "material": {
+        "explanation": "Reactive demand is an explicit protocol: a subscriber requests a positive number of items and the publisher must not emit beyond the outstanding demand. Demand is counted per subscription; requests add demand and delivery consumes it. Cancellation, error and completion are terminal lifecycle concerns, not just queue operations. Bounded demand at one stage does not prove every upstream buffer is bounded. Start with the Flow interfaces and a small state-machine model; production publishers should use tested implementations rather than an improvised protocol.",
+        "workedExample": {
+          "scenario": "A subscriber requests two items from a publisher holding five.",
+          "steps": [
+            "Emit at most two onNext items, leaving three pending until more demand arrives.",
+            "Cancel and verify no further delivery in the controlled schedule; separately test invalid nonpositive demand and terminal signaling."
+          ]
+        },
+        "commonMistakes": [
+          "Asynchronous callbacks inherently provide backpressure, or one bounded subscriber proves end-to-end memory is bounded."
+        ],
+        "guidedExercise": [
+          "Model demand, delivered count and terminal state explicitly.",
+          "Test cumulative requests, zero demand, cancellation and error without recursive unbounded delivery."
+        ],
+        "independentExercise": "Add a buffering transform and list every capacity that must be bounded independently.",
+        "recallQuestions": [
+          "How does request(n) change outstanding demand?",
+          "Where can an apparently reactive system still accumulate memory?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Delivery never exceeds requested demand in the model and observed experiment.",
+        "Cancellation and invalid demand have explicit outcomes and all buffering stages have stated bounds."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: Flow",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Flow.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-structured-concurrency",
+      "title": "Structured concurrency and scoped task lifetime",
+      "description": "Structured concurrency ties child-task lifetime to the parent operation so failures, joins and cancellation have an explicit owner.",
+      "learningGoals": [
+        "Parent completion and child termination are observed separately, with no orphan tasks after cleanup.",
+        "Baseline runs without preview; optional preview comparison records matching JDK and settings."
+      ],
+      "concepts": [
+        "Structured concurrency and scoped task lifetime"
+      ],
+      "examples": [
+        "A request needs both a profile and pricing result; one dependency fails while the other waits."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-reactive-demand"
+      ],
+      "material": {
+        "explanation": "Structured concurrency ties child-task lifetime to the parent operation so failures, joins and cancellation have an explicit owner. Java 25 StructuredTaskScope is a preview API and requires matching compile-time and runtime preview settings; later JDKs may use a different API. Decide whether all children must succeed or one acceptable result is enough. Cancellation remains cooperative, and closing a scope must account for children actually finishing. A stable ExecutorService-and-Future design can demonstrate the same ownership responsibilities without requiring preview APIs.",
+        "workedExample": {
+          "scenario": "A request needs both a profile and pricing result; one dependency fails while the other waits.",
+          "steps": [
+            "Choose an all-results success policy and propagate the first relevant failure.",
+            "Cancel unnecessary sibling work and observe all child termination before releasing the request-owned resources."
+          ]
+        },
+        "commonMistakes": [
+          "A scope forcibly kills uncooperative code, or preview examples can be copied across JDK versions unchanged."
+        ],
+        "guidedExercise": [
+          "Implement explicit executor ownership and finally-based child cleanup as the stable baseline.",
+          "Optionally compare with the matching Java 25 preview API after verifying the installed JDK and preview settings."
+        ],
+        "independentExercise": "Switch to a first-acceptable-result policy and explain what must happen to losing tasks and their side effects.",
+        "recallQuestions": [
+          "Who owns a child that outlives its parent result?",
+          "What is the Java 25 preview limitation?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Parent completion and child termination are observed separately, with no orphan tasks after cleanup.",
+        "Baseline runs without preview; optional preview comparison records matching JDK and settings."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: StructuredTaskScope (preview)",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-correctness-and-benchmarks",
+      "title": "jcstress, JMH and adversarial verification",
+      "description": "Correctness testing and benchmarking answer different questions.",
+      "learningGoals": [
+        "Lab supplies classified outcomes and a written correctness argument.",
+        "Benchmark records repeatable setup, consumes results and makes no universal speed claim."
+      ],
+      "concepts": [
+        "jcstress, JMH and adversarial verification"
+      ],
+      "examples": [
+        "A publication protocol passes a short loop, and a hand-timed counter appears faster than its baseline."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-structured-concurrency"
+      ],
+      "material": {
+        "explanation": "Correctness testing and benchmarking answer different questions. A litmus test classifies allowed and forbidden outcomes for small concurrent actors; jcstress explores executions but a clean run is not a proof. A small history checker tests an object against its sequential specification. JMH controls common timing hazards such as warmup, forks and dead-code elimination; benchmark state scope and contention must still match the intended workload. Pin tool versions in a separate learning project so this website gains no runtime dependencies.",
+        "workedExample": {
+          "scenario": "A publication protocol passes a short loop, and a hand-timed counter appears faster than its baseline.",
+          "steps": [
+            "Write the allowed outcomes before running a jcstress test and retain its full result table.",
+            "Build JMH variants that consume results, warm up and fork; validate correctness separately from timed sections."
+          ]
+        },
+        "commonMistakes": [
+          "A fast benchmark proves correctness, or no observed forbidden outcome proves it impossible."
+        ],
+        "guidedExercise": [
+          "Create a separate local lab from the official jcstress and JMH examples.",
+          "Record JDK, tool versions, hardware, configuration, raw output and uncertainty; avoid production data."
+        ],
+        "independentExercise": "Deliberately add synchronization to a litmus harness and explain how it can invalidate the intended experiment.",
+        "recallQuestions": [
+          "What does each tool measure?",
+          "Which missing outcome still needs a semantic argument?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lab supplies classified outcomes and a written correctness argument.",
+        "Benchmark records repeatable setup, consumes results and makes no universal speed claim."
+      ],
+      "resources": [
+        {
+          "title": "OpenJDK jcstress: concurrency correctness harness",
+          "url": "https://github.com/openjdk/jcstress"
+        },
+        {
+          "title": "OpenJDK JMH: benchmark harness",
+          "url": "https://github.com/openjdk/jmh"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-advanced-diagnosis-and-boundaries",
+      "title": "Concurrency diagnosis and cross-process boundaries",
+      "description": "Investigate symptoms with evidence: thread dumps show waits and ownership; recordings and metrics reveal allocation, CPU, lock contention and queueing.",
+      "learningGoals": [
+        "Diagnosis names evidence and competing explanations rather than guessing from one state snapshot.",
+        "Cross-process review specifies atomic durable enforcement and does not claim local locks cover restarts."
+      ],
+      "concepts": [
+        "Concurrency diagnosis and cross-process boundaries"
+      ],
+      "examples": [
+        "Two service instances share an inventory row; one resumes after losing its lease."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-correctness-and-benchmarks"
+      ],
+      "material": {
+        "explanation": "Investigate symptoms with evidence: thread dumps show waits and ownership; recordings and metrics reveal allocation, CPU, lock contention and queueing. A single snapshot cannot reliably distinguish a transient wait from a persistent stall, so compare repeated bounded observations and task outcomes. Local lock or CAS correctness ends at the process boundary. A database transaction, unique constraint and conditional version update can protect shared durable effects across instances; a lease alone does not stop a paused former owner from writing after expiry. Keep durable enforcement with the protected resource.",
+        "workedExample": {
+          "scenario": "Two service instances share an inventory row; one resumes after losing its lease.",
+          "steps": [
+            "Draw the delayed-owner timeline and show why an in-process lock cannot reject that stale write.",
+            "Design a database-enforced version or fencing check and atomic effect/result record; distinguish this design review from the local runnable capstone."
+          ]
+        },
+        "commonMistakes": [
+          "A local thread-safe map or expired distributed lease guarantees durable exactly-once external effects."
+        ],
+        "guidedExercise": [
+          "Collect repeated local thread observations with monotonic progress counters.",
+          "Classify queue saturation, lock contention and a stuck dependency before proposing extra workers."
+        ],
+        "independentExercise": "Write a crash timeline between a durable business effect and its deduplication record, then choose one atomic transaction boundary.",
+        "recallQuestions": [
+          "What evidence distinguishes blocked capacity from a circular wait?",
+          "Where must a stale-owner check be enforced?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Diagnosis names evidence and competing explanations rather than guessing from one state snapshot.",
+        "Cross-process review specifies atomic durable enforcement and does not claim local locks cover restarts."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ExecutorService",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html"
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "concurrency-advanced-lab-histories",
+      "title": "Lab: CAS reservation and history checking",
+      "description": "Specify a nonnegative stock object with reserve and inspect operations, implement a lock baseline, then implement an AtomicReference-based immutable state transition.",
+      "learningGoals": [
+        "Checker rejects known-invalid histories and accepts legal overlapping and non-overlapping histories.",
+        "Lock and CAS variants preserve stock and legal results; retry calculations have no external effects."
+      ],
+      "concepts": [
+        "Lab: CAS reservation and history checking"
+      ],
+      "examples": [
+        "Two callers reserve the last unit, then a third inspects stock after both return."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-linearizability",
+        "concurrency-advanced-memory-ordering",
+        "concurrency-advanced-cas-and-aba",
+        "concurrency-advanced-progress-guarantees",
+        "concurrency-advanced-contention-locality",
+        "concurrency-advanced-work-stealing",
+        "concurrency-advanced-reactive-demand",
+        "concurrency-advanced-structured-concurrency",
+        "concurrency-advanced-correctness-and-benchmarks",
+        "concurrency-advanced-diagnosis-and-boundaries"
+      ],
+      "material": {
+        "explanation": "Specify a nonnegative stock object with reserve and inspect operations, implement a lock baseline, then implement an AtomicReference-based immutable state transition. Record a small number of operation intervals and compare them against a sequential reference model. The checker must preserve non-overlapping real-time order and validate returned results, not merely final stock. Include a known-broken check-then-act version as a negative control; keep history sizes small enough to enumerate under a fixed bound.",
+        "workedExample": {
+          "scenario": "Two callers reserve the last unit, then a third inspects stock after both return.",
+          "steps": [
+            "Accept only one successful reservation and an inspect result of zero.",
+            "Check legal candidate orderings and reject a supplied history with two successes from one unit."
+          ]
+        },
+        "commonMistakes": [
+          "A correct final count proves every returned operation result was legal."
+        ],
+        "guidedExercise": [
+          "Write success, insufficient-stock and invalid-quantity specifications.",
+          "Test checker acceptance and rejection fixtures before evaluating bounded concurrent histories."
+        ],
+        "independentExercise": "Annotate the linearization point of successful and failed CAS reservations and explain retry purity.",
+        "recallQuestions": [
+          "Why is final state insufficient?",
+          "Which candidate orders must the checker exclude?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Checker rejects known-invalid histories and accepts legal overlapping and non-overlapping histories.",
+        "Lock and CAS variants preserve stock and legal results; retry calculations have no external effects."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: AtomicReference",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicReference.html"
+        }
+      ],
+      "requirements": [
+        "Checker rejects known-invalid histories and accepts legal overlapping and non-overlapping histories.",
+        "Lock and CAS variants preserve stock and legal results; retry calculations have no external effects."
+      ],
+      "constraints": [
+        "Use finite local synthetic workloads and deadline-limited waits and cleanup.",
+        "Do not use sleeps to establish correctness; do not add lab dependencies to the website."
+      ],
+      "deliverables": [
+        "Runnable Java lab with assertions and recorded versions.",
+        "Predictions, schedules or histories, failure evidence and an explanation in existing notes."
+      ]
+    },
+    {
+      "id": "concurrency-advanced-lab-litmus-aba",
+      "title": "Lab: Memory-order litmus tests and controlled ABA",
+      "description": "Use separate tests for publication ordering and stale logical identity.",
+      "learningGoals": [
+        "Plain and stamped ABA variants produce their specified opposite decisions.",
+        "Publication report includes allowed/forbidden outcomes and model reasoning, with no claim that finite testing proves portability."
+      ],
+      "concepts": [
+        "Lab: Memory-order litmus tests and controlled ABA"
+      ],
+      "examples": [
+        "A stale reader retains A while another actor changes and restores it."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-linearizability",
+        "concurrency-advanced-memory-ordering",
+        "concurrency-advanced-cas-and-aba",
+        "concurrency-advanced-progress-guarantees",
+        "concurrency-advanced-contention-locality",
+        "concurrency-advanced-work-stealing",
+        "concurrency-advanced-reactive-demand",
+        "concurrency-advanced-structured-concurrency",
+        "concurrency-advanced-correctness-and-benchmarks",
+        "concurrency-advanced-diagnosis-and-boundaries"
+      ],
+      "material": {
+        "explanation": "Use separate tests for publication ordering and stale logical identity. Classify a one-shot release/acquire message-passing test in jcstress, keeping harness synchronization outside the actor handoff. Then use barriers to force a saved reference through A → B → A and compare plain CAS with stamped CAS. These experiments support a written model argument; neither an absence of forbidden results nor a version field by itself proves a general lock-free structure correct.",
+        "workedExample": {
+          "scenario": "A stale reader retains A while another actor changes and restores it.",
+          "steps": [
+            "Observe plain CAS accepting the restored reference under the forced schedule.",
+            "Increment the stamp for both changes and verify the stale stamped update fails; collect publication litmus outcomes separately."
+          ]
+        },
+        "commonMistakes": [
+          "A barrier-controlled ABA test also verifies weak-memory ordering."
+        ],
+        "guidedExercise": [
+          "Keep the two experiments and their claims separate.",
+          "Save jcstress outcome classifications, configuration and complete output in a separate learning project."
+        ],
+        "independentExercise": "Explain stamp wraparound and why adding a reused-slot protocol requires more than the one-shot litmus.",
+        "recallQuestions": [
+          "What does the ABA barrier force?",
+          "Why would that barrier invalidate a weak-publication experiment?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Plain and stamped ABA variants produce their specified opposite decisions.",
+        "Publication report includes allowed/forbidden outcomes and model reasoning, with no claim that finite testing proves portability."
+      ],
+      "resources": [
+        {
+          "title": "OpenJDK jcstress: concurrency correctness harness",
+          "url": "https://github.com/openjdk/jcstress"
+        }
+      ],
+      "requirements": [
+        "Plain and stamped ABA variants produce their specified opposite decisions.",
+        "Publication report includes allowed/forbidden outcomes and model reasoning, with no claim that finite testing proves portability."
+      ],
+      "constraints": [
+        "Use finite local synthetic workloads and deadline-limited waits and cleanup.",
+        "Do not use sleeps to establish correctness; do not add lab dependencies to the website."
+      ],
+      "deliverables": [
+        "Runnable Java lab with assertions and recorded versions.",
+        "Predictions, schedules or histories, failure evidence and an explanation in existing notes."
+      ]
+    },
+    {
+      "id": "concurrency-advanced-lab-performance",
+      "title": "Lab: Contention and CPU decomposition with JMH",
+      "description": "Benchmark only after correctness checks.",
+      "learningGoals": [
+        "All variants pass correctness checks outside timing and benchmark results are consumed.",
+        "Report contains repeatable configurations and uncertainty, with no unsupported speedup or false-sharing claim."
+      ],
+      "concepts": [
+        "Lab: Contention and CPU decomposition with JMH"
+      ],
+      "examples": [
+        "Worker counts and task cutoffs change while total input and expected results remain fixed."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-linearizability",
+        "concurrency-advanced-memory-ordering",
+        "concurrency-advanced-cas-and-aba",
+        "concurrency-advanced-progress-guarantees",
+        "concurrency-advanced-contention-locality",
+        "concurrency-advanced-work-stealing",
+        "concurrency-advanced-reactive-demand",
+        "concurrency-advanced-structured-concurrency",
+        "concurrency-advanced-correctness-and-benchmarks",
+        "concurrency-advanced-diagnosis-and-boundaries"
+      ],
+      "material": {
+        "explanation": "Benchmark only after correctness checks. Create JMH variants for a shared atomic metric, a LongAdder metric and a fork/join array reduction with several cutoffs. Choose benchmark state scope deliberately: per-thread counters do not measure shared-counter contention. Consume all computed results, use warmup and independent forks, and retain uncertainty. Keep exact quota decisions out of the striped-metric path. No speedup is required for completion; an honest negative result is useful evidence.",
+        "workedExample": {
+          "scenario": "Worker counts and task cutoffs change while total input and expected results remain fixed.",
+          "steps": [
+            "Validate exact totals after writers stop and check every array sum against the sequential result.",
+            "Run bounded JMH configurations, report raw output and explain contention or overhead without overclaiming false sharing."
+          ]
+        },
+        "commonMistakes": [
+          "A single hand-timed run isolates lock overhead, or changing the work amount is a fair comparison."
+        ],
+        "guidedExercise": [
+          "Record hardware, JDK, tool versions, warmup, forks and state scope.",
+          "Vary one factor at a time and keep an equal-work sequential baseline."
+        ],
+        "independentExercise": "Use a profile or layout evidence to investigate a false-sharing hypothesis; otherwise report it as unconfirmed.",
+        "recallQuestions": [
+          "Why must the state actually be shared?",
+          "Why is a faster striped metric not a safe quota replacement?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All variants pass correctness checks outside timing and benchmark results are consumed.",
+        "Report contains repeatable configurations and uncertainty, with no unsupported speedup or false-sharing claim."
+      ],
+      "resources": [
+        {
+          "title": "OpenJDK JMH: benchmark harness",
+          "url": "https://github.com/openjdk/jmh"
+        }
+      ],
+      "requirements": [
+        "All variants pass correctness checks outside timing and benchmark results are consumed.",
+        "Report contains repeatable configurations and uncertainty, with no unsupported speedup or false-sharing claim."
+      ],
+      "constraints": [
+        "Use finite local synthetic workloads and deadline-limited waits and cleanup.",
+        "Do not use sleeps to establish correctness; do not add lab dependencies to the website."
+      ],
+      "deliverables": [
+        "Runnable Java lab with assertions and recorded versions.",
+        "Predictions, schedules or histories, failure evidence and an explanation in existing notes."
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "concurrency-advanced-versioned-reservations",
+      "title": "Capstone: Verified versioned reservation service",
+      "description": "Implement a finite, in-memory stock reservation object using immutable versioned state in AtomicReference, with a simple lock-based implementation as the reference baseline.",
+      "learningGoals": [
+        "Lock and CAS variants preserve nonnegative stock and match the same documented sequential specification.",
+        "Concurrent identical keys produce at most one effect and replay the recorded result; conflicting payloads and invalid quantities do not mutate state."
+      ],
+      "concepts": [
+        "Capstone: Verified versioned reservation service"
+      ],
+      "examples": [
+        "Stock starts at 10; two same-key reservations request 3 each while a distinct key requests 8."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-advanced-lab-histories",
+        "concurrency-advanced-lab-litmus-aba",
+        "concurrency-advanced-lab-performance",
+        "concurrency-advanced-diagnosis-and-boundaries"
+      ],
+      "material": {
+        "explanation": "Implement a finite, in-memory stock reservation object using immutable versioned state in AtomicReference, with a simple lock-based implementation as the reference baseline. One state includes remaining stock and the finite deduplication ledger so a successful CAS commits both together. Validate positive whole-unit quantities and reject same-key conflicting payloads; repeated identical requests return the saved result. Compute candidate states without side effects and retain the ledger for the finite run. Place this object behind bounded admission and request-owned dependency tasks with explicit cleanup; choose stable APIs, with an optional Java 25 structured-concurrency preview comparison. This is a learning object, not a durable payment system.",
+        "workedExample": {
+          "scenario": "Stock starts at 10; two same-key reservations request 3 each while a distinct key requests 8.",
+          "steps": [
+            "At most one same-key effect commits; whichever distinct operation linearizes first determines whether the competing reservation fits.",
+            "Check returned results against legal sequential histories rather than hard-coding one scheduler order.",
+            "Cancel dependency work before commit and test replay after a caller loses its response following commit."
+          ]
+        },
+        "commonMistakes": [
+          "A CAS on stock alone atomically commits a separate ledger, or a successful local history check proves cross-process durability."
+        ],
+        "guidedExercise": [
+          "Specify reserve, replay, conflicting-payload and insufficient-stock behavior before implementation.",
+          "Compare lock and CAS results with bounded history checks; retain per-worker retries and all terminal outcomes.",
+          "Benchmark the object separately with JMH; use a jcstress publication test only for a specifically stated memory claim."
+        ],
+        "independentExercise": "Design the durable version using a shared database transaction and unique key, and explain stale-owner enforcement without claiming the local implementation already provides it.",
+        "recallQuestions": [
+          "Which CAS commits stock and ledger together?",
+          "Why must retried candidate construction have no side effects?",
+          "What does timeout after commit mean to a retry?",
+          "What can the tests and benchmark each establish?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lock and CAS variants preserve nonnegative stock and match the same documented sequential specification.",
+        "Concurrent identical keys produce at most one effect and replay the recorded result; conflicting payloads and invalid quantities do not mutate state.",
+        "Bounded histories, including supplied negative controls, check operation results and real-time order rather than only final stock.",
+        "Every CAS retry is side-effect-free; successful and failed operations have explicit linearization arguments and versions change on committed transitions.",
+        "Accepted requests, dependency tasks and downstream use remain bounded; failures and pre-commit cancellation leak no resources, and post-commit retries recover the recorded result.",
+        "Correctness evidence is separate from JMH output; measurements include versions, state scope, warmup, forks and uncertainty without requiring the CAS implementation to win.",
+        "All owned tasks terminate by cleanup deadlines; optional structured-concurrency comparison is explicitly Java 25 preview and a stable-API path remains available.",
+        "Review documents finite-ledger memory growth, restart and multi-instance limits, and a durable atomic effect/result boundary."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: AtomicReference",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicReference.html"
+        }
+      ],
+      "requirements": [
+        "Lock and CAS variants preserve nonnegative stock and match the same documented sequential specification.",
+        "Concurrent identical keys produce at most one effect and replay the recorded result; conflicting payloads and invalid quantities do not mutate state.",
+        "Bounded histories, including supplied negative controls, check operation results and real-time order rather than only final stock.",
+        "Every CAS retry is side-effect-free; successful and failed operations have explicit linearization arguments and versions change on committed transitions.",
+        "Accepted requests, dependency tasks and downstream use remain bounded; failures and pre-commit cancellation leak no resources, and post-commit retries recover the recorded result.",
+        "Correctness evidence is separate from JMH output; measurements include versions, state scope, warmup, forks and uncertainty without requiring the CAS implementation to win.",
+        "All owned tasks terminate by cleanup deadlines; optional structured-concurrency comparison is explicitly Java 25 preview and a stable-API path remains available.",
+        "Review documents finite-ledger memory growth, restart and multi-instance limits, and a durable atomic effect/result boundary."
+      ],
+      "constraints": [
+        "Use a finite local synthetic workload; never contact a real payment provider.",
+        "State all capacity and deadline budgets before running; clean up every task and executor.",
+        "Single-process in-memory guarantees only; retain the finite ledger and state restart limits."
+      ],
+      "deliverables": [
+        "Runnable Java implementation, failure checks and reproducible concurrency evidence.",
+        "Invariant and ownership diagrams, result histories and resource-accounting report.",
+        "Design review covering semantic guarantees, measurements and durability limits."
+      ]
+    }
+  ]
+}

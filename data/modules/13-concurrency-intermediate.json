@@ -1,0 +1,1026 @@
+{
+  "id": "concurrency-intermediate",
+  "order": 13,
+  "title": "Concurrency Intermediate",
+  "goal": "Build reliable Java concurrency with explicit visibility, task ownership, deadlines and resource limits.",
+  "dependencies": [
+    "concurrency-fundamentals"
+  ],
+  "outcomes": [
+    "Happens-before and visibility: Diagram identifies the actual synchronizing read and write.",
+    "Safe publication and object ownership: Caller mutation cannot alter a published job.",
+    "Concurrent collections and compound actions: Duplicate callers yield one winning registration.",
+    "Future composition and executor boundaries: Dependency graph completes even with one worker and no nested same-pool wait.",
+    "Cooperative cancellation and end-to-end deadlines: Timeout paths stop cooperative workers and leak no permits.",
+    "Latches, barriers and phased coordination: All four workers start only after the controller opens the gate.",
+    "Read-write locks and optimistic snapshots: Readers accept only consistent pairs even under forced writer overlap.",
+    "Scheduling, overlap and failure policy: One local refresh is active at a time under slow execution.",
+    "Virtual threads and resource admission: Peak downstream occupancy never exceeds four and accepted task count stays bounded.",
+    "Single-flight work and concurrent cache loading: A gated same-key burst invokes the loader exactly once and shares the result."
+  ],
+  "studyGuidance": [
+    "Complete the previous concurrency level first; this module extends its guarantees rather than repeating its introductory examples.",
+    "Study the ten topics in order, then complete the three labs and capstone. Record prediction, invariant, setup/version, evidence, explanation and remaining uncertainty in existing notes.",
+    "References target Java 25. Check the installed JDK before running API-specific experiments; structured concurrency is explicitly preview in Java 25.",
+    "Use finite synthetic local workloads, deterministic gates for scheduling experiments, deadline-limited waits and cleanup of every owned task and executor.",
+    "Keep JMH and jcstress in separate learning projects; no application dependencies or progress schema changes are required."
+  ],
+  "completionCriteria": [
+    "Explain all ten topics and answer recall questions without notes.",
+    "Complete the three labs with assertions, failure paths and saved evidence.",
+    "Verify every capstone criterion, including cancellation, overload and worker cleanup.",
+    "State the semantic argument and limits of finite measurements; distinguish process-local guarantees from durable coordination."
+  ],
+  "topics": [
+    {
+      "id": "concurrency-intermediate-happens-before",
+      "title": "Happens-before and visibility",
+      "description": "Correct synchronization provides visibility as well as exclusion.",
+      "learningGoals": [
+        "Diagram identifies the actual synchronizing read and write.",
+        "Corrected reader cannot accept ready while reading an earlier payload; no passing run is called a proof."
+      ],
+      "concepts": [
+        "Happens-before and visibility"
+      ],
+      "examples": [
+        "A writer stores payload = 42 and then sets a volatile ready flag; a reader reads payload only after observing ready."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [],
+      "material": {
+        "explanation": "Correct synchronization provides visibility as well as exclusion. Happens-before is an ordering relation that lets a reader rely on earlier writes; elapsed time alone supplies no such relation. Monitor release/acquisition, volatile communication, thread start and successful join provide useful edges. Trace the exact write, synchronizing action and read instead of explaining visibility as flushing caches. Volatile publication can expose an immutable snapshot, but volatile count++ still combines separate read and write operations.",
+        "workedExample": {
+          "scenario": "A writer stores payload = 42 and then sets a volatile ready flag; a reader reads payload only after observing ready.",
+          "steps": [
+            "Draw payload write → volatile write → observing volatile read → payload read.",
+            "Explain why replacing the flag with a plain field removes that publication argument; do not require a broken result to appear on demand."
+          ]
+        },
+        "commonMistakes": [
+          "Sleeping long enough forces visibility, or volatile makes compound updates atomic."
+        ],
+        "guidedExercise": [
+          "Draw happens-before edges for a monitor, volatile flag and successful join.",
+          "Run finite message-passing trials with a deadline; classify outcomes from the model before observing them."
+        ],
+        "independentExercise": "Replace the flag with a blocking-queue handoff and identify the documented publication boundary.",
+        "recallQuestions": [
+          "Does wall-clock order create happens-before?",
+          "Why is a volatile increment still unsafe?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Diagram identifies the actual synchronizing read and write.",
+        "Corrected reader cannot accept ready while reading an earlier payload; no passing run is called a proof."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25 language specification: memory model",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-safe-publication",
+      "title": "Safe publication and object ownership",
+      "description": "Construct an object completely before sharing it through a documented synchronization boundary.",
+      "learningGoals": [
+        "Caller mutation cannot alter a published job.",
+        "A later task sees no previous request context and each request uses one configuration version."
+      ],
+      "concepts": [
+        "Safe publication and object ownership"
+      ],
+      "examples": [
+        "A request job holds an input list and request identity, and pool workers are reused."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-happens-before"
+      ],
+      "material": {
+        "explanation": "Construct an object completely before sharing it through a documented synchronization boundary. Letting this escape from a constructor can expose incomplete state. Final fields have special initialization guarantees when construction is correct, but do not make mutable reachable objects safe to change. Define an ownership policy: confined to one worker, transferred through a queue, immutable and shared, or guarded by one named lock. ThreadLocal state in reused workers also needs removal in finally to avoid request-to-request leakage.",
+        "workedExample": {
+          "scenario": "A request job holds an input list and request identity, and pool workers are reused.",
+          "steps": [
+            "Copy the input into immutable values before enqueueing the job.",
+            "Set per-task ThreadLocal context and remove it in finally; run the next task without inherited context."
+          ]
+        },
+        "commonMistakes": [
+          "A final reference protects all reachable mutation, or worker-local context automatically resets per request."
+        ],
+        "guidedExercise": [
+          "Mark ownership of every field and publish only after construction.",
+          "Test caller mutation and sequential requests sharing one worker."
+        ],
+        "independentExercise": "Publish immutable configuration versions through a volatile reference; each request must use one captured version.",
+        "recallQuestions": [
+          "What is constructor escape?",
+          "Who owns a mutable object after queue handoff?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Caller mutation cannot alter a published job.",
+        "A later task sees no previous request context and each request uses one configuration version."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25 language specification: memory model",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-concurrent-collections",
+      "title": "Concurrent collections and compound actions",
+      "description": "Concurrent collections protect their documented operations, not an entire application workflow.",
+      "learningGoals": [
+        "Duplicate callers yield one winning registration.",
+        "Design distinguishes per-key decisions, value ownership and cross-key invariants."
+      ],
+      "concepts": [
+        "Concurrent collections and compound actions"
+      ],
+      "examples": [
+        "Two workers register the same username in a ConcurrentHashMap."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-safe-publication"
+      ],
+      "material": {
+        "explanation": "Concurrent collections protect their documented operations, not an entire application workflow. Use atomic per-key methods such as putIfAbsent or compute for a per-key decision; a separate get and put can still race. A compute callback should be short and should not perform slow remote work. Iteration over ConcurrentHashMap is weakly consistent rather than a global snapshot. Cross-key invariants such as transferring a balance still need a separate coordination boundary.",
+        "workedExample": {
+          "scenario": "Two workers register the same username in a ConcurrentHashMap.",
+          "steps": [
+            "Show both get calls observing absence before separate puts.",
+            "Use putIfAbsent and check which result won; do not interpret a concurrent size or iteration as a transaction."
+          ]
+        },
+        "commonMistakes": [
+          "A concurrent map makes every sequence of calls or every mutable value thread-safe."
+        ],
+        "guidedExercise": [
+          "Force duplicate registration with a shared start gate.",
+          "Verify exactly one registration wins and list which operations remain outside the map guarantee."
+        ],
+        "independentExercise": "Design a consistent two-account transfer and explain why per-key compute alone is insufficient.",
+        "recallQuestions": [
+          "What is atomic per key?",
+          "Why is iteration unsuitable for a consistent ledger snapshot?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Duplicate callers yield one winning registration.",
+        "Design distinguishes per-key decisions, value ownership and cross-key invariants."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ConcurrentHashMap",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-future-composition",
+      "title": "Future composition and executor boundaries",
+      "description": "Model dependent stages without blocking a worker while waiting for work queued behind it.",
+      "learningGoals": [
+        "Dependency graph completes even with one worker and no nested same-pool wait.",
+        "Every failed stage has an observed outcome and owned executors terminate."
+      ],
+      "concepts": [
+        "Future composition and executor boundaries"
+      ],
+      "examples": [
+        "Fetch a profile, then its permissions; fetch a price independently and combine the final results."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-concurrent-collections"
+      ],
+      "material": {
+        "explanation": "Model dependent stages without blocking a worker while waiting for work queued behind it. thenApply transforms a result, thenCompose flattens a dependent asynchronous operation, and thenCombine joins independent results. Decide where each stage executes; non-async callbacks may run on the completing thread, while async stages need an intentional executor choice. Observe exceptional completion and distinguish recovery from logging. An allOf completion still requires collecting each result and does not by itself cancel sibling work.",
+        "workedExample": {
+          "scenario": "Fetch a profile, then its permissions; fetch a price independently and combine the final results.",
+          "steps": [
+            "Draw dependency edges and compose permissions without nested blocking join inside a worker.",
+            "Inject a permissions failure and explicitly choose propagated failure or a documented fallback."
+          ]
+        },
+        "commonMistakes": [
+          "Adding Async automatically isolates work, or allOf returns all values and stops failing siblings."
+        ],
+        "guidedExercise": [
+          "Use an explicit owned executor and record stage names and thread names.",
+          "Compare thenApply returning a future with thenCompose flattening it."
+        ],
+        "independentExercise": "Run the graph on a one-worker executor and remove any same-pool blocking dependency.",
+        "recallQuestions": [
+          "When do you need thenCompose?",
+          "Which thread may run a non-async continuation?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Dependency graph completes even with one worker and no nested same-pool wait.",
+        "Every failed stage has an observed outcome and owned executors terminate."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: CompletableFuture",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-cancellation-deadlines",
+      "title": "Cooperative cancellation and end-to-end deadlines",
+      "description": "Cancellation is a protocol, not an unconditional kill.",
+      "learningGoals": [
+        "Timeout paths stop cooperative workers and leak no permits.",
+        "Evidence separates before-commit cancellation from already committed effects."
+      ],
+      "concepts": [
+        "Cooperative cancellation and end-to-end deadlines"
+      ],
+      "examples": [
+        "A result times out while a fake dependency is still waiting."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-future-composition"
+      ],
+      "material": {
+        "explanation": "Cancellation is a protocol, not an unconditional kill. Interruptible waits can throw InterruptedException; propagate it or restore interruption when the caller cannot rethrow, then stop according to the task contract. Give a request one deadline and pass the remaining budget to each stage rather than restarting a full timeout at every hop. A CompletableFuture timeout or cancellation can complete its result without stopping the underlying computation. Retain an actual task handle or cancellation signal, and verify worker termination separately.",
+        "workedExample": {
+          "scenario": "A result times out while a fake dependency is still waiting.",
+          "steps": [
+            "Record result completion and worker completion as separate events.",
+            "Signal cancellation through an owned Future or cooperative token; interrupt the wait, release resources and observe termination."
+          ]
+        },
+        "commonMistakes": [
+          "orTimeout or cancel on a CompletableFuture necessarily interrupts the supplier, or cancellation reverses a committed effect."
+        ],
+        "guidedExercise": [
+          "Use monotonic elapsed time to calculate a remaining request budget.",
+          "Test cancellation while queued, waiting for a permit and immediately before local commit."
+        ],
+        "independentExercise": "Cancel just after commit and explain why the recorded business result must still be discoverable.",
+        "recallQuestions": [
+          "How is result timeout different from task termination?",
+          "Why must each downstream call receive only the remaining budget?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Timeout paths stop cooperative workers and leak no permits.",
+        "Evidence separates before-commit cancellation from already committed effects."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: CompletableFuture",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-coordination-primitives",
+      "title": "Latches, barriers and phased coordination",
+      "description": "Choose coordination by the event you need.",
+      "learningGoals": [
+        "All four workers start only after the controller opens the gate.",
+        "Missing-party and failure cases terminate with explicit errors within deadlines."
+      ],
+      "concepts": [
+        "Latches, barriers and phased coordination"
+      ],
+      "examples": [
+        "Four workers must be ready before a controller releases the start gate."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-cancellation-deadlines"
+      ],
+      "material": {
+        "explanation": "Choose coordination by the event you need. A CountDownLatch is a one-shot gate that opens when its count reaches zero; CyclicBarrier coordinates recurring meetings among a fixed group; Phaser supports phases with changing registration. Incorrect party counts or a failed participant can strand others. Set finite deadlines, assign registration and deregistration ownership, and propagate failures so healthy participants do not wait forever. Test coordination explicitly rather than relying on scheduler timing.",
+        "workedExample": {
+          "scenario": "Four workers must be ready before a controller releases the start gate.",
+          "steps": [
+            "Use a ready latch of four and a start latch of one; each worker reports ready before awaiting start.",
+            "Release start after a deadline-limited ready wait, collect every result, and clean up if readiness fails."
+          ]
+        },
+        "commonMistakes": [
+          "A latch can be reset for another round, or failed participants are automatically removed from every barrier."
+        ],
+        "guidedExercise": [
+          "Draw which actor decrements each latch.",
+          "Compare the one-shot gate with two rounds of a barrier, including one failed participant."
+        ],
+        "independentExercise": "Model a Phaser worker leaving after its first phase and explain deregistration and failure cleanup.",
+        "recallQuestions": [
+          "Which primitive is one-shot?",
+          "What happens when a participant never reaches its barrier?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All four workers start only after the controller opens the gate.",
+        "Missing-party and failure cases terminate with explicit errors within deadlines."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: CountDownLatch",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CountDownLatch.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-read-mostly-state",
+      "title": "Read-write locks and optimistic snapshots",
+      "description": "A read-write lock permits compatible readers while writers require exclusive access.",
+      "learningGoals": [
+        "Readers accept only consistent pairs even under forced writer overlap.",
+        "Lock choice is justified by measured read/write mix rather than assumed superiority."
+      ],
+      "concepts": [
+        "Read-write locks and optimistic snapshots"
+      ],
+      "examples": [
+        "A point has x and y updated together, while many readers calculate a snapshot."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-coordination-primitives"
+      ],
+      "material": {
+        "explanation": "A read-write lock permits compatible readers while writers require exclusive access. It helps only when workload and critical-section costs justify its overhead. Upgrading a held read lock to a write lock can deadlock; use a documented pattern and recheck state after changing lock mode. StampedLock optimistic reads are different: copy fields to locals, validate the stamp, and fall back to a real read lock on failure. Do not act on unvalidated values or call reentrant helpers: StampedLock is not reentrant.",
+        "workedExample": {
+          "scenario": "A point has x and y updated together, while many readers calculate a snapshot.",
+          "steps": [
+            "Read both values into locals and validate an optimistic stamp.",
+            "If invalid, repeat the snapshot under a read lock; calculate from the validated local pair."
+          ]
+        },
+        "commonMistakes": [
+          "Two separately read fields form a consistent snapshot, or StampedLock supports reentrancy like ReentrantLock."
+        ],
+        "guidedExercise": [
+          "Compare one mutex, read-write locking and immutable snapshot replacement.",
+          "Force a writer between copied fields and ensure validation triggers fallback."
+        ],
+        "independentExercise": "Add a derived invariant such as x == y and demonstrate that readers never accept a mixed pair.",
+        "recallQuestions": [
+          "Why must optimistic data remain unused until validation?",
+          "Why is read-to-write upgrading hazardous?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Readers accept only consistent pairs even under forced writer overlap.",
+        "Lock choice is justified by measured read/write mix rather than assumed superiority."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: StampedLock",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/StampedLock.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-scheduling-overlap",
+      "title": "Scheduling, overlap and failure policy",
+      "description": "Scheduling specifies when work becomes eligible, not guaranteed wall-clock execution.",
+      "learningGoals": [
+        "One local refresh is active at a time under slow execution.",
+        "Failure and scheduling policy are observable; timers and workers stop cleanly."
+      ],
+      "concepts": [
+        "Scheduling, overlap and failure policy"
+      ],
+      "examples": [
+        "A periodic refresh dispatches slow work into another executor every tick."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-read-mostly-state"
+      ],
+      "material": {
+        "explanation": "Scheduling specifies when work becomes eligible, not guaranteed wall-clock execution. Fixed-rate and fixed-delay policies react differently to slow tasks. Successive executions of one periodic task do not overlap, but separate registrations or a scheduler that dispatches into another executor can overlap business work. An uncaught exception can suppress subsequent periodic executions. Decide whether a failure should stop the job or be reported and retried under a bounded policy; silently swallowing it hides broken maintenance.",
+        "workedExample": {
+          "scenario": "A periodic refresh dispatches slow work into another executor every tick.",
+          "steps": [
+            "Explain why the scheduling callback can finish before its dispatched refresh does.",
+            "Add explicit single-flight admission for the refresh, then inject a failure and record the next scheduling outcome."
+          ]
+        },
+        "commonMistakes": [
+          "A scheduled callback guarantees singleton execution across dispatches or service instances."
+        ],
+        "guidedExercise": [
+          "Compare fixed-delay and fixed-rate timelines when work exceeds the period.",
+          "Test duplicate registration, a slow refresh and one task exception with explicit shutdown."
+        ],
+        "independentExercise": "Describe why a second JVM can still run the same job and identify the need for durable ownership outside this local lab.",
+        "recallQuestions": [
+          "When can dispatched business work overlap?",
+          "What happens after an uncaught periodic-task exception?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "One local refresh is active at a time under slow execution.",
+        "Failure and scheduling policy are observable; timers and workers stop cleanly."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ScheduledExecutorService",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ScheduledExecutorService.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-virtual-threads",
+      "title": "Virtual threads and resource admission",
+      "description": "Virtual threads let blocking-style tasks share a smaller set of carrier platform threads, making many waiting tasks cheaper.",
+      "learningGoals": [
+        "Peak downstream occupancy never exceeds four and accepted task count stays bounded.",
+        "Comparison records JDK, workload, memory and completion outcomes without assuming a speedup."
+      ],
+      "concepts": [
+        "Virtual threads and resource admission"
+      ],
+      "examples": [
+        "A finite batch of 100 fake I/O jobs uses at most four downstream permits."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-scheduling-overlap"
+      ],
+      "material": {
+        "explanation": "Virtual threads let blocking-style tasks share a smaller set of carrier platform threads, making many waiting tasks cheaper. They do not create extra CPU cores or downstream connections. Use one virtual thread per admitted task instead of pooling virtual threads; keep separate resource and request-admission bounds. Otherwise cheap thread creation can hide an unbounded population waiting for permits. Record the JDK version: pinning behavior changed in recent JDKs, so old advice about synchronized must not be applied unchanged to Java 25.",
+        "workedExample": {
+          "scenario": "A finite batch of 100 fake I/O jobs uses at most four downstream permits.",
+          "steps": [
+            "Run an admitted virtual thread per job and measure the peak downstream occupancy.",
+            "Compare with a bounded platform-thread executor using the same fake work and resource limit, without claiming CPU acceleration."
+          ]
+        },
+        "commonMistakes": [
+          "Virtual threads eliminate the need for backpressure, or more virtual threads accelerate CPU-bound work."
+        ],
+        "guidedExercise": [
+          "Set a finite accepted-request limit before creating tasks.",
+          "Inject interruption during permit acquisition and verify all permits and virtual tasks are cleaned up."
+        ],
+        "independentExercise": "Replace fake waits with CPU work and explain the resulting bottleneck using the same available cores.",
+        "recallQuestions": [
+          "Which resource becomes cheaper?",
+          "Why are admission and downstream occupancy separate limits?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Peak downstream occupancy never exceeds four and accepted task count stays bounded.",
+        "Comparison records JDK, workload, memory and completion outcomes without assuming a speedup."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: virtual threads",
+          "url": "https://docs.oracle.com/en/java/javase/25/core/virtual-threads.html"
+        }
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-single-flight",
+      "title": "Single-flight work and concurrent cache loading",
+      "description": "Single-flight shares one in-progress computation among same-key callers.",
+      "learningGoals": [
+        "A gated same-key burst invokes the loader exactly once and shares the result.",
+        "Failure permits retry, caller timeout does not poison peers and distinct-key intake remains bounded."
+      ],
+      "concepts": [
+        "Single-flight work and concurrent cache loading"
+      ],
+      "examples": [
+        "Twenty callers request the same uncached key while a fake loader is gated."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-virtual-threads"
+      ],
+      "material": {
+        "explanation": "Single-flight shares one in-progress computation among same-key callers. Idempotency instead protects a logical effect from repetition; neither implies the other. Keep an in-flight future per key, install it atomically and perform slow loading outside map callbacks. Complete the shared future on both success and failure. Remove only the exact entry owned by that load so old cleanup cannot delete a replacement. Distinguish a caller abandoning its wait from cancellation of a shared load still needed by other callers.",
+        "workedExample": {
+          "scenario": "Twenty callers request the same uncached key while a fake loader is gated.",
+          "steps": [
+            "Install one shared promise and count one loader invocation; all other callers await that promise.",
+            "Complete exceptionally on load failure, conditionally remove that exact promise and allow a later attempt to retry."
+          ]
+        },
+        "commonMistakes": [
+          "A concurrent map alone deduplicates slow loads, or one caller timeout should always cancel every other caller’s load."
+        ],
+        "guidedExercise": [
+          "Test a same-key burst and independent keys with explicit owner selection.",
+          "Force failure, cleanup and a later retry; verify old completion cannot remove a newer entry."
+        ],
+        "independentExercise": "Add bounded admission for distinct keys and a separate caller timeout view that does not mutate the shared future.",
+        "recallQuestions": [
+          "How is single-flight different from durable idempotency?",
+          "Why must cleanup compare the exact in-flight entry?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A gated same-key burst invokes the loader exactly once and shares the result.",
+        "Failure permits retry, caller timeout does not poison peers and distinct-key intake remains bounded."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ConcurrentHashMap",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "concurrency-intermediate-lab-publication",
+      "title": "Lab: Publication, ownership and snapshots",
+      "description": "Use two independent experiments: a message-passing litmus test and a consistent snapshot service.",
+      "learningGoals": [
+        "Snapshot invariants and defensive-copy assertions hold under concurrent publication.",
+        "Litmus results include classified outcomes, a deadline and cleanup without an artificial writer-to-reader edge."
+      ],
+      "concepts": [
+        "Lab: Publication, ownership and snapshots"
+      ],
+      "examples": [
+        "A writer publishes snapshots where x and y always equal the same version."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-happens-before",
+        "concurrency-intermediate-safe-publication",
+        "concurrency-intermediate-concurrent-collections",
+        "concurrency-intermediate-future-composition",
+        "concurrency-intermediate-cancellation-deadlines",
+        "concurrency-intermediate-coordination-primitives",
+        "concurrency-intermediate-read-mostly-state",
+        "concurrency-intermediate-scheduling-overlap",
+        "concurrency-intermediate-virtual-threads",
+        "concurrency-intermediate-single-flight"
+      ],
+      "material": {
+        "explanation": "Use two independent experiments: a message-passing litmus test and a consistent snapshot service. A startup gate can align workers before the experiment, but do not synchronize the reader after the writer in a way that supplies the publication edge you intend to test. Publish immutable snapshots through a volatile reference, capture one reference per read, and assert internal invariants. Treat the deliberately plain-field variant as a semantic comparison; it need not fail during a finite run.",
+        "workedExample": {
+          "scenario": "A writer publishes snapshots where x and y always equal the same version.",
+          "steps": [
+            "Create a fully constructed immutable snapshot and publish it through volatile.",
+            "Readers capture one snapshot and check x == y; separately run the message-passing outcome experiment."
+          ]
+        },
+        "commonMistakes": [
+          "Reading two different snapshot references gives a consistent version, or a gate after publication leaves the litmus test unchanged."
+        ],
+        "guidedExercise": [
+          "Record allowed outcomes and the happens-before argument before running.",
+          "Mutate original input, race readers with publication and verify every accepted snapshot remains consistent."
+        ],
+        "independentExercise": "Replace volatile snapshot replacement with a read-write lock and compare reasoning complexity.",
+        "recallQuestions": [
+          "Which edge is being tested?",
+          "How could the harness accidentally provide that edge?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Snapshot invariants and defensive-copy assertions hold under concurrent publication.",
+        "Litmus results include classified outcomes, a deadline and cleanup without an artificial writer-to-reader edge."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25 language specification: memory model",
+          "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+        }
+      ],
+      "requirements": [
+        "Snapshot invariants and defensive-copy assertions hold under concurrent publication.",
+        "Litmus results include classified outcomes, a deadline and cleanup without an artificial writer-to-reader edge."
+      ],
+      "constraints": [
+        "Use finite local synthetic workloads and deadline-limited waits and cleanup.",
+        "Do not use sleeps to establish correctness; do not add lab dependencies to the website."
+      ],
+      "deliverables": [
+        "Runnable Java lab with assertions and recorded versions.",
+        "Predictions, schedules or histories, failure evidence and an explanation in existing notes."
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-lab-futures",
+      "title": "Lab: Future graphs, deadlines and sibling cleanup",
+      "description": "Build a profile-and-price aggregator against two local fake dependencies.",
+      "learningGoals": [
+        "Each scenario returns its documented outcome and preserves the failure cause.",
+        "No task or permit remains after deadline-limited cleanup, even when the parent timed out earlier."
+      ],
+      "concepts": [
+        "Lab: Future graphs, deadlines and sibling cleanup"
+      ],
+      "examples": [
+        "Profile completes while pricing waits at a gate until failure or cancellation."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-happens-before",
+        "concurrency-intermediate-safe-publication",
+        "concurrency-intermediate-concurrent-collections",
+        "concurrency-intermediate-future-composition",
+        "concurrency-intermediate-cancellation-deadlines",
+        "concurrency-intermediate-coordination-primitives",
+        "concurrency-intermediate-read-mostly-state",
+        "concurrency-intermediate-scheduling-overlap",
+        "concurrency-intermediate-virtual-threads",
+        "concurrency-intermediate-single-flight"
+      ],
+      "material": {
+        "explanation": "Build a profile-and-price aggregator against two local fake dependencies. Use an explicit executor, one request deadline and separate task handles for cancellation. One fake dependency waits interruptibly so you can verify actual cleanup after a result timeout. Do not make cleanup depend on cancelling a CompletableFuture alone. Exercise success, dependency failure and timeout as different contracts, and preserve failure causes in recorded outcomes.",
+        "workedExample": {
+          "scenario": "Profile completes while pricing waits at a gate until failure or cancellation.",
+          "steps": [
+            "Compose independent work and return a combined immutable result on success.",
+            "Fail profile, cancel unneeded pricing through its task handle, and observe both task termination and permit restoration."
+          ]
+        },
+        "commonMistakes": [
+          "Future exceptional completion is evidence that all underlying tasks stopped."
+        ],
+        "guidedExercise": [
+          "Record parent-result and child-termination events separately.",
+          "Test success, failure, queued cancellation, timeout and interruption after resource acquisition."
+        ],
+        "independentExercise": "Run with one worker and ensure the composition has no nested same-pool wait.",
+        "recallQuestions": [
+          "Who owns every submitted task?",
+          "What budget does the second stage receive?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each scenario returns its documented outcome and preserves the failure cause.",
+        "No task or permit remains after deadline-limited cleanup, even when the parent timed out earlier."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: CompletableFuture",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html"
+        }
+      ],
+      "requirements": [
+        "Each scenario returns its documented outcome and preserves the failure cause.",
+        "No task or permit remains after deadline-limited cleanup, even when the parent timed out earlier."
+      ],
+      "constraints": [
+        "Use finite local synthetic workloads and deadline-limited waits and cleanup.",
+        "Do not use sleeps to establish correctness; do not add lab dependencies to the website."
+      ],
+      "deliverables": [
+        "Runnable Java lab with assertions and recorded versions.",
+        "Predictions, schedules or histories, failure evidence and an explanation in existing notes."
+      ]
+    },
+    {
+      "id": "concurrency-intermediate-lab-single-flight",
+      "title": "Lab: Bounded single-flight loading",
+      "description": "Coordinate a per-key in-flight map with explicit admission bounds for distinct-key owners.",
+      "learningGoals": [
+        "Same-key burst invokes one loader; an abandoned caller does not fail its peers.",
+        "Owner failure permits retry, stale cleanup preserves replacement and observed resource bounds hold."
+      ],
+      "concepts": [
+        "Lab: Bounded single-flight loading"
+      ],
+      "examples": [
+        "Twenty same-key callers share one loader while another key can load independently."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-happens-before",
+        "concurrency-intermediate-safe-publication",
+        "concurrency-intermediate-concurrent-collections",
+        "concurrency-intermediate-future-composition",
+        "concurrency-intermediate-cancellation-deadlines",
+        "concurrency-intermediate-coordination-primitives",
+        "concurrency-intermediate-read-mostly-state",
+        "concurrency-intermediate-scheduling-overlap",
+        "concurrency-intermediate-virtual-threads",
+        "concurrency-intermediate-single-flight"
+      ],
+      "material": {
+        "explanation": "Coordinate a per-key in-flight map with explicit admission bounds for distinct-key owners. Slow loading happens outside map callbacks. Caller timeouts use separate views so abandoning a wait cannot exceptionally complete the promise shared by peers. On success or failure, complete the promise and conditionally remove only that promise from the map. Use gates to create overlapping arrivals and to control cleanup races rather than relying on sleeps.",
+        "workedExample": {
+          "scenario": "Twenty same-key callers share one loader while another key can load independently.",
+          "steps": [
+            "Count loader invocations under a gated same-key burst.",
+            "Fail the owner, allow a later retry, and force old cleanup after replacement to verify identity-conditional removal."
+          ]
+        },
+        "commonMistakes": [
+          "A future stored in a map automatically handles timeouts, failed owners and replacement cleanup."
+        ],
+        "guidedExercise": [
+          "Bound admitted distinct keys before starting owner work.",
+          "Test caller timeout, owner failure, retry and conflicting cleanup, then close every executor."
+        ],
+        "independentExercise": "Compare platform and virtual owner execution under identical admission and downstream permit bounds.",
+        "recallQuestions": [
+          "Why should a caller timeout not mutate the shared promise?",
+          "What state belongs to the owner versus each caller?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Same-key burst invokes one loader; an abandoned caller does not fail its peers.",
+        "Owner failure permits retry, stale cleanup preserves replacement and observed resource bounds hold."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ConcurrentHashMap",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+        }
+      ],
+      "requirements": [
+        "Same-key burst invokes one loader; an abandoned caller does not fail its peers.",
+        "Owner failure permits retry, stale cleanup preserves replacement and observed resource bounds hold."
+      ],
+      "constraints": [
+        "Use finite local synthetic workloads and deadline-limited waits and cleanup.",
+        "Do not use sleeps to establish correctness; do not add lab dependencies to the website."
+      ],
+      "deliverables": [
+        "Runnable Java lab with assertions and recorded versions.",
+        "Predictions, schedules or histories, failure evidence and an explanation in existing notes."
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "concurrency-intermediate-request-aggregator",
+      "title": "Capstone: Bounded request aggregator",
+      "description": "Build a single-process request aggregator using fake profile and pricing providers.",
+      "learningGoals": [
+        "Identical simultaneous keys share exactly one gated loader invocation; independent keys obey the configured owner bound.",
+        "One caller timeout does not exceptionally complete the shared promise or fail waiting peers."
+      ],
+      "concepts": [
+        "Capstone: Bounded request aggregator"
+      ],
+      "examples": [
+        "Eight admitted requests include three same-key callers; pricing stalls and one caller abandons its wait."
+      ],
+      "tasks": [
+        {
+          "id": "reason",
+          "title": "Write the invariant, ownership and predicted schedule"
+        },
+        {
+          "id": "verify",
+          "title": "Complete practice and save assertions or observed evidence"
+        },
+        {
+          "id": "recall",
+          "title": "Explain the result and limitations without notes"
+        }
+      ],
+      "dependencies": [
+        "concurrency-intermediate-lab-publication",
+        "concurrency-intermediate-lab-futures",
+        "concurrency-intermediate-lab-single-flight",
+        "concurrency-intermediate-single-flight"
+      ],
+      "material": {
+        "explanation": "Build a single-process request aggregator using fake profile and pricing providers. Requests share one immutable configuration snapshot, an absolute deadline and explicit task ownership. Duplicate simultaneous profile loads share one in-flight promise, while each caller has its own timeout view. Bound accepted requests, distinct-key owner loads and downstream occupancy separately. A periodic local refresh must not overlap its own dispatched refresh work. Expose terminal outcomes and release resources on every path. Use virtual threads only behind admission limits; retain a bounded platform-thread baseline.",
+        "workedExample": {
+          "scenario": "Eight admitted requests include three same-key callers; pricing stalls and one caller abandons its wait.",
+          "steps": [
+            "Share one gated profile load without letting the abandoned caller fail peers.",
+            "Propagate remaining deadlines, cancel request-owned pricing work and observe every child termination.",
+            "Publish a new configuration snapshot during the run and prove each request uses one consistent version."
+          ]
+        },
+        "commonMistakes": [
+          "A shared future has the same owner as each caller, or cheap virtual tasks make admission bounds unnecessary."
+        ],
+        "guidedExercise": [
+          "Write request, loader and downstream occupancy limits before coding.",
+          "Run success, provider failure, same-key burst, caller timeout, overload and refresh-failure cases."
+        ],
+        "independentExercise": "Compare stable-API platform and virtual variants using identical work and document what the single-flight cache cannot guarantee across restart.",
+        "recallQuestions": [
+          "Which work is shared versus request-owned?",
+          "Which cancellation can affect peers?",
+          "How do you prevent orphan tasks after returning a timeout?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Identical simultaneous keys share exactly one gated loader invocation; independent keys obey the configured owner bound.",
+        "One caller timeout does not exceptionally complete the shared promise or fail waiting peers.",
+        "Every request captures one immutable configuration version and passes only its remaining deadline downstream.",
+        "Admission overflow is explicit, queue and downstream occupancy stay within written limits, and no unlimited waiting task population is created.",
+        "Provider failure, timeout and interruption leave no orphan tasks, ThreadLocal context or leaked permits after bounded cleanup.",
+        "Local refreshes do not overlap; failure and retry policy is observable and all schedulers terminate.",
+        "All accepted requests and owner loads have recorded terminal outcomes, with a written restart and multi-instance limitation."
+      ],
+      "resources": [
+        {
+          "title": "Java SE 25: ExecutorService",
+          "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html"
+        }
+      ],
+      "requirements": [
+        "Identical simultaneous keys share exactly one gated loader invocation; independent keys obey the configured owner bound.",
+        "One caller timeout does not exceptionally complete the shared promise or fail waiting peers.",
+        "Every request captures one immutable configuration version and passes only its remaining deadline downstream.",
+        "Admission overflow is explicit, queue and downstream occupancy stay within written limits, and no unlimited waiting task population is created.",
+        "Provider failure, timeout and interruption leave no orphan tasks, ThreadLocal context or leaked permits after bounded cleanup.",
+        "Local refreshes do not overlap; failure and retry policy is observable and all schedulers terminate.",
+        "All accepted requests and owner loads have recorded terminal outcomes, with a written restart and multi-instance limitation."
+      ],
+      "constraints": [
+        "Use a finite local synthetic workload; never contact a real payment provider.",
+        "State all capacity and deadline budgets before running; clean up every task and executor.",
+        "Single-process in-memory coordination only; no durable cache, cross-instance single-flight or global scheduling guarantee."
+      ],
+      "deliverables": [
+        "Runnable Java implementation, failure checks and reproducible concurrency evidence.",
+        "Invariant and ownership diagrams, result histories and resource-accounting report.",
+        "Design review covering semantic guarantees, measurements and durability limits."
+      ]
+    }
+  ]
+}

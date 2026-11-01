@@ -1,6 +1,6 @@
 # Backtrack
 
-A personal backend engineering roadmap. Eleven modules take you from plain Java to an Authentication Service project, a networking/payment-reconciliation lab, practical JVM investigation, and backend reliability and scale. Curriculum is source-controlled JSON; personal progress stays in your browser.
+A personal backend engineering roadmap. Fourteen modules take you from plain Java to an Authentication Service project, a networking/payment-reconciliation lab, practical JVM investigation, backend reliability and scale, and concurrency from fundamentals to advanced practice. Curriculum is source-controlled JSON; personal progress stays in your browser.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ Each item has `id`, `title`, `description`, `learningGoals`, `concepts`, `exampl
 
 The full curriculum also includes `material`: a plain-text `explanation`, a `workedExample` with `scenario` and ordered `steps`, `commonMistakes`, `guidedExercise`, `independentExercise`, and `recallQuestions`. `acceptanceCriteria` states observable completion checks; `resources` contains official documentation links as `{ title, url }`. Modules include `outcomes`, `studyGuidance`, and `completionCriteria`. The app renders these fields directly without HTML, Markdown processing, or new dependencies. Existing simpler JSON definitions still render through the original examples fallback.
 
-The updated track has 182 topics, 52 exercises, and 12 challenges across eleven modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and extends operational failure drills into runtime investigation and reliable event processing. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
+The updated track has 222 topics, 62 exercises, and 15 challenges across fourteen modules. It introduces testing in Java Core, transfers domain reasoning to inventory, teaches executable SQL and JDBC before generated persistence, separates authentication from authorization, and extends operational failure drills into runtime investigation and reliable event processing. Tree traversal remains foundational; implementing a balanced tree is optional depth. All topics still count toward progress.
 
 Existing module, item, and task IDs are preserved. Notes, statuses, attempts, AI assistance, and checked tasks remain associated with the same content. Added topics can lower a module's percentage and leave new prerequisites incomplete; no progress is reset or silently marked complete. Previously completed exercises and challenges remain completed, so revisit their expanded criteria manually when useful.
 
@@ -53,7 +53,7 @@ Recommendations first continue an active learning/practicing topic, then choose 
 ```text
 app/          Next.js App Router pages and responsive styles
 components/   Dashboard, roadmap, detail editors, backup controls, context
-data/         Roadmap and eleven standalone module JSON files
+data/         Roadmap and fourteen standalone module JSON files
 lib/          Build-time curriculum loader, progress rules, localStorage
 types/        Curriculum and progress types
 tests/        Native Node tests for import validation, focus, curriculum
@@ -82,3 +82,21 @@ Module 11 expands all ten concepts from the supplied Puneet Patwari reading-list
 Five labs cover bounded load and latency, retry/outbox crash recovery, query plans versus write cost, deterministic hash-ring routing, and real local CDC snapshot/replay. The order-pipeline capstone connects all ten concepts. It uses real database transactions and durable replay protection, with simulations for routing and fan-out; the dedicated CDC lab requires actual connector evidence. Existing Database, Production Thinking and Backend Networking lessons are linked as prerequisites.
 
 Open **Backend Reliability & Scale** in the roadmap or download [the complete self-study guide](public/materials/backend-reliability-scale-self-study.md). The guide includes the full lessons, a six-week study sequence, a disposable SQL fixture, measurement notes and a crash-review worksheet. Record predictions, evidence and mastery scores in existing notes. All existing curriculum and task IDs are preserved; no runtime dependency or progress-schema change is needed.
+
+## Concurrency fundamentals extension
+
+Module 12 adds all twenty supplied concepts in their original order, from concurrency and parallelism through idempotency under concurrency. It requires Java Core and includes worked examples, common misconceptions, guided and independent practice, recall questions, acceptance checks and official references. The lessons distinguish the conceptual thread lifecycle from Java's actual states and explain where atomic operations, fairness and immutability stop providing guarantees.
+
+Four labs cover reproducible races and ownership, conditions and semaphore permits, deadlock/livelock/starvation, and bounded workers with backpressure. The Concurrent Order Processor capstone combines immutable jobs, bounded admission, permit cleanup and atomic local inventory/deduplication results. Its guarantees are explicitly limited to one process and a finite in-memory run; restart recovery and real external effects require durable coordination.
+
+Open **Concurrency Fundamentals** in the roadmap. Use plain Java with synthetic local workloads, handshakes rather than timing guesses, and deadline-limited cleanup. Intentional deadlocks run only in disposable child processes with external deadlines. Existing notes and progress controls work for every new item; existing IDs and saved progress are preserved.
+
+## Intermediate and advanced concurrency extension
+
+The concurrency track now follows **Fundamentals (12) → Intermediate (13) → Advanced (14)**. Each level requires the previous level's concepts. New levels use the existing lesson pages, checklists, notes and progress exports; all earlier IDs remain unchanged.
+
+**Concurrency Intermediate** adds ten topics: happens-before and visibility, safe publication and ownership, concurrent collections, future composition, cooperative cancellation and deadlines, coordination primitives, read-mostly snapshots, scheduling and overlap, virtual threads, and single-flight loading. Three labs verify publication/snapshots, future graphs and child cleanup, and bounded shared loading. The Bounded Request Aggregator capstone combines immutable configuration, per-caller deadlines, shared loader ownership, explicit resource limits and non-overlapping local refreshes.
+
+**Concurrency Advanced** adds ten topics: linearizability, VarHandle memory ordering, CAS and ABA, progress guarantees, contention and false sharing, fork/join decomposition, reactive demand, structured concurrency, jcstress/JMH verification, and diagnosis across process boundaries. Three labs cover sequential-history checks, publication litmus tests plus controlled ABA, and contention/decomposition benchmarks. The Verified Versioned Reservation Service capstone commits stock and a finite deduplication ledger together, compares a lock baseline with CAS, and checks results against legal sequential histories.
+
+References target Java 25. StructuredTaskScope is explicitly a Java 25 preview API; the exercises and capstone retain a stable ExecutorService/Future path, and the optional comparison needs the matching JDK and preview settings. JMH and jcstress belong to separate learning projects, not the website's dependencies. Run bounded synthetic experiments with explicit cleanup and save raw evidence. Finite tests do not prove all schedules correct, performance wins are not required for completion, and in-memory correctness does not provide restart or multi-instance durability.

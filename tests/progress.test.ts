@@ -114,6 +114,79 @@ test("curriculum expansion preserves every original module, item, and task ident
   assert.deepEqual(parseExport(exportProgress(progress)), progress);
 });
 
+test("concurrency module covers all twenty supplied concepts with linked labs and a capstone", () => {
+  const module = modules.find(m => m.id === "concurrency-fundamentals");
+  assert.ok(module);
+  assert.equal(module.order, 12);
+  assert.deepEqual(module.dependencies, ["java-core"]);
+  assert.deepEqual(module.topics.map(t => t.title), [
+    "Concurrency", "Concurrency vs Parallelism", "Processes vs Threads", "Thread Lifecycle",
+    "Race Condition", "Mutex", "Semaphore", "Condition Variable", "Coarse vs Fine-grained Locking",
+    "Reentrant Lock", "Deadlock", "Livelock", "Starvation", "Atomic Operations", "Thread Pool",
+    "Producer-Consumer", "Blocking vs Non-blocking", "Backpressure", "Immutability", "Idempotency under concurrency",
+  ]);
+  assert.equal(module.exercises.length, 4);
+  assert.equal(module.challenges.length, 1);
+  for (const lab of module.exercises) {
+    assert.ok(lab.dependencies.length);
+    assert.ok(lab.requirements?.length && lab.constraints?.length && lab.deliverables?.length);
+    assert.ok(module.challenges[0].dependencies.includes(lab.id));
+  }
+  const capstone = module.challenges[0];
+  assert.ok(capstone.dependencies.includes(module.topics[19].id));
+  assert.ok(capstone.acceptanceCriteria!.length >= 7);
+  const progress = emptyProgress();
+  for (const m of modules) for (const topic of m.topics) {
+    if (m.id !== module.id) progress.items[topic.id] = { ...defaultEntry(), status: "COMPLETED" };
+  }
+  assert.equal(recommendations(modules, progress).next?.item.id, module.topics[0].id);
+});
+
+test("concurrency levels cover intermediate and advanced skills with an ordered learning path", () => {
+  const expected = [
+    { id: "concurrency-intermediate", prerequisite: "concurrency-fundamentals", order: 13, topics: [
+      "happens-before", "safe-publication", "concurrent-collections", "future-composition", "cancellation-deadlines",
+      "coordination-primitives", "read-mostly-state", "scheduling-overlap", "virtual-threads", "single-flight",
+    ] },
+    { id: "concurrency-advanced", prerequisite: "concurrency-intermediate", order: 14, topics: [
+      "linearizability", "memory-ordering", "cas-and-aba", "progress-guarantees", "contention-locality",
+      "work-stealing", "reactive-demand", "structured-concurrency", "correctness-and-benchmarks", "diagnosis-and-boundaries",
+    ] },
+  ];
+  for (const level of expected) {
+    const module = modules.find(m => m.id === level.id);
+    assert.ok(module);
+    assert.equal(module.order, level.order);
+    assert.deepEqual(module.dependencies, [level.prerequisite]);
+    assert.deepEqual(module.topics.map(t => t.id), level.topics.map(id => `${level.id}-${id}`));
+    for (const [index, topic] of module.topics.entries()) {
+      assert.deepEqual(topic.dependencies, index ? [module.topics[index - 1].id] : []);
+    }
+    assert.equal(module.exercises.length, 3);
+    assert.equal(module.challenges.length, 1);
+    for (const practice of [...module.exercises, ...module.challenges]) {
+      assert.ok(practice.requirements?.length && practice.constraints?.length && practice.deliverables?.length);
+    }
+    for (const lab of module.exercises) assert.ok(module.challenges[0].dependencies.includes(lab.id));
+    assert.ok(module.challenges[0].acceptanceCriteria!.length >= 7);
+  }
+  const progress = emptyProgress();
+  const levels = ["concurrency-fundamentals", ...expected.map(level => level.id)];
+  for (const module of modules) {
+    if (!levels.includes(module.id)) for (const topic of module.topics) {
+      progress.items[topic.id] = { ...defaultEntry(), status: "COMPLETED" };
+    }
+  }
+  for (const id of levels) {
+    const module = modules.find(m => m.id === id)!;
+    for (const topic of module.topics) {
+      assert.equal(recommendations(modules, progress).next?.item.id, topic.id);
+      progress.items[topic.id] = { ...defaultEntry(), status: "COMPLETED" };
+    }
+  }
+  assert.equal(recommendations(modules, progress).next, undefined);
+});
+
 test("networking guide retains every unit, capstone acceptance check, and self-assessment question", () => {
   const module = modules.find(m => m.id === "backend-networking");
   assert.ok(module?.sourceGuide);
